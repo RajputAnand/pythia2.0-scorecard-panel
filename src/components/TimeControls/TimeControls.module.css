@@ -1,0 +1,84 @@
+@reference "../../app/globals.css";
+
+.timeControls {
+  @apply flex items-center gap-2 bg-surface border-b border-border;
+  padding: 0 30px;
+  height: 50px;
+}
+
+.timeBtn {
+  @apply border border-border rounded-lg font-sans font-medium text-secondary cursor-pointer transition-all duration-150;
+  background: none;
+  font-size: 12px;
+  padding: 6px 14px;
+}
+
+.timeBtn:hover {
+  @apply border-accent text-accent;
+}
+
+.timeBtnActive {
+  @apply bg-accent text-white border-accent;
+}
+
+.timeSep {
+  @apply bg-border shrink-0;
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+}
+
+.dateRangeWrap {
+  @apply flex items-center gap-[6px];
+  margin-left: 4px;
+}
+
+.dateInput {
+  @apply border border-border rounded-[7px] font-mono text-secondary bg-surface cursor-pointer;
+  font-size: 11.5px;
+  padding: 5px 10px;
+}
+
+.dateInput:focus {
+  @apply outline-none border-accent;
+}
+
+.dateRangeTo {
+  @apply text-muted;
+  font-size: 11px;
+}
+
+.applyBtn {
+  @apply border border-border rounded-lg bg-transparent text-secondary font-sans font-medium cursor-pointer transition-all duration-150;
+  font-size: 11.5px;
+  padding: 5px 11px;
+}
+
+.applyBtn:hover {
+  @apply bg-surface-alt;
+}
+
+.timeControlsRight {
+  @apply flex items-center gap-2 ml-auto;
+}
+
+.viewLabel {
+  @apply text-muted;
+  font-size: 11.5px;
+}
+
+.actualsToggle {
+  @apply flex border border-border rounded-lg overflow-hidden;
+}
+
+.apBtn {
+  @apply font-sans font-medium text-muted cursor-pointer transition-all duration-150;
+  background: none;
+  border: none;
+  font-size: 11.5px;
+  padding: 5px 12px;
+}
+
+.apBtnActive {
+  @apply bg-primary text-white;
+}

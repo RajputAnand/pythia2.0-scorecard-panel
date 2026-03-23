@@ -1,0 +1,77 @@
+@reference "../../app/globals.css";
+
+.card {
+  @apply bg-surface border border-border rounded-2xl overflow-hidden;
+}
+
+.cardHeader {
+  @apply flex items-start justify-between border-b border-border;
+  padding: 16px 20px 12px;
+}
+
+.cardTitle { @apply font-semibold; font-size: 13px; }
+.cardSub { @apply text-muted; font-size: 11px; margin-top: 2px; }
+
+.badge {
+  @apply font-bold rounded-[20px] whitespace-nowrap;
+  font-size: 10px;
+  padding: 3px 8px;
+}
+.badge.neutral { @apply bg-surface-alt text-muted; }
+
+.tableWrap { overflow-x: auto; }
+
+.table { width: 100%; border-collapse: collapse; }
+
+.table th {
+  @apply text-muted font-semibold uppercase border-b border-border text-left;
+  font-size: 10px;
+  letter-spacing: .09em;
+  padding: 0 14px 10px;
+}
+.table th:last-child { text-align: right; }
+
+.table td {
+  @apply border-b border-border;
+  font-size: 13px;
+  padding: 13px 14px;
+  vertical-align: middle;
+}
+.table tr:last-child td { border-bottom: none; }
+.table td:last-child { text-align: right; }
+
+.metricName { @apply font-medium; }
+.metricSub { @apply text-muted; font-size: 11px; }
+
+.scoreChange { @apply flex items-center gap-[6px]; }
+.scoreBefore { @apply font-mono text-muted; font-size: 12px; }
+.scoreArrow { @apply text-muted; font-size: 11px; }
+.scoreAfter { @apply font-mono font-bold; font-size: 12px; }
+
+.barTrack { @apply bg-surface-alt rounded-[3px] overflow-hidden; height: 6px; margin-top: 5px; }
+.barFill { height: 100%; border-radius: 3px; }
+
+.outcomeCell { @apply text-secondary; font-size: 12px; }
+
+.revenue { @apply font-mono font-bold; font-size: 13px; }
+.revenue.actual { @apply text-accent; }
+.revenue.projected { @apply text-cobalt; }
+.revenue.cost { @apply text-amber; }
+.revenueLg { font-size: 15px; }
+
+.projBadge {
+  @apply font-semibold rounded-[4px];
+  font-size: 9.5px;
+  padding: 1px 5px;
+  margin-left: 4px;
+}
+.actualBadge  { @apply bg-accent-light text-accent; }
+.projBadgeBlue{ @apply bg-cobalt-light text-cobalt; }
+.costBadge    { @apply bg-amber-light text-amber; }
+
+.costRow { background: #FAFAF8; }
+.costMetric { @apply text-amber; }
+
+.roiRow { background: var(--color-accent-light); }
+.roiLabel { @apply text-accent font-medium; font-size: 14px; }
+.roiOutcome { @apply text-accent font-medium; font-size: 12px; }
