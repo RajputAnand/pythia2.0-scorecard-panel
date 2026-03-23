@@ -160,7 +160,7 @@ export default function Sidebar() {
         </div>
         <div>
           <div className="text-[13.5px] font-semibold">Pythia</div>
-          <div className="text-[10px] text-muted mt-[1px]">Scorecard</div>
+          <div className="text-[10px] text-muted mt-px">Scorecard</div>
         </div>
       </div>
 
@@ -186,7 +186,7 @@ export default function Sidebar() {
                   </span>
                   {item.label}
                   {item.badge && (
-                    <span className="ml-auto font-mono font-bold text-white bg-danger rounded-[10px] text-[9.5px] px-[6px] py-[1px]">
+                    <span className="ml-auto font-mono font-bold text-white bg-danger rounded-[10px] text-[9.5px] px-[6px] py-px">
                       {item.badge}
                     </span>
                   )}
