@@ -19,7 +19,7 @@ export default function RoiAttributionPage() {
 
       <TimeControls />
 
-      <div className="flex flex-col px-[30px] py-[24px] gap-5">
+      <div className="grid px-[30px] py-[24px] gap-5">
         <RoiHero />
 
         <div className="grid grid-cols-2 gap-4">

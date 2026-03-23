@@ -15,7 +15,7 @@ export default function OverviewPage() {
         <button className={headerStyles.btnAccent}>📣 Share My Score</button>
       </Header>
 
-      <div className="flex flex-col px-[30px] py-[24px] gap-5">
+      <div className="grid px-[30px] py-[24px] gap-5">
         <HeroBanner />
 
         <div className="grid grid-cols-2 items-start gap-[18px]">
