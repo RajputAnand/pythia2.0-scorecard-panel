@@ -1,0 +1,109 @@
+@reference "../../app/globals.css";
+
+.weekLabel {
+  @apply text-muted;
+  font-size: 11px;
+}
+
+/* ── List ── */
+.list {
+  @apply flex flex-col;
+}
+
+.row {
+  @apply flex items-center border-b border-border;
+  gap: 12px;
+  padding: 11px 20px;
+}
+
+.row:last-child {
+  @apply border-b-0;
+}
+
+.rowYours {
+  @apply bg-accent-light;
+}
+
+/* Position badge */
+.pos {
+  @apply flex items-center justify-center rounded-[7px] font-mono font-bold shrink-0;
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+}
+
+.pos.gold     { background: #FBF0C0; color: #A07010; }
+.pos.silver   { background: #F0F0F4; color: #70708A; }
+.pos.bronze   { background: #FAE8D8; color: #A05020; }
+.pos.yoursPos { @apply bg-accent text-white; }
+.pos.regular  { @apply bg-surface-alt text-muted; }
+
+/* Avatar */
+.avatar {
+  @apply flex items-center justify-center rounded-full text-white font-bold shrink-0;
+  width: 28px;
+  height: 28px;
+  font-size: 10px;
+}
+
+/* Name */
+.name {
+  @apply font-medium flex-1;
+  font-size: 12.5px;
+}
+
+.nameYours {
+  @apply text-accent font-bold;
+}
+
+.youTag {
+  @apply font-bold bg-accent text-white rounded-[4px];
+  font-size: 9.5px;
+  padding: 1px 6px;
+  margin-left: 6px;
+}
+
+/* Bar */
+.barWrap {
+  width: 90px;
+}
+
+.barTrack {
+  @apply bg-surface-alt rounded-[3px] overflow-hidden;
+  height: 6px;
+}
+
+.barFill {
+  @apply h-full rounded-[3px];
+}
+
+/* Score */
+.score {
+  @apply font-mono font-bold;
+  font-size: 13px;
+  width: 28px;
+  text-align: right;
+}
+
+/* Points */
+.pts {
+  @apply font-mono text-muted;
+  font-size: 11px;
+  width: 56px;
+  text-align: right;
+}
+
+.ptsYours {
+  @apply text-amber font-semibold;
+}
+
+/* Gap note */
+.gapNote {
+  @apply bg-surface-alt border-t border-border text-secondary leading-relaxed;
+  padding: 10px 20px;
+  font-size: 12px;
+}
+
+.gapNote strong {
+  @apply font-semibold text-primary;
+}
