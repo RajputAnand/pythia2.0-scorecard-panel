@@ -16,10 +16,10 @@ export default function TimeControls() {
       {TIME_PERIODS.map((p) => (
         <button
           key={p}
-          className={`border rounded-lg font-sans font-medium cursor-pointer transition-all duration-150 text-[12px] px-[14px] py-[6px] hover:border-accent hover:text-accent ${
+          className={`border rounded-lg font-sans font-medium cursor-pointer transition-all duration-150 text-[12px] px-[14px] py-[6px] ${
             period === p
               ? 'bg-accent text-white border-accent'
-              : 'border-border text-secondary bg-transparent'
+              : 'border-border text-secondary bg-transparent hover:border-accent hover:text-accent'
           }`}
           onClick={() => setPeriod(p)}
         >
