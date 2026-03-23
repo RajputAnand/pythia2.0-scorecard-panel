@@ -19,6 +19,17 @@ interface CoachingItem {
   defaultOpen?: boolean
 }
 
+const pillClass: Record<PillVariant, string> = {
+  hosp: 'bg-accent-light text-accent',
+  checkout: 'bg-amber-light text-amber',
+  time: 'bg-cobalt-light text-cobalt',
+}
+
+const statusClass: Record<StatusVariant, string> = {
+  active: 'bg-amber-light text-amber',
+  done: 'bg-accent-light text-accent',
+}
+
 const ITEMS: CoachingItem[] = [
   {
     id: 'checkout',
@@ -95,28 +106,45 @@ export default function CoachingMoments() {
     })
   }
 
-  const badge = <span className={styles.badge}>2 active</span>
+  const badge = (
+    <span className="bg-amber-light text-amber font-semibold rounded-[20px] text-[11px] px-[9px] py-[3px]">
+      2 active
+    </span>
+  )
 
   return (
     <Panel title="Coaching Moments" subtitle="What to work on this week" badge={badge}>
-      <div className={styles.list}>
+      <div className="flex flex-col gap-[10px]">
         {ITEMS.map((item) => {
           const isOpen = openIds.has(item.id)
           return (
-            <div key={item.id} className={styles.item}>
+            <div key={item.id} className="border border-border rounded-[11px] overflow-hidden">
               <button
-                className={`${styles.itemHeader} ${isOpen ? styles.itemHeaderOpen : ''}`}
+                className={`w-full flex items-start gap-[10px] cursor-pointer text-left bg-transparent border-0 px-[14px] py-[12px] hover:bg-surface-alt ${isOpen ? 'bg-surface-alt' : ''}`}
                 onClick={() => toggle(item.id)}
               >
-                <span className={`${styles.pill} ${styles[item.type]}`}>{item.typeLabel}</span>
-                <span className={styles.itemTitle}>{item.title}</span>
-                <span className={`${styles.status} ${styles[item.status]}`}>{item.statusLabel}</span>
-                <span className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`}>▾</span>
+                <span className={`font-bold uppercase tracking-[.06em] rounded-[5px] whitespace-nowrap shrink-0 text-[9.5px] px-[8px] py-[2px] mt-[2px] ${pillClass[item.type]}`}>
+                  {item.typeLabel}
+                </span>
+                <span className="font-semibold flex-1 leading-snug text-[12.5px]">{item.title}</span>
+                <span className={`font-semibold rounded-[20px] whitespace-nowrap shrink-0 text-[10.5px] px-[8px] py-[2px] ${statusClass[item.status]}`}>
+                  {item.statusLabel}
+                </span>
+                <span
+                  className="text-muted shrink-0 text-[12px] transition-transform duration-200"
+                  style={{ transform: isOpen ? 'rotate(180deg)' : undefined }}
+                >
+                  ▾
+                </span>
               </button>
               {isOpen && (
-                <div className={styles.itemBody}>
-                  <p className={styles.what}>{item.what}</p>
-                  <div className={styles.tip}>{item.tip}</div>
+                <div className="px-[14px] pb-[13px]">
+                  <p className={`${styles.what} text-secondary leading-relaxed text-[12px] mb-[10px]`}>
+                    {item.what}
+                  </p>
+                  <div className={`${styles.tip} bg-surface-alt rounded-lg text-secondary leading-relaxed text-[12px] px-[12px] py-[9px]`}>
+                    {item.tip}
+                  </div>
                 </div>
               )}
             </div>

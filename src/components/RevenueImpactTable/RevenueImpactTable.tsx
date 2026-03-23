@@ -29,15 +29,17 @@ const ROWS = [
 
 export default function RevenueImpactTable() {
   return (
-    <div className={styles.card}>
-      <div className={styles.cardHeader}>
+    <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+      <div className="flex items-start justify-between border-b border-border px-5 pt-4 pb-3">
         <div>
-          <div className={styles.cardTitle}>Estimated Revenue Impact by Metric</div>
-          <div className={styles.cardSub}>Actuals Nov–Feb · Projections based on current trajectory</div>
+          <div className="font-semibold text-[13px]">Estimated Revenue Impact by Metric</div>
+          <div className="text-muted text-[11px] mt-0.5">Actuals Nov–Feb · Projections based on current trajectory</div>
         </div>
-        <div className={`${styles.badge} ${styles.neutral}`}>4-month view</div>
+        <div className="font-bold rounded-[20px] whitespace-nowrap bg-surface-alt text-muted text-[10px] px-[8px] py-[3px]">
+          4-month view
+        </div>
       </div>
-      <div className={styles.tableWrap}>
+      <div className="overflow-x-auto">
         <table className={styles.table}>
           <thead>
             <tr>
@@ -52,61 +54,61 @@ export default function RevenueImpactTable() {
             {ROWS.map((row) => (
               <tr key={row.metric}>
                 <td>
-                  <div className={styles.metricName}>{row.metric}</div>
-                  <div className={styles.metricSub}>{row.sub}</div>
+                  <div className="font-medium text-[13px]">{row.metric}</div>
+                  <div className="text-muted text-[11px]">{row.sub}</div>
                 </td>
                 <td>
-                  <div className={styles.scoreChange}>
-                    <span className={styles.scoreBefore}>{row.scoreBefore}</span>
-                    <span className={styles.scoreArrow}>→</span>
-                    <span className={styles.scoreAfter} style={{ color: row.scoreColor }}>{row.scoreAfter}</span>
+                  <div className="flex items-center gap-[6px]">
+                    <span className="font-mono text-muted text-[12px]">{row.scoreBefore}</span>
+                    <span className="text-muted text-[11px]">→</span>
+                    <span className="font-mono font-bold text-[12px]" style={{ color: row.scoreColor }}>{row.scoreAfter}</span>
                   </div>
-                  <div className={styles.barTrack}>
-                    <div className={styles.barFill} style={{ width: row.barWidth, background: row.barColor }} />
+                  <div className="bg-surface-alt rounded-[3px] overflow-hidden h-[6px] mt-[5px]">
+                    <div className="h-full rounded-[3px]" style={{ width: row.barWidth, background: row.barColor }} />
                   </div>
                 </td>
-                <td className={styles.outcomeCell}>{row.outcome}</td>
+                <td className="text-secondary text-[12px]">{row.outcome}</td>
                 <td>
-                  <span className={`${styles.revenue} ${styles.actual}`}>{row.actual}</span>
-                  <span className={`${styles.projBadge} ${styles.actualBadge}`}>Actual</span>
+                  <span className="font-mono font-bold text-[13px] text-accent">{row.actual}</span>
+                  <span className="font-semibold rounded-[4px] bg-accent-light text-accent text-[9.5px] px-[5px] py-[1px] ml-1">Actual</span>
                 </td>
                 <td>
-                  <span className={`${styles.revenue} ${styles.projected}`}>{row.projected}</span>
-                  <span className={`${styles.projBadge} ${styles.projBadgeBlue}`}>Proj</span>
+                  <span className="font-mono font-bold text-[13px] text-cobalt">{row.projected}</span>
+                  <span className="font-semibold rounded-[4px] bg-cobalt-light text-cobalt text-[9.5px] px-[5px] py-[1px] ml-1">Proj</span>
                 </td>
               </tr>
             ))}
 
             {/* Cost row */}
-            <tr className={styles.costRow}>
+            <tr style={{ background: '#FAFAF8' }}>
               <td>
-                <div className={`${styles.metricName} ${styles.costMetric}`}>Pythia Platform Cost</div>
-                <div className={styles.metricSub}>All-in monthly subscription</div>
+                <div className="font-medium text-[13px] text-amber">Pythia Platform Cost</div>
+                <div className="text-muted text-[11px]">All-in monthly subscription</div>
               </td>
               <td>—</td>
-              <td className={styles.outcomeCell}>Coaching, analytics, hardware</td>
+              <td className="text-secondary text-[12px]">Coaching, analytics, hardware</td>
               <td>
-                <span className={`${styles.revenue} ${styles.cost}`}>−$1,440</span>
-                <span className={`${styles.projBadge} ${styles.costBadge}`}>Cost</span>
+                <span className="font-mono font-bold text-[13px] text-amber">−$1,440</span>
+                <span className="font-semibold rounded-[4px] bg-amber-light text-amber text-[9.5px] px-[5px] py-[1px] ml-1">Cost</span>
               </td>
               <td>
-                <span className={`${styles.revenue} ${styles.cost}`}>−$1,440</span>
-                <span className={`${styles.projBadge} ${styles.costBadge}`}>Cost</span>
+                <span className="font-mono font-bold text-[13px] text-amber">−$1,440</span>
+                <span className="font-semibold rounded-[4px] bg-amber-light text-amber text-[9.5px] px-[5px] py-[1px] ml-1">Cost</span>
               </td>
             </tr>
 
             {/* Net ROI row */}
-            <tr className={styles.roiRow}>
+            <tr style={{ background: 'var(--color-accent-light)' }}>
               <td>
-                <div className={styles.roiLabel}>Net ROI</div>
+                <div className="text-accent font-medium text-[14px]">Net ROI</div>
               </td>
               <td>—</td>
-              <td className={styles.roiOutcome}>12.7× return on platform investment</td>
+              <td className="text-accent font-medium text-[12px]">12.7× return on platform investment</td>
               <td>
-                <span className={`${styles.revenue} ${styles.actual} ${styles.revenueLg}`}>+$16,800</span>
+                <span className="font-mono font-bold text-[15px] text-accent">+$16,800</span>
               </td>
               <td>
-                <span className={`${styles.revenue} ${styles.projected} ${styles.revenueLg}`}>+$23,760</span>
+                <span className="font-mono font-bold text-[15px] text-cobalt">+$23,760</span>
               </td>
             </tr>
           </tbody>

@@ -149,39 +149,47 @@ export default function Sidebar() {
   const navSections = NAV_BY_ROLE[user.role] ?? EMPLOYEE_NAV
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className="fixed inset-y-0 left-0 z-20 flex flex-col bg-surface border-r border-border w-[210px]">
       {/* Logo */}
-      <div className={styles.logo}>
-        <div className={styles.logoMark}>
+      <div className="flex items-center gap-[10px] px-5 border-b border-border pt-[22px] pb-[20px]">
+        <div className="flex items-center justify-center shrink-0 rounded-[9px] bg-primary w-8 h-8">
           <svg width="17" height="17" fill="white" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="4" />
             <path stroke="white" strokeWidth="1.5" d="M12 2v3M12 19v3M2 12h3M19 12h3" fill="none" />
           </svg>
         </div>
         <div>
-          <div className={styles.logoText}>Pythia</div>
-          <div className={styles.logoSub}>Scorecard</div>
+          <div className="text-[13.5px] font-semibold">Pythia</div>
+          <div className="text-[10px] text-muted mt-[1px]">Scorecard</div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className={styles.nav}>
+      <nav className="flex-1 px-3 py-4">
         {navSections.map((section) => (
           <div key={section.section}>
-            <div className={styles.navLabel}>{section.section}</div>
+            <div className="block px-2 uppercase text-muted font-medium tracking-[.1em] text-[9.5px] mt-[14px] mb-[5px]">
+              {section.section}
+            </div>
             {section.items.map((item) => {
               const isActive = pathname === item.href
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
+                  className={`flex items-center gap-[9px] px-2 py-[9px] rounded-lg text-[13px] cursor-pointer transition-all duration-150 no-underline hover:bg-surface-alt hover:text-primary ${
+                    isActive ? 'bg-accent-light text-accent font-medium' : 'text-secondary'
+                  }`}
                 >
-                  <span className={`${styles.navIcon} ${isActive ? styles.navIconActive : ''}`}>
+                  <span className={`shrink-0 w-[15px] h-[15px] ${isActive ? 'opacity-100' : 'opacity-75'}`}>
                     {item.icon}
                   </span>
                   {item.label}
-                  {item.badge && <span className={styles.badge}>{item.badge}</span>}
+                  {item.badge && (
+                    <span className="ml-auto font-mono font-bold text-white bg-danger rounded-[10px] text-[9.5px] px-[6px] py-[1px]">
+                      {item.badge}
+                    </span>
+                  )}
                 </Link>
               )
             })}
@@ -191,18 +199,25 @@ export default function Sidebar() {
 
       {/* Bottom widget — role-specific */}
       {user.role === 'employee' ? (
-        <div className={styles.empPill}>
-          <div className={styles.empAvatar}>{user.initials}</div>
-          <div>
-            <div className={styles.empName}>{user.name}</div>
-            <div className={styles.empRole}>{user.jobTitle} · {user.storeName}</div>
+        <div
+          className="flex items-center gap-[10px] mx-3 mb-5 rounded-[10px] border px-[14px] py-[12px]"
+          style={{ background: 'linear-gradient(135deg, var(--color-accent-light), #D0EAD8)', borderColor: '#B8D9C6' }}
+        >
+          <div className="flex items-center justify-center shrink-0 rounded-full bg-accent text-white font-bold w-9 h-9 text-[12px]">
+            {user.initials}
           </div>
-          {user.score != null && <div className={styles.empScore}>{user.score}</div>}
+          <div>
+            <div className="text-[12.5px] font-semibold text-accent">{user.name}</div>
+            <div className="text-accent-mid text-[10.5px]">{user.jobTitle} · {user.storeName}</div>
+          </div>
+          {user.score != null && (
+            <div className="ml-auto font-mono font-bold text-accent text-[18px]">{user.score}</div>
+          )}
         </div>
       ) : (
         <>
-          <div className={styles.viewToggle}>
-            <div className={styles.toggleLabel}>Current View</div>
+          <div className="mx-3 pt-4 border-t border-border mb-4">
+            <div className="text-muted uppercase tracking-[.08em] text-[10px] mb-2 px-[2px]">Current View</div>
             <button
               className={`${styles.toggleBtn} ${activeView === 'owner' ? styles.toggleBtnActive : ''}`}
               onClick={() => setActiveView('owner')}
@@ -223,11 +238,11 @@ export default function Sidebar() {
               Manager View
             </button>
           </div>
-          <div className={styles.storePill}>
+          <div className="flex items-center gap-[9px] mx-3 mb-5 rounded-[10px] bg-surface-alt px-[12px] py-[10px]">
             <div className={styles.liveDot} />
             <div>
-              <div className={styles.storeName}>{user.storeName}</div>
-              <div className={styles.storeLoc}>{user.storeLoc} · {user.nodesOnline} nodes online</div>
+              <div className="text-[12px] font-medium">{user.storeName}</div>
+              <div className="text-muted text-[10.5px]">{user.storeLoc} · {user.nodesOnline} nodes online</div>
             </div>
           </div>
         </>

@@ -8,7 +8,6 @@ import CheckoutSpeed from '@/components/CheckoutSpeed/CheckoutSpeed'
 import RevenueImpactTable from '@/components/RevenueImpactTable/RevenueImpactTable'
 import CostPerCoaching from '@/components/CostPerCoaching/CostPerCoaching'
 import ProjectionSummary from '@/components/ProjectionSummary/ProjectionSummary'
-import styles from './page.module.css'
 
 export default function RoiAttributionPage() {
   return (
@@ -20,10 +19,10 @@ export default function RoiAttributionPage() {
 
       <TimeControls />
 
-      <div className={styles.content}>
+      <div className="flex flex-col px-[30px] py-[24px] gap-5">
         <RoiHero />
 
-        <div className={styles.chartRow}>
+        <div className="grid grid-cols-2 gap-4">
           <ScoreVsTransactions />
           <HospitalityVsDwell />
         </div>

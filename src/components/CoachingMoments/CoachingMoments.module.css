@@ -1,87 +1,8 @@
 @reference "../../app/globals.css";
 
-.badge {
-  @apply bg-amber-light text-amber font-semibold rounded-[20px];
-  font-size: 11px;
-  padding: 3px 9px;
-}
-
-.list {
-  @apply flex flex-col;
-  gap: 10px;
-}
-
-.item {
-  @apply border border-border rounded-[11px] overflow-hidden;
-}
-
-.itemHeader {
-  @apply w-full flex items-start gap-[10px] cursor-pointer text-left bg-transparent border-0;
-  padding: 12px 14px;
-}
-
-.itemHeader:hover {
-  @apply bg-surface-alt;
-}
-
-.itemHeaderOpen {
-  @apply bg-surface-alt;
-}
-
-/* Type pills */
-.pill {
-  @apply font-bold uppercase tracking-[.06em] rounded-[5px] whitespace-nowrap shrink-0;
-  font-size: 9.5px;
-  padding: 2px 8px;
-  margin-top: 2px;
-}
-
-.pill.hosp     { @apply bg-accent-light text-accent; }
-.pill.checkout { @apply bg-amber-light text-amber; }
-.pill.time     { @apply bg-cobalt-light text-cobalt; }
-
-.itemTitle {
-  @apply font-semibold flex-1 leading-snug;
-  font-size: 12.5px;
-}
-
-.status {
-  @apply font-semibold rounded-[20px] whitespace-nowrap shrink-0;
-  font-size: 10.5px;
-  padding: 2px 8px;
-}
-
-.status.active { @apply bg-amber-light text-amber; }
-.status.done   { @apply bg-accent-light text-accent; }
-
-.chevron {
-  @apply text-muted shrink-0 transition-transform duration-200;
-  font-size: 12px;
-}
-
-.chevronOpen {
-  transform: rotate(180deg);
-}
-
-/* Body */
-.itemBody {
-  padding: 0 14px 13px;
-}
-
-.what {
-  @apply text-secondary leading-relaxed;
-  font-size: 12px;
-  margin-bottom: 10px;
-}
-
+/* Descendant selectors for strong tags inside dynamic JSX content */
 .what strong {
   @apply font-semibold text-primary;
-}
-
-.tip {
-  @apply bg-surface-alt rounded-lg text-secondary leading-relaxed;
-  font-size: 12px;
-  padding: 9px 12px;
 }
 
 .tip strong {

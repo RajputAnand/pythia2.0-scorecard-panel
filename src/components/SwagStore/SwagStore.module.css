@@ -1,49 +1,6 @@
 @reference "../../app/globals.css";
 
-/* ── Points header ── */
-.pointsHeader {
-  @apply flex items-center justify-between border-b border-border;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #1A1714, #2A2010);
-}
-
-.pointsAvailable {
-  @apply flex items-baseline;
-  gap: 6px;
-}
-
-.pointsNum {
-  @apply font-mono font-bold;
-  font-size: 22px;
-  color: #F5C842;
-}
-
-.pointsText {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 11.5px;
-}
-
-.earnRate {
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 11px;
-}
-
-.earnRate strong {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* ── Swag grid ── */
-.grid {
-  @apply grid;
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.item {
-  @apply flex flex-col border-r border-b border-border;
-  padding: 14px 16px;
-  gap: 8px;
-}
-
+/* nth-child selectors — can't be expressed inline */
 .item:nth-child(3n) {
   @apply border-r-0;
 }
@@ -52,51 +9,13 @@
   @apply border-b-0;
 }
 
-.emoji {
-  font-size: 24px;
+/* Descendant selector for strong inside dynamic text */
+.earnRate strong {
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.name {
-  @apply font-semibold leading-tight;
-  font-size: 12.5px;
-}
-
-.desc {
-  @apply text-muted leading-snug;
-  font-size: 11px;
-}
-
-.cost {
-  @apply font-mono font-bold text-gold;
-  font-size: 12px;
-}
-
-/* ── Buttons ── */
-.btn {
-  @apply cursor-pointer font-sans font-semibold rounded-[7px] text-center border-0 transition-all duration-150;
-  font-size: 11.5px;
-  padding: 6px 10px;
-}
-
-.btnAfford {
-  @apply bg-accent text-white;
-}
-
-.btnAfford:hover {
-  opacity: 0.85;
-}
-
-.btnCant {
-  @apply bg-surface-alt text-muted cursor-default;
-}
-
-.btnRedeemed {
-  @apply bg-accent-light text-accent cursor-default;
-}
-
-/* ── Toast ── */
+/* Toast animation */
 .toast {
-  @apply fixed flex items-center gap-2 text-white rounded-[10px] font-medium z-50;
   bottom: 24px;
   right: 24px;
   background: var(--color-primary);

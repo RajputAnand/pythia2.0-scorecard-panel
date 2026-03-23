@@ -6,7 +6,6 @@ import ProgressChart from '@/components/ProgressChart/ProgressChart'
 import Leaderboard from '@/components/Leaderboard/Leaderboard'
 import SwagStore from '@/components/SwagStore/SwagStore'
 import headerStyles from '@/components/Header/Header.module.css'
-import styles from './page.module.css'
 
 export default function OverviewPage() {
   return (
@@ -16,15 +15,15 @@ export default function OverviewPage() {
         <button className={headerStyles.btnAccent}>📣 Share My Score</button>
       </Header>
 
-      <div className={styles.content}>
+      <div className="flex flex-col px-[30px] py-[24px] gap-5">
         <HeroBanner />
 
-        <div className={styles.twoCol}>
+        <div className="grid grid-cols-2 items-start gap-[18px]">
           <ShiftSummary />
           <CoachingMoments />
         </div>
 
-        <div className={styles.twoCol}>
+        <div className="grid grid-cols-2 items-start gap-[18px]">
           <ProgressChart />
           <Leaderboard />
         </div>

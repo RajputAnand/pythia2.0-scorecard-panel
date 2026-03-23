@@ -1,11 +1,10 @@
 import Sidebar from '@/components/Sidebar/Sidebar'
-import styles from './layout.module.css'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={styles.shell}>
+    <div className="flex min-h-screen bg-canvas">
       <Sidebar />
-      <div className={styles.main}>{children}</div>
+      <div className="flex-1 flex flex-col ml-[210px]">{children}</div>
     </div>
   )
 }

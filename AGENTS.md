@@ -7,11 +7,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- BEGIN:project-conventions -->
 # Project Conventions
 
-## Styling — Tailwind CSS v4 + CSS Modules
-- **Never use inline Tailwind classes** in `.tsx` files. Always use CSS Modules.
-- Every component has a paired `ComponentName.module.css` using `@apply` directives.
-- Every `.module.css` file must start with `@reference "../../app/globals.css";` (adjust relative path per depth).
-- Design tokens (`bg-canvas`, `text-accent`, `border-border`, etc.) are defined in `src/app/globals.css` under `@theme inline` and are only accessible via `@reference`.
+## Styling — Tailwind CSS v4
+- **Use Tailwind utility classes directly in `.tsx` files by default.**
+- Use CSS Modules with `@apply` sparingly — only for genuine reuse/abstraction: shared button variants used across multiple pages, `@keyframes` animations, `::before`/`::after` pseudo-elements, and complex selectors that can't be expressed inline (`:nth-child`, descendant rules like `strong` inside dynamic JSX content).
+- CSS Module files that use `@apply` must start with `@reference "../../app/globals.css";` (adjust relative path per depth).
+- Design tokens (`bg-canvas`, `text-accent`, `border-border`, etc.) are defined in `src/app/globals.css` under `@theme inline` and work as Tailwind utility classes directly in TSX — no `@reference` needed there.
 
 ## Component Structure
 - **Split every HTML page into components** — each distinct section becomes its own component.
