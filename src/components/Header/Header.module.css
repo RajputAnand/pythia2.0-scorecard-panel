@@ -1,39 +1,10 @@
 @reference "../../app/globals.css";
 
-.topbar {
-  @apply sticky top-0 z-10 flex items-center justify-between bg-surface border-b border-border;
-  padding: 0 30px;
-  height: 58px;
-}
-
-.left {
-  @apply flex items-center gap-[14px];
-}
-
-.title {
-  @apply font-semibold;
-  font-size: 15.5px;
-}
-
-.dateChip {
-  @apply font-mono text-secondary bg-surface-alt border border-border rounded-[20px];
-  font-size: 10.5px;
-  padding: 4px 10px;
-}
-
-.right {
-  @apply flex items-center gap-[10px];
-}
-
-/* Shared button styles — consumers apply these classes */
+/* Shared button styles — consumers apply these classes via headerStyles import */
 .btnGhost {
-  @apply cursor-pointer font-sans font-medium text-secondary border border-border bg-transparent rounded-lg transition-all duration-150;
+  @apply cursor-pointer font-sans font-medium text-secondary border border-border bg-transparent rounded-lg transition-all duration-150 hover:bg-surface-alt;
   font-size: 12.5px;
   padding: 7px 15px;
-}
-
-.btnGhost:hover {
-  @apply bg-surface-alt;
 }
 
 .btnAccent {

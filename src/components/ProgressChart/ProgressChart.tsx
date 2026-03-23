@@ -1,5 +1,9 @@
 import Panel from '@/components/Panel/Panel'
-import styles from './ProgressChart.module.css'
+
+const milestoneLabelClass: Record<string, string> = {
+  reached: 'text-accent',
+  next: 'text-amber',
+}
 
 const MILESTONES = [
   { icon: '✅', status: 'Reached', label: 'Score 80', variant: 'reached' },
@@ -9,24 +13,26 @@ const MILESTONES = [
 ]
 
 const badge = (
-  <span className={styles.badge}>↑ +12 pts total</span>
+  <span className="bg-accent-light text-accent font-semibold rounded-[20px] text-[11px] px-[9px] py-[3px]">
+    ↑ +12 pts total
+  </span>
 )
 
 export default function ProgressChart() {
   return (
     <Panel title="My Progress Over Time" subtitle="Weekly score · Nov 2025 – Feb 2026" badge={badge}>
       {/* Legend */}
-      <div className={styles.legend}>
-        <span className={styles.legendItem}>
-          <span className={styles.legendLine} style={{ background: 'var(--color-accent)' }} />
+      <div className="flex gap-[14px] mb-3">
+        <span className="flex items-center gap-[5px] text-secondary text-[11px]">
+          <span className="rounded-[1px] w-[18px] h-[2px]" style={{ background: 'var(--color-accent)' }} />
           Overall
         </span>
-        <span className={styles.legendItem}>
-          <span className={styles.legendLine} style={{ background: 'var(--color-cobalt)' }} />
+        <span className="flex items-center gap-[5px] text-secondary text-[11px]">
+          <span className="rounded-[1px] w-[18px] h-[2px]" style={{ background: 'var(--color-cobalt)' }} />
           Hospitality
         </span>
-        <span className={styles.legendItem}>
-          <span className={styles.legendLine} style={{ background: 'var(--color-amber)' }} />
+        <span className="flex items-center gap-[5px] text-secondary text-[11px]">
+          <span className="rounded-[1px] w-[18px] h-[2px]" style={{ background: 'var(--color-amber)' }} />
           Checkout
         </span>
       </div>
@@ -69,21 +75,21 @@ export default function ProgressChart() {
       </svg>
 
       {/* X labels */}
-      <div className={styles.xLabels}>
-        <span className={styles.xLabel}>Nov</span>
-        <span className={styles.xLabel}>Dec</span>
-        <span className={styles.xLabel}>Jan</span>
-        <span className={styles.xLabel}>Feb</span>
-        <span className={`${styles.xLabel} ${styles.xLabelNow}`}>Now</span>
+      <div className="flex justify-between mt-[5px]">
+        <span className="font-mono text-muted text-center text-[9.5px]">Nov</span>
+        <span className="font-mono text-muted text-center text-[9.5px]">Dec</span>
+        <span className="font-mono text-muted text-center text-[9.5px]">Jan</span>
+        <span className="font-mono text-muted text-center text-[9.5px]">Feb</span>
+        <span className="font-mono text-accent font-semibold text-center text-[9.5px]">Now</span>
       </div>
 
       {/* Milestones */}
-      <div className={styles.milestones}>
+      <div className="flex gap-2 mt-[14px]">
         {MILESTONES.map((m) => (
-          <div key={m.label} className={styles.milestoneItem}>
-            <span className={styles.milestoneIcon}>{m.icon}</span>
-            <span className={styles.milestoneStatus}>{m.status}</span>
-            <span className={`${styles.milestoneLabel} ${styles[m.variant]}`}>{m.label}</span>
+          <div key={m.label} className="flex-1 flex flex-col bg-surface-alt rounded-[9px] gap-[3px] px-[12px] py-[10px]">
+            <span className="text-[14px]">{m.icon}</span>
+            <span className="uppercase tracking-[.07em] text-muted text-[10px]">{m.status}</span>
+            <span className={`font-semibold text-[12px] ${milestoneLabelClass[m.variant]}`}>{m.label}</span>
           </div>
         ))}
       </div>

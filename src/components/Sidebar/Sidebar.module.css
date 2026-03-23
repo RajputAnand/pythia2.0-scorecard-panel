@@ -1,86 +1,6 @@
 @reference "../../app/globals.css";
 
-.sidebar {
-  @apply fixed inset-y-0 left-0 z-20 flex flex-col bg-surface border-r border-border;
-  width: 210px;
-}
-
-/* ── Logo ── */
-.logo {
-  @apply flex items-center gap-[10px] px-5 border-b border-border;
-  padding-top: 22px;
-  padding-bottom: 20px;
-}
-
-.logoMark {
-  @apply flex items-center justify-center shrink-0 rounded-[9px] bg-primary;
-  width: 32px;
-  height: 32px;
-}
-
-.logoText {
-  @apply text-[13.5px] font-semibold;
-}
-
-.logoSub {
-  @apply text-[10px] text-muted;
-  margin-top: 1px;
-}
-
-/* ── Navigation ── */
-.nav {
-  @apply flex-1 px-3 py-4;
-}
-
-.navLabel {
-  @apply block px-2 uppercase text-muted font-medium tracking-[.1em];
-  font-size: 9.5px;
-  margin: 14px 0 5px;
-}
-
-.navItem {
-  @apply flex items-center gap-[9px] px-2 rounded-lg text-[13px] text-secondary cursor-pointer transition-all duration-150 no-underline;
-  padding-top: 9px;
-  padding-bottom: 9px;
-}
-
-.navItem:hover {
-  @apply bg-surface-alt text-primary;
-}
-
-.navItemActive {
-  @apply bg-accent-light text-accent font-medium;
-}
-
-.navIcon {
-  @apply shrink-0 opacity-75;
-  width: 15px;
-  height: 15px;
-}
-
-.navIconActive {
-  @apply opacity-100;
-}
-
-.badge {
-  @apply ml-auto font-mono font-bold text-white bg-danger rounded-[10px];
-  font-size: 9.5px;
-  padding: 1px 6px;
-}
-
-/* ── View Toggle (owner/manager role) ── */
-.viewToggle {
-  @apply mx-3 pt-4 border-t border-border;
-  margin-bottom: 16px;
-}
-
-.toggleLabel {
-  @apply text-muted uppercase tracking-[.08em];
-  font-size: 10px;
-  margin-bottom: 8px;
-  padding: 0 2px;
-}
-
+/* Toggle buttons — kept in CSS for SVG child selector */
 .toggleBtn {
   @apply w-full flex items-center gap-2 rounded-[9px] border border-border bg-surface text-secondary font-medium cursor-pointer transition-all duration-150 font-sans;
   font-size: 12.5px;
@@ -98,12 +18,7 @@
   @apply bg-primary text-white border-primary;
 }
 
-/* ── Store pill (owner/manager role) ── */
-.storePill {
-  @apply flex items-center gap-[9px] mx-3 mb-5 rounded-[10px] bg-surface-alt;
-  padding: 10px 12px;
-}
-
+/* Live dot animation */
 .liveDot {
   @apply shrink-0 rounded-full bg-accent;
   width: 7px;
@@ -114,42 +29,4 @@
 @keyframes storePulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(0.85); }
-}
-
-.storeName {
-  @apply text-[12px] font-medium;
-}
-
-.storeLoc {
-  @apply text-muted;
-  font-size: 10.5px;
-}
-
-/* ── Employee pill ── */
-.empPill {
-  @apply flex items-center gap-[10px] mx-3 mb-5 rounded-[10px] border;
-  padding: 12px 14px;
-  background: linear-gradient(135deg, var(--color-accent-light), #D0EAD8);
-  border-color: #B8D9C6;
-}
-
-.empAvatar {
-  @apply flex items-center justify-center shrink-0 rounded-full bg-accent text-white font-bold;
-  width: 36px;
-  height: 36px;
-  font-size: 12px;
-}
-
-.empName {
-  @apply text-[12.5px] font-semibold text-accent;
-}
-
-.empRole {
-  @apply text-accent-mid;
-  font-size: 10.5px;
-}
-
-.empScore {
-  @apply ml-auto font-mono font-bold text-accent;
-  font-size: 18px;
 }

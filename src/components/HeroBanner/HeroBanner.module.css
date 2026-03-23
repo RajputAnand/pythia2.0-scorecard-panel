@@ -1,149 +1,22 @@
-@reference "../../app/globals.css";
-
-.banner {
-  @apply relative rounded-2xl overflow-hidden grid items-center;
-  grid-template-columns: auto 1fr auto;
-  gap: 32px;
-  padding: 28px 32px;
-  background: linear-gradient(135deg, #1A1714 0%, #1D3828 60%, #2D5A3A 100%);
-}
-
-.banner::before {
+/* Pseudo-elements for banner decorative circles */
+.bannerPseudo::before {
   content: '';
-  @apply absolute rounded-full;
+  position: absolute;
   top: -80px;
   right: -80px;
   width: 280px;
   height: 280px;
+  border-radius: 50%;
   background: rgba(255, 255, 255, 0.03);
 }
 
-.banner::after {
+.bannerPseudo::after {
   content: '';
-  @apply absolute rounded-full;
+  position: absolute;
   bottom: -40px;
   left: 40%;
   width: 160px;
   height: 160px;
+  border-radius: 50%;
   background: rgba(29, 92, 58, 0.2);
-}
-
-/* ── Score ring ── */
-.scoreRing {
-  @apply relative shrink-0;
-  width: 110px;
-  height: 110px;
-}
-
-.scoreRingCenter {
-  @apply absolute inset-0 flex flex-col items-center justify-center;
-}
-
-.scoreNum {
-  @apply font-mono font-bold text-white leading-none;
-  font-size: 32px;
-}
-
-.scoreLabel {
-  @apply uppercase text-white/40 tracking-[.1em];
-  font-size: 9px;
-  margin-top: 2px;
-}
-
-/* ── Center ── */
-.center {
-  @apply flex flex-col;
-  gap: 10px;
-}
-
-.greeting {
-  @apply font-bold text-white leading-tight;
-  font-size: 20px;
-}
-
-.greetingAccent {
-  color: #78C99A;
-}
-
-.sub {
-  @apply text-white/50 leading-relaxed;
-  font-size: 13px;
-}
-
-.metricRow {
-  @apply flex flex-wrap;
-  gap: 10px;
-}
-
-.metric {
-  @apply flex flex-col rounded-[9px] border;
-  gap: 2px;
-  padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.metricLabel {
-  @apply uppercase tracking-[.09em];
-  font-size: 9px;
-  color: rgba(255, 255, 255, 0.35);
-}
-
-.metricVal {
-  @apply font-mono font-bold text-white;
-  font-size: 16px;
-}
-
-.metricValGreen { color: #78C99A; }
-.metricValAmber { color: #F5C842; }
-
-.metricChange {
-  font-size: 9.5px;
-  color: rgba(255, 255, 255, 0.35);
-}
-
-/* ── Right ── */
-.right {
-  @apply flex flex-col items-end;
-  gap: 10px;
-}
-
-.pointsBadge {
-  @apply text-center rounded-xl;
-  padding: 12px 18px;
-  background: rgba(184, 134, 11, 0.25);
-  border: 1px solid rgba(184, 134, 11, 0.4);
-}
-
-.pointsVal {
-  @apply font-mono font-bold leading-none;
-  font-size: 28px;
-  color: #F5C842;
-}
-
-.pointsLabel {
-  @apply uppercase tracking-[.09em];
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.4);
-  margin-top: 3px;
-}
-
-.rankBadge {
-  @apply text-center rounded-xl;
-  padding: 8px 16px;
-  background: rgba(29, 92, 58, 0.35);
-  border: 1px solid rgba(120, 201, 154, 0.3);
-}
-
-.rankVal {
-  @apply font-mono font-bold leading-none;
-  font-size: 20px;
-  color: #78C99A;
-}
-
-.rankLabel {
-  @apply uppercase tracking-[.09em];
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.35);
-  margin-top: 2px;
 }

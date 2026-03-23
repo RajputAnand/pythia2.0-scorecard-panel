@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import panelStyles from '@/components/Panel/Panel.module.css'
+import Panel from '@/components/Panel/Panel'
 import styles from './SwagStore.module.css'
 
 interface SwagItem {
@@ -41,42 +41,49 @@ export default function SwagStore() {
   }
 
   return (
-    <div className={panelStyles.panel}>
-      <div className={panelStyles.header}>
-        <div>
-          <p className={panelStyles.title}>Swag Store</p>
-          <p className={panelStyles.sub}>Redeem your points for rewards</p>
-        </div>
-      </div>
-
+    <Panel title="Swag Store" subtitle="Redeem your points for rewards" noPadding>
       {/* Points header */}
-      <div className={styles.pointsHeader}>
-        <div className={styles.pointsAvailable}>
-          <span className={styles.pointsNum}>{points.toLocaleString()}</span>
-          <span className={styles.pointsText}>points available</span>
+      <div
+        className="flex items-center justify-between border-b border-border px-5 py-3"
+        style={{ background: 'linear-gradient(135deg, #1A1714, #2A2010)' }}
+      >
+        <div className="flex items-baseline gap-[6px]">
+          <span className="font-mono font-bold text-[22px]" style={{ color: '#F5C842' }}>
+            {points.toLocaleString()}
+          </span>
+          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11.5px' }}>points available</span>
         </div>
-        <div className={styles.earnRate}>
+        <div className={`${styles.earnRate} text-[11px]`} style={{ color: 'rgba(255,255,255,0.35)' }}>
           You earn <strong>~120 pts/shift</strong> at your current score level. Higher score = more points per shift.
         </div>
       </div>
 
       {/* Grid */}
-      <div className={styles.grid}>
+      <div className={`${styles.grid} grid grid-cols-3`}>
         {items.map((item) => {
           const canAfford = points >= item.cost
           const needed = item.cost - points
           return (
-            <div key={item.id} className={styles.item}>
-              <span className={styles.emoji}>{item.emoji}</span>
-              <p className={styles.name}>{item.name}</p>
-              <p className={styles.desc}>{item.desc}</p>
-              <p className={styles.cost}>{item.cost.toLocaleString()} pts</p>
+            <div key={item.id} className={`${styles.item} flex flex-col border-r border-b border-border px-[16px] py-[14px] gap-2`}>
+              <span className="text-[24px]">{item.emoji}</span>
+              <p className="font-semibold leading-tight text-[12.5px]">{item.name}</p>
+              <p className="text-muted leading-snug text-[11px]">{item.desc}</p>
+              <p className="font-mono font-bold text-gold text-[12px]">{item.cost.toLocaleString()} pts</p>
               {item.redeemed ? (
-                <button className={`${styles.btn} ${styles.btnRedeemed}`} disabled>✓ Redeemed</button>
+                <button className="cursor-default font-sans font-semibold rounded-[7px] text-center border-0 transition-all duration-150 text-[11.5px] px-[10px] py-[6px] bg-accent-light text-accent" disabled>
+                  ✓ Redeemed
+                </button>
               ) : canAfford ? (
-                <button className={`${styles.btn} ${styles.btnAfford}`} onClick={() => redeem(item)}>Redeem</button>
+                <button
+                  className="cursor-pointer font-sans font-semibold rounded-[7px] text-center border-0 transition-all duration-150 text-[11.5px] px-[10px] py-[6px] bg-accent text-white hover:opacity-85"
+                  onClick={() => redeem(item)}
+                >
+                  Redeem
+                </button>
               ) : (
-                <button className={`${styles.btn} ${styles.btnCant}`} disabled>Need {needed.toLocaleString()} more</button>
+                <button className="cursor-default font-sans font-semibold rounded-[7px] text-center border-0 transition-all duration-150 text-[11.5px] px-[10px] py-[6px] bg-surface-alt text-muted" disabled>
+                  Need {needed.toLocaleString()} more
+                </button>
               )}
             </div>
           )
@@ -85,11 +92,11 @@ export default function SwagStore() {
 
       {/* Toast */}
       {toast && (
-        <div className={styles.toast}>
+        <div className={`${styles.toast} fixed flex items-center gap-2 text-white rounded-[10px] font-medium z-50`}>
           <span>🎉</span>
           <span>{toast}</span>
         </div>
       )}
-    </div>
+    </Panel>
   )
 }
