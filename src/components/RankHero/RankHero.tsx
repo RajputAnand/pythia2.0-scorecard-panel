@@ -1,0 +1,86 @@
+const rankHistory = [
+  { month: 'Nov', width: '42%', color: '#E4DFD8', rank: '#10', accent: false },
+  { month: 'Dec', width: '54%', color: '#B0CFC0', rank: '#8', accent: false },
+  { month: 'Jan', width: '67%', color: '#78B898', rank: '#7', accent: false },
+  { month: 'Feb', width: '76%', color: '#1D5C3A', rank: '#6 ↑', accent: true },
+]
+
+const metrics = [
+  { label: 'Hospitality', val: 84, rank: '#4 of 24', color: 'text-accent' },
+  { label: 'Checkout Spd', val: 74, rank: '#11 of 24', color: 'text-amber' },
+  { label: 'Time to Svc', val: 82, rank: '#6 of 24', color: 'text-accent' },
+  { label: 'Overall Score', val: 82, rank: '#6 of 24', color: 'text-accent' },
+]
+
+export default function RankHero() {
+  return (
+    <div className="grid grid-cols-[auto_1fr_auto] bg-surface border border-border rounded-2xl overflow-hidden">
+
+      {/* Rank badge */}
+      <div
+        className="flex flex-col items-center justify-center gap-[10px] min-w-[200px] px-9 py-7"
+        style={{ background: 'linear-gradient(160deg, #1A1714 0%, #2C2820 100%)' }}
+      >
+        <div className="text-[10px] font-semibold uppercase tracking-[.12em] text-white/35">Your Rank</div>
+        <div className="font-mono text-[72px] font-medium text-white leading-none tracking-[-0.04em]">#6</div>
+        <div className="font-mono text-[13px] text-white/35">of 24 stores</div>
+        <div
+          className="flex items-center gap-[6px] rounded-full px-3 py-1"
+          style={{ background: 'rgba(29,92,58,0.4)' }}
+        >
+          <span className="text-[13px] text-[#78C99A]">↑</span>
+          <span className="font-mono text-[12px] font-semibold text-[#78C99A]">+4 since Nov</span>
+        </div>
+      </div>
+
+      {/* Center: percentile + metric chips */}
+      <div className="flex flex-col justify-center gap-[14px] px-8 py-7 border-l border-r border-border">
+        <div>
+          <div className="text-[11px] font-semibold text-muted uppercase tracking-[.1em] mb-[10px]">Percentile Rank</div>
+          <div className="h-7 bg-surface-alt rounded-lg overflow-hidden">
+            <div
+              className="h-full rounded-lg flex items-center pl-3"
+              style={{ width: '76%', background: 'linear-gradient(90deg, #C8E6D6 0%, #1D5C3A 100%)' }}
+            >
+              <span className="font-mono text-[12px] font-bold text-white whitespace-nowrap">Top 25% · 76th percentile</span>
+            </div>
+          </div>
+          <div className="flex justify-between mt-[5px]">
+            {['Bottom 50%', 'Top 50%', '▲ You', 'Top 10%', 'Top 5%'].map((label, i) => (
+              <span key={label} className={`font-mono text-[9px] text-center ${i === 2 ? 'text-accent font-bold' : 'text-muted'}`}>
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          {metrics.map((m) => (
+            <div key={m.label} className="flex-1 bg-surface-alt rounded-[9px] px-3 py-[10px] flex flex-col gap-[3px]">
+              <div className="text-[9.5px] text-muted uppercase tracking-[.07em]">{m.label}</div>
+              <div className={`font-mono text-[16px] font-bold ${m.color}`}>{m.val}</div>
+              <div className="font-mono text-[10.5px] text-muted">{m.rank}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right: rank history */}
+      <div className="flex flex-col justify-center gap-2 px-7 py-7 min-w-[180px]">
+        <div className="text-[10.5px] font-semibold text-muted uppercase tracking-[.1em] mb-1">Rank History</div>
+        {rankHistory.map((item) => (
+          <div key={item.month} className="flex items-center gap-[14px]">
+            <span className="font-mono text-[11px] text-muted w-7">{item.month}</span>
+            <div className="flex-1 h-2 bg-surface-alt rounded overflow-hidden">
+              <div className="h-full rounded" style={{ width: item.width, background: item.color }} />
+            </div>
+            <span className={`font-mono text-[11px] w-8 text-right ${item.accent ? 'text-accent font-bold' : 'text-muted'}`}>
+              {item.rank}
+            </span>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  )
+}
