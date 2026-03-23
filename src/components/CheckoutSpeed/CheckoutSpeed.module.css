@@ -1,0 +1,60 @@
+@reference "../../app/globals.css";
+
+.card {
+  @apply bg-surface border border-border rounded-2xl overflow-hidden;
+}
+
+.cardHeader {
+  @apply flex items-start justify-between border-b border-border;
+  padding: 16px 20px 12px;
+}
+
+.cardTitle { @apply font-semibold; font-size: 13px; }
+.cardSub { @apply text-muted; font-size: 11px; margin-top: 2px; }
+
+.badge {
+  @apply font-bold rounded-[20px] whitespace-nowrap;
+  font-size: 10px;
+  padding: 3px 8px;
+}
+.badge.positive { @apply bg-accent-light text-accent; }
+
+.cardBody { padding: 18px 20px; }
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.legend { @apply flex gap-[14px]; }
+.legendItem { @apply flex items-center gap-[5px] text-secondary; font-size: 11px; }
+.legendLine { width: 20px; height: 2px; border-radius: 1px; }
+
+.svgWrap svg { width: 100%; display: block; }
+
+.xLabels { @apply flex justify-between; margin-top: 6px; }
+.xLbl { @apply font-mono text-muted text-center; font-size: 9.5px; }
+
+.callouts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 28px;
+}
+
+.callout {
+  @apply flex items-start gap-2 bg-surface-alt rounded-[9px];
+  padding: 10px 13px;
+}
+
+.calloutBlue { background: #E6EEF7; }
+
+.calloutIcon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+
+.calloutText { @apply text-secondary; font-size: 12px; line-height: 1.5; }
+.calloutText strong { @apply font-semibold text-primary; }
+
+.calloutTextBlue { color: #1E4D7A; }
+.calloutTextBlue strong { color: #1E4D7A; }
