@@ -15,7 +15,7 @@ export default function BenchmarkingPage() {
         <button className={headerStyles.btnPrimary}>Export Report</button>
       </Header>
 
-      <div className="flex flex-col px-[30px] py-[24px] gap-5">
+      <div className="grid px-[30px] py-[24px] gap-5">
         <RankHero />
         <NetworkLeaderboard />
         <StoreComparison />

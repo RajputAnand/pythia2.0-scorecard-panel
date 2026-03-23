@@ -62,7 +62,7 @@ export default function CheckoutSpeed() {
           </div>
           <div className="flex flex-col gap-3 pt-7">
             <div className="flex items-start gap-2 bg-surface-alt rounded-[9px] px-[13px] py-[10px]">
-              <span className="text-[13px] shrink-0 mt-[1px]">⚡</span>
+              <span className="text-[13px] shrink-0 mt-px">⚡</span>
               <p className="text-secondary text-[12px] leading-[1.5] [&_strong]:font-semibold [&_strong]:text-primary">
                 Checkout speed improved from <strong>38s → 29s average</strong> over 4 months. That&apos;s{' '}
                 <strong>+15 additional customers served per hour</strong> — meaning less line abandonment
@@ -70,7 +70,7 @@ export default function CheckoutSpeed() {
               </p>
             </div>
             <div className="flex items-start gap-2 rounded-[9px] px-[13px] py-[10px]" style={{ background: '#E6EEF7' }}>
-              <span className="text-[13px] shrink-0 mt-[1px]">💰</span>
+              <span className="text-[13px] shrink-0 mt-px">💰</span>
               <p className="text-[12px] leading-[1.5]" style={{ color: '#1E4D7A' }}>
                 <strong style={{ color: '#1E4D7A' }}>At $8.40 avg basket size,</strong> serving 15 more customers/hr during a 6-hour
                 peak window adds an estimated <strong style={{ color: '#1E4D7A' }}>$756/day</strong> in captured revenue.

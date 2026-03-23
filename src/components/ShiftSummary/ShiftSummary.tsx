@@ -90,7 +90,7 @@ export default function ShiftSummary() {
       <div className="flex flex-col border border-border rounded-[10px] overflow-hidden mt-[14px]">
         {TIMELINE.map((event) => (
           <div key={event.time} className={`flex items-start gap-[10px] border-b border-border px-[14px] py-[10px] last:border-b-0`}>
-            <div className="font-mono text-muted shrink-0 text-[10.5px] w-[38px] mt-[1px]">{event.time}</div>
+            <div className="font-mono text-muted shrink-0 text-[10.5px] w-[38px] mt-px">{event.time}</div>
             <div
               className="rounded-full shrink-0 w-2 h-2 mt-1"
               style={{ background: event.dotColor }}

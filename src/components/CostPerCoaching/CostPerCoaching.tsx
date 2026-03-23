@@ -41,7 +41,7 @@ export default function CostPerCoaching() {
           ))}
         </div>
         <div className="flex items-start gap-2 bg-surface-alt rounded-[9px] mt-[14px] px-[13px] py-[10px]">
-          <span className="text-[13px] shrink-0 mt-[1px]">💡</span>
+          <span className="text-[13px] shrink-0 mt-px">💡</span>
           <p className="text-secondary text-[12px] leading-[1.5] [&_strong]:font-semibold [&_strong]:text-primary">
             Jamie&apos;s coaching cost is <strong>4× the team average</strong> with declining scores — a
             signal that AI coaching alone is not the right tool here. A single manager conversation
