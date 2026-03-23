@@ -134,12 +134,70 @@ const OWNER_NAV: NavSection[] = [
       },
     ],
   },
+  {
+    section: 'Manager Tools',
+    items: [
+      {
+        label: 'Coach Tracker',
+        href: '/dashboard/coaching-tracker',
+        icon: (
+          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        ),
+      },
+    ],
+  },
+]
+
+const MANAGER_NAV: NavSection[] = [
+  {
+    section: 'Navigate',
+    items: [
+      {
+        label: 'Dashboard',
+        href: '/dashboard/overview',
+        icon: (
+          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+        ),
+      },
+      {
+        label: 'Employees',
+        href: '/dashboard/employees',
+        icon: (
+          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+          </svg>
+        ),
+      },
+    ],
+  },
+  {
+    section: 'Manager Tools',
+    items: [
+      {
+        label: 'Coach Tracker',
+        href: '/dashboard/coaching-tracker',
+        icon: (
+          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        ),
+      },
+    ],
+  },
 ]
 
 const NAV_BY_ROLE: Record<string, NavSection[]> = {
   employee: EMPLOYEE_NAV,
   owner: OWNER_NAV,
-  manager: OWNER_NAV,
+  manager: MANAGER_NAV,
 }
 
 export default function Sidebar() {
@@ -177,9 +235,8 @@ export default function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-[9px] px-2 py-[9px] rounded-lg text-[13px] cursor-pointer transition-all duration-150 no-underline hover:bg-surface-alt hover:text-primary ${
-                    isActive ? 'bg-accent-light text-accent font-medium' : 'text-secondary'
-                  }`}
+                  className={`flex items-center gap-[9px] px-2 py-[9px] rounded-lg text-[13px] cursor-pointer transition-all duration-150 no-underline hover:bg-surface-alt hover:text-primary ${isActive ? 'bg-accent-light text-accent font-medium' : 'text-secondary'
+                    }`}
                 >
                   <span className={`shrink-0 w-[15px] h-[15px] ${isActive ? 'opacity-100' : 'opacity-75'}`}>
                     {item.icon}

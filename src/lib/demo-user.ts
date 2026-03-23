@@ -22,7 +22,7 @@ export interface DemoUser {
 export const DEMO_USER: DemoUser = {
   initials: 'MR',
   name: 'Marcus R.',
-  role: 'owner',
+  role: 'manager',
   score: 84,
   jobTitle: 'Cashier',
   storeName: 'Main St. Store',
