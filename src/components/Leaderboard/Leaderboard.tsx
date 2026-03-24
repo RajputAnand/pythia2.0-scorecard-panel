@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Panel from '@/components/Panel/Panel'
 import { LeaderboardData, PosVariant } from '@/types/leaderboart'
 import { LEADERBOARD_DATA } from '@/lib/leaderboard-data'
+import { renderText } from '@/utils/common'
 
 const posClass: Record<PosVariant, string> = {
   gold: 'bg-[#FBF0C0] text-[#A07010]',
@@ -13,13 +14,6 @@ const posClass: Record<PosVariant, string> = {
   regular: 'bg-surface-alt text-muted',
 }
 
-/** Renders a string with **bold** markers as React nodes */
-function renderText(text: string) {
-  const parts = text.split(/\*\*(.*?)\*\*/g)
-  return parts.map((part, i) =>
-    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-  )
-}
 
 export default function Leaderboard() {
   const [data] = useState<LeaderboardData>(LEADERBOARD_DATA)

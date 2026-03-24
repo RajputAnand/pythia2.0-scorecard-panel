@@ -5,6 +5,7 @@ import Panel from '@/components/Panel/Panel'
 import styles from './ShiftSummary.module.css'
 import { ShiftSummaryData } from '@/types/shift'
 import { SHIFT_SUMMARY_DATA } from '@/lib/shift-data'
+import { renderText } from '@/utils/common'
 
 const metricValClass: Record<string, string> = {
   good: 'text-accent',
@@ -19,13 +20,6 @@ const metricChangeClass: Record<string, string> = {
   flat: 'text-muted',
 }
 
-/** Renders a string with **bold** markers as React nodes */
-function renderText(text: string) {
-  const parts = text.split(/\*\*(.*?)\*\*/g)
-  return parts.map((part, i) =>
-    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-  )
-}
 
 export default function ShiftSummary() {
   const [data] = useState<ShiftSummaryData>(SHIFT_SUMMARY_DATA)

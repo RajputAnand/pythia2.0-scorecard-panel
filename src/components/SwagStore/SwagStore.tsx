@@ -6,15 +6,7 @@ import styles from './SwagStore.module.css'
 import { useToast } from '@/context/ToastContext'
 import { SwagItem, SwagStoreConfig } from '@/types/swagstore'
 import { SWAG_STORE } from '@/lib/swagstore-data'
-
-
-/** Renders a string with **bold** markers as React nodes */
-function renderText(text: string) {
-  const parts = text.split(/\*\*(.*?)\*\*/g)
-  return parts.map((part, i) =>
-    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-  )
-}
+import { renderText } from '@/utils/common'
 
 export default function SwagStore() {
   const [config] = useState<SwagStoreConfig>(SWAG_STORE)

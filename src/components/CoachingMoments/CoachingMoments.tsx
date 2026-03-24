@@ -5,6 +5,7 @@ import Panel from '@/components/Panel/Panel'
 import styles from './CoachingMoments.module.css'
 import { CoachingItem, PillVariant, StatusVariant } from '@/types/coaching'
 import { COACHING_ITEMS } from '@/lib/coaching-item-data'
+import { renderText } from '@/utils/common'
 
 const pillClass: Record<PillVariant, string> = {
   hosp: 'bg-accent-light text-accent',
@@ -17,13 +18,6 @@ const statusClass: Record<StatusVariant, string> = {
   done: 'bg-accent-light text-accent',
 }
 
-/** Renders a string with **bold** markers as React nodes */
-function renderText(text: string) {
-  const parts = text.split(/\*\*(.*?)\*\*/g)
-  return parts.map((part, i) =>
-    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-  )
-}
 
 export default function CoachingMoments() {
   const [items] = useState<CoachingItem[]>(COACHING_ITEMS)
