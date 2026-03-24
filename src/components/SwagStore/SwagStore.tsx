@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Panel from '@/components/Panel/Panel'
+import Panel from '@/components/shared/Panel/Panel'
 import styles from './SwagStore.module.css'
 import { useToast } from '@/context/ToastContext'
 import { SwagItem, SwagStoreConfig } from '@/types/swagstore'

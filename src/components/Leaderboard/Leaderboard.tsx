@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Panel from '@/components/Panel/Panel'
+import Panel from '@/components/shared/Panel/Panel'
 import { LeaderboardData, PosVariant } from '@/types/leaderboart'
 import { LEADERBOARD_DATA } from '@/lib/leaderboard-data'
 import { renderText } from '@/utils/common'

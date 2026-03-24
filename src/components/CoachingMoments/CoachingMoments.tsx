@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Panel from '@/components/Panel/Panel'
+import Panel from '@/components/shared/Panel/Panel'
 import styles from './CoachingMoments.module.css'
 import { CoachingItem, PillVariant, StatusVariant } from '@/types/coaching'
 import { COACHING_ITEMS } from '@/lib/coaching-item-data'
