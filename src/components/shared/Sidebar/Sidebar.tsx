@@ -7,6 +7,7 @@ import styles from './Sidebar.module.css'
 import { DEMO_USER } from '@/lib/demo-user'
 import type { ReactNode } from 'react'
 import { UserRole } from '@/types/user'
+import { useSwagStore } from '@/store/swagStore'
 
 type NavItem = { label: string; href: string; badge?: number | null; icon: ReactNode }
 type NavSection = { section: string; items: NavItem[] }
@@ -207,6 +208,7 @@ export default function Sidebar() {
   const [activeView, setActiveView] = useState<UserRole>(user.role)
 
   const navSections = NAV_BY_ROLE[activeView]
+  const points = useSwagStore((s) => s.points)
 
   // function handleViewToggle(view: UserRole) {
   //   if (user.role != "owner") return
@@ -277,7 +279,10 @@ export default function Sidebar() {
             <div className="text-accent-mid text-[10.5px]">{user.jobTitle} · {user.storeName}</div>
           </div>
           {user.score != null && (
-            <div className="ml-auto font-mono font-bold text-accent text-[18px]">{user.score}</div>
+            <div className="ml-auto text-right">
+              <div className="font-mono font-bold text-accent text-[18px]">{user.score}</div>
+              <div className="font-mono font-bold text-[11px]" style={{ color: '#F5C842' }}>{points.toLocaleString()} pts</div>
+            </div>
           )}
         </div>
       ) : (

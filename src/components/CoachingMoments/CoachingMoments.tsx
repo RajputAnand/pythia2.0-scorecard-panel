@@ -4,7 +4,6 @@ import { useState } from 'react'
 import Panel from '@/components/shared/Panel/Panel'
 import styles from './CoachingMoments.module.css'
 import { CoachingItem, PillVariant, StatusVariant } from '@/types/coaching'
-import { COACHING_ITEMS } from '@/lib/coaching-item-data'
 import { renderText } from '@/utils/common'
 
 const pillClass: Record<PillVariant, string> = {
@@ -19,8 +18,7 @@ const statusClass: Record<StatusVariant, string> = {
 }
 
 
-export default function CoachingMoments() {
-  const [items] = useState<CoachingItem[]>(COACHING_ITEMS)
+export default function CoachingMoments({ items }: { items: CoachingItem[] }) {
 
   const [openIds, setOpenIds] = useState<Set<string>>(
     new Set(items.filter((i) => i.defaultOpen).map((i) => i.id))

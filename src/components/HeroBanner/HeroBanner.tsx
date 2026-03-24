@@ -1,25 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import styles from './HeroBanner.module.css'
-
-interface MetricData {
-  label: string
-  value: string
-  change: string
-  valueColor?: string
-}
-
-interface HeroBannerData {
-  name: string
-  greeting: string
-  streakWeeks: number
-  score: number
-  scoreSubtitle: string
-  metrics: MetricData[]
-  points: number
-  teamRank: string
-}
+import { useSwagStore } from '@/store/swagStore'
+import { HeroBannerData, MetricData } from '@/types/hero-banner'
 
 interface MetricProps extends MetricData {}
 
@@ -44,22 +27,8 @@ function Metric({ label, value, change, valueColor }: MetricProps) {
 
 const RING_CIRCUMFERENCE = 289
 
-export default function HeroBanner() {
-  const [data] = useState<HeroBannerData>({
-    name: 'Marcus',
-    greeting: 'Good morning',
-    streakWeeks: 3,
-    score: 84,
-    scoreSubtitle: 'Your score is up 6 points since November. You\'re in the top 25% of your team this week.',
-    metrics: [
-      { label: 'Hospitality', value: '88', change: '↑ +4 this week', valueColor: '#78C99A' },
-      { label: 'Checkout Spd', value: '76', change: '→ Coaching active', valueColor: '#F5C842' },
-      { label: 'Time to Svc', value: '86', change: '↑ +2 this week', valueColor: '#78C99A' },
-      { label: 'Shift Hours', value: '36h', change: 'This week' },
-    ],
-    points: 1840,
-    teamRank: '#2 / 5',
-  })
+export default function HeroBanner({ data }: { data: HeroBannerData }) {
+  const points = useSwagStore((s) => s.points)
 
   const ringOffset = RING_CIRCUMFERENCE * (1 - data.score / 100)
 
@@ -113,7 +82,7 @@ export default function HeroBanner() {
           style={{ background: 'rgba(184,134,11,0.25)', border: '1px solid rgba(184,134,11,0.4)' }}
         >
           <div className="font-mono font-bold leading-none text-[28px]" style={{ color: '#F5C842' }}>
-            {data.points.toLocaleString()}
+            {points.toLocaleString()}
           </div>
           <div
             className="uppercase tracking-[.09em] text-[10px] mt-[3px]"
