@@ -1,4 +1,9 @@
+'use client'
+
+import { useState } from 'react'
 import styles from './RoiHero.module.css'
+import { RoiStat } from '@/types/roi'
+import { ROI_STATS } from '@/lib/roi-data'
 
 const valueColorClass: Record<string, string> = {
   green: 'text-[#78C99A]',
@@ -12,6 +17,8 @@ const pillVariantStyle: Record<string, React.CSSProperties> = {
 }
 
 export default function RoiHero() {
+  const [stats] = useState<RoiStat[]>(ROI_STATS)
+
   return (
     <div
       className={`${styles.roiHero} relative rounded-2xl overflow-hidden grid`}
@@ -21,32 +28,7 @@ export default function RoiHero() {
         gridTemplateColumns: '1fr 1fr 1fr 1fr',
       }}
     >
-      {[
-        {
-          label: 'Est. Revenue Impact',
-          value: '+$18,240', valueVariant: 'green',
-          pill: '+12.4%', pillVariant: 'up',
-          sub: 'vs. prior 4 months',
-        },
-        {
-          label: 'Team Score Avg',
-          value: '76 → 82', valueVariant: '',
-          pill: '+6 pts', pillVariant: 'up',
-          sub: '4-month improvement',
-        },
-        {
-          label: 'Pythia Platform Cost',
-          value: '$1,440', valueVariant: 'amber',
-          pill: '4 months', pillVariant: 'neutral',
-          sub: '$360/mo all-in',
-        },
-        {
-          label: 'Net ROI',
-          value: '12.7×', valueVariant: 'green',
-          pill: '$16,800 net', pillVariant: 'up',
-          sub: 'after platform cost',
-        },
-      ].map((stat, i) => (
+      {stats.map((stat, i) => (
         <div
           key={stat.label}
           className="flex flex-col gap-[6px] pr-[28px] mr-[28px]"
@@ -62,7 +44,11 @@ export default function RoiHero() {
             className={`font-mono font-medium text-[32px] leading-none ${valueColorClass[stat.valueVariant] ?? 'text-white'}`}
             style={{ letterSpacing: '-.02em' }}
           >
-            {stat.value}
+            {stat.value.split('→').flatMap((part, i, arr) =>
+              i < arr.length - 1
+                ? [part, <span key={i} style={{ fontFamily: 'system-ui, sans-serif' }}>→</span>]
+                : [part]
+            )}
           </div>
           <div className="flex items-center gap-[6px] text-[11.5px]">
             <span
@@ -78,3 +64,4 @@ export default function RoiHero() {
     </div>
   )
 }
+

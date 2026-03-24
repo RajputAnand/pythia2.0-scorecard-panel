@@ -48,6 +48,13 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - All hardcoded demo/seed data goes in `src/lib/` as a named export constant (e.g. `SHIFT_SUMMARY_DATA` in `src/lib/shift-data.ts`).
 - Components import from `src/lib/` and pass the constant to `useState` — no inline data literals in component files.
 
+## Shared Components
+- When two or more components share a non-trivial piece of UI (e.g. a reusable SVG chart, a card shell, a data table), extract it into its own component under `src/components/shared/<SharedComponentName>/`.
+- The shared component receives all variable content via props — it must not import any page-specific data or types directly.
+- Define the props interface in `src/types/` using a domain-appropriate filename (e.g. `src/types/line-chart.ts` for a line chart component).
+- The consuming components each own their own data file in `src/lib/` and pass it through `useState` as usual — the shared component only renders what it receives.
+- **Example:** `src/components/shared/LineChartSvg/LineChartSvg.tsx` — renders a multi-series SVG line chart; used by both `ProgressChart` and `ScoreVsTransactions`, each supplying its own data via `LineChartSvgProps`.
+
 ## Routes
 - All pages are under `/dashboard/<page-name>/` (e.g. `/dashboard/roi-attribution`).
 - The employee overview page is at `/dashboard/overview` — not at `/`.
