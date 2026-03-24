@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { RECOMMENDATIONS, type Recommendation } from '@/lib/staffing-data'
+import { useToast } from '@/context/ToastContext'
 
 const typePillClass: Record<string, string> = {
   coverage: 'bg-danger-light text-danger',
@@ -13,28 +14,20 @@ const typePillClass: Record<string, string> = {
 export default function StaffingRecommendations() {
   const [recs, setRecs] = useState<Recommendation[]>(RECOMMENDATIONS)
   const [applied, setApplied] = useState<Set<string>>(new Set())
-  const [toast, setToast] = useState('')
-  const [showToast, setShowToast] = useState(false)
-
-  const fireToast = (msg: string) => {
-    setToast(msg)
-    setShowToast(true)
-    setTimeout(() => setShowToast(false), 3000)
-  }
+  const { showToast } = useToast()
 
   const applyRec = (id: string) => {
     setApplied((prev) => new Set([...prev, id]))
-    fireToast('Recommendation applied to schedule')
+    showToast('Recommendation applied to schedule')
   }
 
   const dismissRec = (id: string) => {
     setRecs((prev) => prev.filter((r) => r.id !== id))
-    fireToast('Recommendation dismissed')
+    showToast('Recommendation dismissed')
   }
 
   return (
-    <>
-      <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
+    <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
         <div className="flex items-center justify-between px-[18px] py-[14px] border-b border-border">
           <div className="text-[13px] font-semibold">Pythia Recommendations</div>
           <div
@@ -86,16 +79,5 @@ export default function StaffingRecommendations() {
           )}
         </div>
       </div>
-
-      {/* Toast */}
-      <div
-        className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-white px-[18px] py-3 rounded-[10px] text-[13px] font-medium transition-all duration-300 pointer-events-none ${
-          showToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}
-      >
-        <span className="text-[15px]">✓</span>
-        {toast}
-      </div>
-    </>
   )
 }

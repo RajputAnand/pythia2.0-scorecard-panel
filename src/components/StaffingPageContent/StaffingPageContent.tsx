@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useToast } from '@/context/ToastContext'
 import {
   STAFF_EMPLOYEES,
   SHIFT_HOURS_OPTIONS,
@@ -19,13 +20,12 @@ type EditTarget = { empIdx: number; dayIdx: number } | null
 const DAYS_DISPLAY = ['Mon 2/23', 'Tue 2/24', 'Wed 2/25 ●', 'Thu 2/26', 'Fri 2/27 ⚠', 'Sat 2/28', 'Sun 3/1']
 
 export default function StaffingPageContent() {
+  const { showToast } = useToast()
   const [employees, setEmployees] = useState<StaffEmployee[]>(STAFF_EMPLOYEES)
   const [editTarget, setEditTarget] = useState<EditTarget>(null)
   const [editHours, setEditHours] = useState('')
   const [editStation, setEditStation] = useState('Register 1')
   const [editPaired, setEditPaired] = useState('Solo')
-  const [toast, setToast] = useState('')
-  const [showToast, setShowToast] = useState(false)
   const [alertDismissed, setAlertDismissed] = useState(false)
 
   const drawerRef = useRef<HTMLDivElement>(null)
@@ -36,12 +36,6 @@ export default function StaffingPageContent() {
       drawerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
   }, [editTarget])
-
-  const fireToast = (msg: string) => {
-    setToast(msg)
-    setShowToast(true)
-    setTimeout(() => setShowToast(false), 3000)
-  }
 
   const handleShiftClick = (empIdx: number, dayIdx: number) => {
     // toggle off if same shift clicked again
@@ -71,7 +65,7 @@ export default function StaffingPageContent() {
         return { ...e, shifts }
       })
     )
-    fireToast('Shift updated — remember to save draft')
+    showToast('Shift updated — remember to save draft')
     closeEdit()
   }
 
@@ -106,7 +100,6 @@ export default function StaffingPageContent() {
             employees={employees}
             selectedShift={editTarget}
             onShiftClick={handleShiftClick}
-            onToast={fireToast}
           />
         </div>
 
@@ -167,14 +160,6 @@ export default function StaffingPageContent() {
         </div>
       </div>
 
-      {/* Toast */}
-      <div
-        className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-white px-[18px] py-3 rounded-[10px] text-[13px] font-medium transition-all duration-300 pointer-events-none ${showToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-          }`}
-      >
-        <span className="text-[15px]">✓</span>
-        {toast}
-      </div>
     </>
   )
 }

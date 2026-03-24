@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Panel from '@/components/Panel/Panel'
 import styles from './SwagStore.module.css'
+import { useToast } from '@/context/ToastContext'
 
 interface SwagItem {
   id: string
@@ -25,7 +26,7 @@ const INITIAL_ITEMS: SwagItem[] = [
 export default function SwagStore() {
   const [points, setPoints] = useState(1840)
   const [items, setItems] = useState<SwagItem[]>(INITIAL_ITEMS)
-  const [toast, setToast] = useState<string | null>(null)
+  const { showToast } = useToast()
 
   function redeem(item: SwagItem) {
     if (points < item.cost || item.redeemed) return
@@ -33,11 +34,6 @@ export default function SwagStore() {
     setPoints(newPoints)
     setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, redeemed: true } : i))
     showToast(`${item.emoji} ${item.name} redeemed! ${newPoints.toLocaleString()} pts remaining`)
-  }
-
-  function showToast(msg: string) {
-    setToast(msg)
-    setTimeout(() => setToast(null), 3500)
   }
 
   return (
@@ -90,13 +86,6 @@ export default function SwagStore() {
         })}
       </div>
 
-      {/* Toast */}
-      {toast && (
-        <div className={`${styles.toast} fixed flex items-center gap-2 text-white rounded-[10px] font-medium z-50`}>
-          <span>🎉</span>
-          <span>{toast}</span>
-        </div>
-      )}
     </Panel>
   )
 }

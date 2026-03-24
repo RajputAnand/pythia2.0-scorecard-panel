@@ -1,6 +1,7 @@
 'use client'
 
 import { Fragment, useState } from 'react'
+import { useToast } from '@/context/ToastContext'
 import {
   STAFF_EMPLOYEES,
   HEATMAP_ROWS,
@@ -48,15 +49,14 @@ interface Props {
   employees: StaffEmployee[]
   selectedShift: { empIdx: number; dayIdx: number } | null
   onShiftClick: (empIdx: number, dayIdx: number) => void
-  onToast: (msg: string) => void
 }
 
 export default function StaffingSchedulePanel({
   employees,
   selectedShift,
   onShiftClick,
-  onToast,
 }: Props) {
+  const { showToast } = useToast()
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
       {/* Header */}
@@ -223,7 +223,7 @@ export default function StaffingSchedulePanel({
             Discard Changes
           </button>
           <button
-            onClick={() => onToast('Schedule draft saved')}
+            onClick={() => showToast('Schedule draft saved')}
             className="text-[12.5px] font-medium text-white bg-primary border-0 rounded-lg px-[15px] py-[7px] cursor-pointer hover:opacity-90 transition-opacity font-sans"
           >
             Save Draft
