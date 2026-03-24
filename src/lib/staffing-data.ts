@@ -1,41 +1,4 @@
-export type ShiftVariant = 'high' | 'mid' | 'low' | 'off' | 'gap' | 'fatigue' | 'suggested'
-export type ScoreColor = 'good' | 'ok' | 'bad'
-export type RecType = 'coverage' | 'pairing' | 'fatigue' | 'peak'
-
-export interface Shift {
-  time: string
-  variant: ShiftVariant
-  flag?: string
-  flagVariant?: 'gap' | 'fatigue' | 'suggested'
-}
-
-export interface StaffEmployee {
-  id: string
-  initials: string
-  avatarColor: string
-  name: string
-  score: number
-  scoreColor: ScoreColor
-  shifts: Shift[] // Mon → Sun, 7 entries
-}
-
-export interface Recommendation {
-  id: string
-  type: RecType
-  typeLabel: string
-  text: string
-  detail: string
-}
-
-export interface TeamScoreMember {
-  initials: string
-  avatarColor: string
-  name: string
-  score: number
-  barWidth: string
-  barColor: string
-  scoreColor: ScoreColor
-}
+import { Recommendation, StaffEmployee, TeamScoreMember } from "@/types/staff"
 
 export const DAYS = ['Mon 2/23', 'Tue 2/24', 'Wed 2/25 ●', 'Thu 2/26', 'Fri 2/27 ⚠', 'Sat 2/28', 'Sun 3/1']
 export const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
