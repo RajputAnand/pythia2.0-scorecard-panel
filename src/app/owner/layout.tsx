@@ -1,6 +1,6 @@
 import Sidebar from '@/components/shared/Sidebar/Sidebar'
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function OwnerLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Sidebar />
