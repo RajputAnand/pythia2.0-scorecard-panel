@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import Panel from '@/components/shared/Panel/Panel'
 import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
-import { PROGRESS_CHART_DATA } from '@/lib/progress-chart-data'
 import type { ProgressChartData } from '@/types/progress-chart'
 
 const milestoneLabelClass: Record<string, string> = {
@@ -11,8 +9,7 @@ const milestoneLabelClass: Record<string, string> = {
   next: 'text-amber',
 }
 
-export default function ProgressChart() {
-  const [data] = useState<ProgressChartData>(PROGRESS_CHART_DATA)
+export default function ProgressChart({ data }: { data: ProgressChartData }) {
 
   const { overall, hospitality, checkout } = data.series
 

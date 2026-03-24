@@ -1,10 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import Panel from '@/components/shared/Panel/Panel'
 import styles from './ShiftSummary.module.css'
 import { ShiftSummaryData } from '@/types/shift'
-import { SHIFT_SUMMARY_DATA } from '@/lib/shift-data'
 import { renderText } from '@/utils/common'
 
 const metricValClass: Record<string, string> = {
@@ -21,8 +19,7 @@ const metricChangeClass: Record<string, string> = {
 }
 
 
-export default function ShiftSummary() {
-  const [data] = useState<ShiftSummaryData>(SHIFT_SUMMARY_DATA)
+export default function ShiftSummary({ data }: { data: ShiftSummaryData }) {
 
   const badge = data.shiftComplete ? (
     <span className="bg-accent-light text-accent font-semibold rounded-[20px] text-[11px] px-[9px] py-[3px]">

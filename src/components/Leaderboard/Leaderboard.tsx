@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import Panel from '@/components/shared/Panel/Panel'
 import { LeaderboardData, PosVariant } from '@/types/leaderboart'
-import { LEADERBOARD_DATA } from '@/lib/leaderboard-data'
 import { renderText } from '@/utils/common'
 
 const posClass: Record<PosVariant, string> = {
@@ -15,8 +13,7 @@ const posClass: Record<PosVariant, string> = {
 }
 
 
-export default function Leaderboard() {
-  const [data] = useState<LeaderboardData>(LEADERBOARD_DATA)
+export default function Leaderboard({ data }: { data: LeaderboardData }) {
 
   return (
     <Panel

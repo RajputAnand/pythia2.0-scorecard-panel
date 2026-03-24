@@ -61,7 +61,16 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Demo Data
 - All hardcoded demo/seed data goes in `src/lib/` as a named export constant (e.g. `SHIFT_SUMMARY_DATA` in `src/lib/shift-data.ts`).
-- Components import from `src/lib/` and pass the constant to `useState` — no inline data literals in component files.
+- Components receive data via props — no inline data literals in component files, and no direct `src/lib/` imports inside components when data comes from a page-level API fetch (see Server Component Data Fetching below).
+
+## Server Component Data Fetching
+- When a page needs to pre-fetch data before rendering, `page.tsx` is an `async` Server Component that `await`s the API call and passes results down as props.
+- The page-level fetch uses a fake API helper from `src/mock/<domain>APIs.ts` (e.g. `fakeGetOverview()`). Swap for a real `fetch` when the backend is ready — nothing else changes.
+- The combined return type for a page fetch lives in `src/types/<page>.ts` (e.g. `src/types/overview.ts` → `OverviewPageData`).
+- Components that receive server-fetched data accept typed props and do **not** import from `src/lib/` directly. They may still use `useState` / `useEffect` for purely local UI state (e.g. open/close toggles) — mark them `'use client'` only if they need browser APIs or hooks.
+- Components that manage their own async lifecycle (e.g. Zustand stores with `useEffect` fetches) are exempt from this pattern and continue using the Zustand async action pattern.
+- ISR (`revalidate`) may be added to `page.tsx` in the future — keep the async pattern compatible by not mixing server fetches with client-only code inside the page file.
+- **Example:** `src/app/dashboard/overview/page.tsx` — `async` page calls `fakeGetOverview()`, receives `OverviewPageData`, and passes slices to `HeroBanner`, `ShiftSummary`, `CoachingMoments`, `ProgressChart`, and `Leaderboard` as props. `SwagStore` manages its own data via Zustand and is passed no props.
 
 ## Shared Components
 - When two or more components share a non-trivial piece of UI (e.g. a reusable SVG chart, a card shell, a data table), extract it into its own component under `src/components/shared/<SharedComponentName>/`.
@@ -69,6 +78,39 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Define the props interface in `src/types/` using a domain-appropriate filename (e.g. `src/types/line-chart.ts` for a line chart component).
 - The consuming components each own their own data file in `src/lib/` and pass it through `useState` as usual — the shared component only renders what it receives.
 - **Example:** `src/components/shared/LineChartSvg/LineChartSvg.tsx` — renders a multi-series SVG line chart; used by both `ProgressChart` and `ScoreVsTransactions`, each supplying its own data via `LineChartSvgProps`.
+
+## State Management — Zustand
+- Zustand stores live in `src/store/` as individual files named after their domain (e.g. `src/store/swagStore.ts`).
+- Each store file exports a single `use<Domain>Store` hook created with `create<State>(...)`.
+- Define the state shape and all actions together in one `interface` — never split them.
+- Actions mutate state via `set((state) => ({ ... }))`. Return the same `state` object unchanged for no-op cases (e.g. guard clauses).
+- Selectors: consume individual slices with `useStore((s) => s.field)` rather than subscribing to the whole store, to avoid unnecessary re-renders.
+- Zustand is the right choice when state needs to be shared across unrelated components or when it outlives a single component's lifetime. For state that is purely local to one component, keep using `useState`. For state shared only within a React subtree, prefer Context.
+
+### Async action pattern
+Every store that talks to an API follows this shape:
+```ts
+interface DomainState {
+  // data
+  loading: boolean        // true while initial fetch is in flight
+  redeemingId: string | null  // or similar per-item in-flight marker
+  error: string | null    // last API error, null when clear
+
+  fetchX: () => Promise<void>          // GET — called on mount via useEffect
+  mutateX: (args) => Promise<boolean>  // POST/PATCH — returns true on success
+}
+```
+- Fake API helpers (`fakeGet` / `fakePost`) live in `src/mock/<domain>APIs.ts` — never inline them in the store. Swap them for real `fetch` calls when the backend is ready.
+- `mutateX` returns `boolean` so the component can react (e.g. show a toast) without the store knowing about UI.
+- While a mutation is in-flight, set `redeemingId` (or equivalent) to the item's ID and disable all other action buttons to prevent double-submits.
+- **Example:** `src/store/swagStore.ts` — `fetchPoints` (GET on mount), `redeem` (POST per item); `SwagStore.tsx` drives all three states: `loading` pulse, per-button `redeemingId` spinner, `error` banner.
+
+## Mock API Layer
+- All fake/mock API functions live in `src/mock/` — one file per domain, named `<domain>APIs.ts` (e.g. `src/mock/swagStoreAPIs.ts`).
+- Mock files are the **only** place where `setTimeout`-based fake network delays live. Never inline fake delays in stores or components.
+- Mock functions pull their seed data from `src/lib/` — reuse an existing data file if one exists, create a new one if not. Never hardcode data literals inside mock files.
+- Each mock function mirrors the real API contract it will eventually replace: same function name, same parameter shape, same return type. Swapping to a real `fetch` call means replacing only the mock file, nothing else.
+- **Example:** `src/mock/swagStoreAPIs.ts` — exports `fakeGet` (returns points + catalog from `SWAG_STORE`) and `fakePost` (simulates a redeem with a 15% failure rate); imported by `src/store/swagStore.ts`.
 
 ## Routes
 - Pages are organized by role under three route groups:

@@ -1,26 +1,35 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect } from 'react'
 import Panel from '@/components/shared/Panel/Panel'
 import styles from './SwagStore.module.css'
 import { useToast } from '@/context/ToastContext'
-import { SwagItem, SwagStoreConfig } from '@/types/swagstore'
+import { SwagItem } from '@/types/swagstore'
 import { SWAG_STORE } from '@/lib/swagstore-data'
 import { renderText } from '@/utils/common'
+import { useSwagStore } from '@/store/swagStore'
 
 export default function SwagStore() {
-  const [config] = useState<SwagStoreConfig>(SWAG_STORE)
-
-  const [points, setPoints] = useState(config.initialPoints)
-  const [items, setItems] = useState<SwagItem[]>(config.catalog)
+  const config = SWAG_STORE
+  const points = useSwagStore((s) => s.points)
+  const items = useSwagStore((s) => s.items)
+  const loading = useSwagStore((s) => s.loading)
+  const redeemingId = useSwagStore((s) => s.redeemingId)
+  const error = useSwagStore((s) => s.error)
+  const fetchPoints = useSwagStore((s) => s.fetchPoints)
+  const redeemItem = useSwagStore((s) => s.redeem)
   const { showToast } = useToast()
 
-  function redeem(item: SwagItem) {
-    if (points < item.cost || item.redeemed) return
-    const newPoints = points - item.cost
-    setPoints(newPoints)
-    setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, redeemed: true } : i))
-    showToast(`${item.emoji} ${item.name} redeemed! ${newPoints.toLocaleString()} pts remaining`)
+  useEffect(() => {
+    fetchPoints()
+  }, [fetchPoints])
+
+  async function redeem(item: SwagItem) {
+    const success = await redeemItem(item)
+    if (success) {
+      const newPoints = points - item.cost
+      showToast(`${item.emoji} ${item.name} redeemed! ${newPoints.toLocaleString()} pts remaining`)
+    }
   }
 
   return (
@@ -31,9 +40,13 @@ export default function SwagStore() {
         style={{ background: 'linear-gradient(135deg, #1A1714, #2A2010)' }}
       >
         <div className="flex items-baseline gap-[6px]">
-          <span className="font-mono font-bold text-[22px]" style={{ color: '#F5C842' }}>
-            {points.toLocaleString()}
-          </span>
+          {loading ? (
+            <span className="font-mono font-bold text-[22px] animate-pulse" style={{ color: '#F5C842' }}>—</span>
+          ) : (
+            <span className="font-mono font-bold text-[22px]" style={{ color: '#F5C842' }}>
+              {points.toLocaleString()}
+            </span>
+          )}
           <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11.5px' }}>points available</span>
         </div>
         <div className={`${styles.earnRate} text-[11px]`} style={{ color: 'rgba(255,255,255,0.35)' }}>
@@ -41,11 +54,19 @@ export default function SwagStore() {
         </div>
       </div>
 
+      {/* Error banner */}
+      {error && (
+        <div className="px-5 py-2 text-[11.5px] font-medium" style={{ background: 'rgba(220,53,69,0.12)', color: '#f87171' }}>
+          {error}
+        </div>
+      )}
+
       {/* Grid */}
       <div className={`${styles.grid} grid grid-cols-3`}>
         {items.map((item) => {
           const canAfford = points >= item.cost
           const needed = item.cost - points
+          const isRedeeming = redeemingId === item.id
           return (
             <div key={item.id} className={`${styles.item} flex flex-col border-r border-b border-border px-[16px] py-[14px] gap-2`}>
               <span className="text-[24px]">{item.emoji}</span>
@@ -56,10 +77,15 @@ export default function SwagStore() {
                 <button className="cursor-default font-sans font-semibold rounded-[7px] text-center border-0 transition-all duration-150 text-[11.5px] px-[10px] py-[6px] bg-accent-light text-accent" disabled>
                   ✓ Redeemed
                 </button>
+              ) : isRedeeming ? (
+                <button className="cursor-default font-sans font-semibold rounded-[7px] text-center border-0 text-[11.5px] px-[10px] py-[6px] bg-accent text-white opacity-70 animate-pulse" disabled>
+                  Redeeming…
+                </button>
               ) : canAfford ? (
                 <button
-                  className="cursor-pointer font-sans font-semibold rounded-[7px] text-center border-0 transition-all duration-150 text-[11.5px] px-[10px] py-[6px] bg-accent text-white hover:opacity-85"
+                  className="cursor-pointer font-sans font-semibold rounded-[7px] text-center border-0 transition-all duration-150 text-[11.5px] px-[10px] py-[6px] bg-accent text-white hover:opacity-85 disabled:cursor-default disabled:opacity-50"
                   onClick={() => redeem(item)}
+                  disabled={!!redeemingId}
                 >
                   Redeem
                 </button>
