@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Panel from '@/components/Panel/Panel'
+import Panel from '@/components/shared/Panel/Panel'
 import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import { PROGRESS_CHART_DATA } from '@/lib/progress-chart-data'
 import type { ProgressChartData } from '@/types/progress-chart'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Panel from '@/components/Panel/Panel'
+import Panel from '@/components/shared/Panel/Panel'
 import styles from './ShiftSummary.module.css'
 import { ShiftSummaryData } from '@/types/shift'
 import { SHIFT_SUMMARY_DATA } from '@/lib/shift-data'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Panel from '@/components/Panel/Panel'
+import Panel from '@/components/shared/Panel/Panel'
 import { renderText } from '@/utils/common'
 import { COST_PER_COACHING_DATA } from '@/lib/cost-per-coaching-data'
 import type { CostPerCoachingData } from '@/types/cost-per-coaching'
