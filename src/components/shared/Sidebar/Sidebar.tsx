@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import styles from './Sidebar.module.css'
 import { DEMO_USER } from '@/lib/demo-user'
 import type { ReactNode } from 'react'
+import { UserRole } from '@/types/user'
 
 type NavItem = { label: string; href: string; badge?: number | null; icon: ReactNode }
 type NavSection = { section: string; items: NavItem[] }
@@ -75,7 +76,7 @@ const OWNER_NAV: NavSection[] = [
     items: [
       {
         label: 'Dashboard',
-        href: '/dashboard/overview',
+        href: '#owner-dashboard',
         icon: (
           <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -87,7 +88,7 @@ const OWNER_NAV: NavSection[] = [
       },
       {
         label: 'Employees',
-        href: '/dashboard/employees',
+        href: '#owner-employee',
         icon: (
           <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <circle cx="12" cy="8" r="4" />
@@ -102,7 +103,7 @@ const OWNER_NAV: NavSection[] = [
     items: [
       {
         label: 'ROI Attribution',
-        href: '/dashboard/roi-attribution',
+        href: '/owner/roi-attribution',
         icon: (
           <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -111,7 +112,7 @@ const OWNER_NAV: NavSection[] = [
       },
       {
         label: 'Benchmarking',
-        href: '/dashboard/benchmarking',
+        href: '/owner/benchmarking',
         icon: (
           <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10" />
@@ -122,7 +123,7 @@ const OWNER_NAV: NavSection[] = [
       },
       {
         label: 'Marketing Loop',
-        href: '/dashboard/marketing-loop',
+        href: '/owner/marketing-loop',
         icon: (
           <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -143,7 +144,7 @@ const MANAGER_NAV: NavSection[] = [
     items: [
       {
         label: 'Dashboard',
-        href: '/dashboard/overview',
+        href: '#manager-dashboard',
         icon: (
           <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -155,7 +156,7 @@ const MANAGER_NAV: NavSection[] = [
       },
       {
         label: 'Employees',
-        href: '/dashboard/employees',
+        href: '#manager-employee',
         icon: (
           <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <circle cx="12" cy="8" r="4" />
@@ -170,7 +171,7 @@ const MANAGER_NAV: NavSection[] = [
     items: [
       {
         label: 'Coach Tracker',
-        href: '/dashboard/coaching-tracker',
+        href: '/manager/coaching-tracker',
         icon: (
           <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -179,7 +180,7 @@ const MANAGER_NAV: NavSection[] = [
       },
       {
         label: 'Staffing',
-        href: '/dashboard/staffing-intelligence',
+        href: '/manager/staffing-intelligence',
         icon: (
           <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -201,8 +202,8 @@ const NAV_BY_ROLE: Record<string, NavSection[]> = {
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const [activeView, setActiveView] = useState<'owner' | 'manager'>('owner')
   const user = DEMO_USER
+  const [activeView, setActiveView] = useState<UserRole>(user.role)
   const navSections = NAV_BY_ROLE[user.role] ?? EMPLOYEE_NAV
 
   return (

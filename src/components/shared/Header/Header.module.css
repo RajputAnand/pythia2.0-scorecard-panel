@@ -1,4 +1,4 @@
-@reference "../../app/globals.css";
+@reference "../../../app/globals.css";
 
 /* Shared button styles — consumers apply these classes via headerStyles import */
 .btnGhost {

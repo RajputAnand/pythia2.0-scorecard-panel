@@ -1,5 +1,5 @@
-import Header from '@/components/Header/Header'
-import headerStyles from '@/components/Header/Header.module.css'
+import Header from '@/components/shared/Header/Header'
+import headerStyles from '@/components/shared/Header/Header.module.css'
 import AddCampaignButton from '@/components/AddCampaignButton/AddCampaignButton'
 import MarketingInsightStrip from '@/components/MarketingInsightStrip/MarketingInsightStrip'
 import DemographicShifts from '@/components/DemographicShifts/DemographicShifts'

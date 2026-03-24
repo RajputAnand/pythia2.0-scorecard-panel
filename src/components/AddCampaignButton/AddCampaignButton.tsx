@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import headerStyles from '@/components/Header/Header.module.css'
+import headerStyles from '@/components/shared/Header/Header.module.css'
 
 export default function AddCampaignButton() {
   const [visible, setVisible] = useState(false)

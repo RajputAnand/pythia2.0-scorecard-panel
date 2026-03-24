@@ -1,5 +1,5 @@
-import Header from '@/components/Header/Header'
-import headerStyles from '@/components/Header/Header.module.css'
+import Header from '@/components/shared/Header/Header'
+import headerStyles from '@/components/shared/Header/Header.module.css'
 import BenchmarkingMetricFilter from '@/components/BenchmarkingMetricFilter/BenchmarkingMetricFilter'
 import RankHero from '@/components/RankHero/RankHero'
 import NetworkLeaderboard from '@/components/NetworkLeaderboard/NetworkLeaderboard'

@@ -1,5 +1,5 @@
-import Header from '@/components/Header/Header'
-import headerStyles from '@/components/Header/Header.module.css'
+import Header from '@/components/shared/Header/Header'
+import headerStyles from '@/components/shared/Header/Header.module.css'
 import TimeControls from '@/components/TimeControls/TimeControls'
 import RoiHero from '@/components/RoiHero/RoiHero'
 import ScoreVsTransactions from '@/components/ScoreVsTransactions/ScoreVsTransactions'
