@@ -1,42 +1,22 @@
-import styles from './RevenueImpactTable.module.css'
+'use client'
 
-const ROWS = [
-  {
-    metric: 'Team Hospitality Score',
-    sub: 'Greeting rate, tone, engagement',
-    scoreBefore: '71', scoreAfter: '84', scoreColor: '#1D5C3A',
-    barWidth: '84%', barColor: '#1D5C3A',
-    outcome: '+46s avg dwell time · +2.3% basket',
-    actual: '+$6,840', projected: '+$9,200',
-  },
-  {
-    metric: 'Checkout Speed',
-    sub: 'Avg transaction time per customer',
-    scoreBefore: '38s', scoreAfter: '29s', scoreColor: '#C47F18',
-    barWidth: '70%', barColor: '#C47F18',
-    outcome: '+15 customers/hr · less abandonment',
-    actual: '+$8,400', projected: '+$11,200',
-  },
-  {
-    metric: 'Time to Service',
-    sub: 'Greeting delay reduction',
-    scoreBefore: '75', scoreAfter: '82', scoreColor: '#1E4D7A',
-    barWidth: '82%', barColor: '#1E4D7A',
-    outcome: '+8% repeat visit intent (survey)',
-    actual: '+$3,000', projected: '+$4,800',
-  },
-]
+import { useState } from 'react'
+import styles from './RevenueImpactTable.module.css'
+import { REVENUE_IMPACT_DATA } from '@/lib/revenue-impact-data'
+import type { RevenueImpactData } from '@/types/revenue-impact'
 
 export default function RevenueImpactTable() {
+  const [data] = useState<RevenueImpactData>(REVENUE_IMPACT_DATA)
+
   return (
     <div className="bg-surface border border-border rounded-2xl overflow-hidden">
       <div className="flex items-start justify-between border-b border-border px-5 pt-4 pb-3">
         <div>
-          <div className="font-semibold text-[13px]">Estimated Revenue Impact by Metric</div>
-          <div className="text-muted text-[11px] mt-0.5">Actuals Nov–Feb · Projections based on current trajectory</div>
+          <div className="font-semibold text-[13px]">{data.title}</div>
+          <div className="text-muted text-[11px] mt-0.5">{data.subtitle}</div>
         </div>
         <div className="font-bold rounded-[20px] whitespace-nowrap bg-surface-alt text-muted text-[10px] px-[8px] py-[3px]">
-          4-month view
+          {data.badge}
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -51,7 +31,7 @@ export default function RevenueImpactTable() {
             </tr>
           </thead>
           <tbody>
-            {ROWS.map((row) => (
+            {data.rows.map((row) => (
               <tr key={row.metric}>
                 <td>
                   <div className="font-medium text-[13px]">{row.metric}</div>
@@ -70,11 +50,11 @@ export default function RevenueImpactTable() {
                 <td className="text-secondary text-[12px]">{row.outcome}</td>
                 <td>
                   <span className="font-mono font-bold text-[13px] text-accent">{row.actual}</span>
-                  <span className="font-semibold rounded-[4px] bg-accent-light text-accent text-[9.5px] px-[5px] py-[1px] ml-1">Actual</span>
+                  <span className="font-semibold rounded-[4px] bg-accent-light text-accent text-[9.5px] px-[5px] py-px ml-1">Actual</span>
                 </td>
                 <td>
                   <span className="font-mono font-bold text-[13px] text-cobalt">{row.projected}</span>
-                  <span className="font-semibold rounded-[4px] bg-cobalt-light text-cobalt text-[9.5px] px-[5px] py-[1px] ml-1">Proj</span>
+                  <span className="font-semibold rounded-[4px] bg-cobalt-light text-cobalt text-[9.5px] px-[5px] py-px ml-1">Proj</span>
                 </td>
               </tr>
             ))}
@@ -82,33 +62,33 @@ export default function RevenueImpactTable() {
             {/* Cost row */}
             <tr style={{ background: '#FAFAF8' }}>
               <td>
-                <div className="font-medium text-[13px] text-amber">Pythia Platform Cost</div>
-                <div className="text-muted text-[11px]">All-in monthly subscription</div>
+                <div className="font-medium text-[13px] text-amber">{data.costRow.label}</div>
+                <div className="text-muted text-[11px]">{data.costRow.sub}</div>
               </td>
               <td>—</td>
-              <td className="text-secondary text-[12px]">Coaching, analytics, hardware</td>
+              <td className="text-secondary text-[12px]">{data.costRow.outcome}</td>
               <td>
-                <span className="font-mono font-bold text-[13px] text-amber">−$1,440</span>
-                <span className="font-semibold rounded-[4px] bg-amber-light text-amber text-[9.5px] px-[5px] py-[1px] ml-1">Cost</span>
+                <span className="font-mono font-bold text-[13px] text-amber">{data.costRow.cost}</span>
+                <span className="font-semibold rounded-[4px] bg-amber-light text-amber text-[9.5px] px-[5px] py-px ml-1">Cost</span>
               </td>
               <td>
-                <span className="font-mono font-bold text-[13px] text-amber">−$1,440</span>
-                <span className="font-semibold rounded-[4px] bg-amber-light text-amber text-[9.5px] px-[5px] py-[1px] ml-1">Cost</span>
+                <span className="font-mono font-bold text-[13px] text-amber">{data.costRow.cost}</span>
+                <span className="font-semibold rounded-[4px] bg-amber-light text-amber text-[9.5px] px-[5px] py-px ml-1">Cost</span>
               </td>
             </tr>
 
             {/* Net ROI row */}
             <tr style={{ background: 'var(--color-accent-light)' }}>
               <td>
-                <div className="text-accent font-medium text-[14px]">Net ROI</div>
+                <div className="text-accent font-medium text-[14px]">{data.netRoiRow.label}</div>
               </td>
               <td>—</td>
-              <td className="text-accent font-medium text-[12px]">12.7× return on platform investment</td>
+              <td className="text-accent font-medium text-[12px]">{data.netRoiRow.outcome}</td>
               <td>
-                <span className="font-mono font-bold text-[15px] text-accent">+$16,800</span>
+                <span className="font-mono font-bold text-[15px] text-accent">{data.netRoiRow.actual}</span>
               </td>
               <td>
-                <span className="font-mono font-bold text-[15px] text-cobalt">+$23,760</span>
+                <span className="font-mono font-bold text-[15px] text-cobalt">{data.netRoiRow.projected}</span>
               </td>
             </tr>
           </tbody>
