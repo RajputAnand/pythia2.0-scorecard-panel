@@ -29,10 +29,25 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Role-Based Sidebar + User Identity
 - All user/role data lives in `src/lib/demo-user.ts` — single source of truth.
-- Change `DEMO_USER.role` to `'employee'`, `'owner'`, or `'manager'` to test different sidebar layouts.
+- Change `DEMO_USER.role` to `'employee'`, `'owner'`, or `'manager'` to test different sidebar layouts and route access.
 - `Sidebar.tsx` reads `DEMO_USER` and renders role-specific nav sections and bottom widget:
   - `employee` → "My Dashboard" nav + employee score pill
-  - `owner` / `manager` → "Navigate" + "Owner Tools" nav + view toggle + store pill
+  - `manager` → "Manager Tools" nav + store pill (no view toggle)
+  - `owner` → "Owner Tools" nav + owner/manager view toggle + store pill; toggling navigates to the default route for that view and swaps nav sections
+
+## Role-Based Routing
+- `src/proxy.ts` (Next.js 16 "Proxy" — replaces the deprecated `middleware.ts`) enforces role-based access on every request.
+  - **Note:** Next.js 16 renamed `middleware.ts` → `proxy.ts` and `export function middleware` → `export function proxy`. Always use `proxy.ts` and the `proxy` export in this project.
+- Visiting `/` redirects to the role's default page.
+- Accessing a route outside a role's allowed prefixes also redirects to the default page.
+- Role → allowed route prefixes → default route:
+  | Role       | Allowed prefixes          | Default route                     |
+  |------------|---------------------------|-----------------------------------|
+  | `employee` | `/dashboard`              | `/dashboard/overview`             |
+  | `owner`    | `/owner`, `/manager`      | `/owner/roi-attribution`          |
+  | `manager`  | `/manager`                | `/manager/coaching-tracker`       |
+- Owners can access `/manager/*` routes (they oversee managers); managers cannot access `/owner/*`.
+- The proxy imports `DEMO_USER` from `src/lib/demo-user.ts` to read the role. Changing `DEMO_USER.role` immediately changes both routing and sidebar behavior.
 
 ## Shared Utilities
 - Common, reusable functions with no coupling to a specific component go in `src/utils/common.ts` as named exports on the `Utils` class or as standalone exports.
@@ -56,6 +71,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Example:** `src/components/shared/LineChartSvg/LineChartSvg.tsx` — renders a multi-series SVG line chart; used by both `ProgressChart` and `ScoreVsTransactions`, each supplying its own data via `LineChartSvgProps`.
 
 ## Routes
-- All pages are under `/dashboard/<page-name>/` (e.g. `/dashboard/roi-attribution`).
+- Pages are organized by role under three route groups:
+  - `src/app/dashboard/` — employee pages: `overview`, `progress`, `coaching`, `leaderboard`, `swag`
+  - `src/app/owner/` — owner pages: `roi-attribution`, `benchmarking`, `marketing-loop`
+  - `src/app/manager/` — manager pages: `coaching-tracker`, `staffing-intelligence`
+- Each group has its own `layout.tsx` that renders `<Sidebar />`.
 - The employee overview page is at `/dashboard/overview` — not at `/`.
 <!-- END:project-conventions -->
