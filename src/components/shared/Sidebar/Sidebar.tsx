@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import styles from './Sidebar.module.css'
 import { DEMO_USER } from '@/lib/demo-user'
 import type { ReactNode } from 'react'
@@ -202,9 +202,18 @@ const NAV_BY_ROLE: Record<string, NavSection[]> = {
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const user = DEMO_USER
   const [activeView, setActiveView] = useState<UserRole>(user.role)
-  const navSections = NAV_BY_ROLE[user.role] ?? EMPLOYEE_NAV
+
+  const navSections = NAV_BY_ROLE[activeView]
+
+  // function handleViewToggle(view: UserRole) {
+  //   if (user.role != "owner") return
+  //   setActiveView(view)
+  //   if (view === 'owner') router.push('/owner/roi-attribution')
+  //   else router.push('/manager/coaching-tracker')
+  // }
 
   return (
     <aside className="fixed inset-y-0 left-0 z-20 flex flex-col bg-surface border-r border-border w-[210px]">
@@ -273,28 +282,30 @@ export default function Sidebar() {
         </div>
       ) : (
         <>
-          <div className="mx-3 pt-4 border-t border-border mb-4">
-            <div className="text-muted uppercase tracking-[.08em] text-[10px] mb-2 px-[2px]">Current View</div>
-            <button
-              className={`${styles.toggleBtn} ${activeView === 'owner' ? styles.toggleBtnActive : ''}`}
-              onClick={() => setActiveView('owner')}
-            >
-              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              </svg>
-              Owner View
-            </button>
-            <button
-              className={`${styles.toggleBtn} ${activeView === 'manager' ? styles.toggleBtnActive : ''}`}
-              onClick={() => setActiveView('manager')}
-            >
-              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <circle cx="12" cy="8" r="4" />
-                <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-              </svg>
-              Manager View
-            </button>
-          </div>
+          {user.role === 'owner' && (
+            <div className="mx-3 pt-4 border-t border-border mb-4">
+              <div className="text-muted uppercase tracking-[.08em] text-[10px] mb-2 px-[2px]">Current View</div>
+              <button
+                className={`${styles.toggleBtn} ${activeView === 'owner' ? styles.toggleBtnActive : ''}`}
+                // onClick={() => handleViewToggle('owner')}
+              >
+                <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                </svg>
+                Owner View
+              </button>
+              <button
+                className={`${styles.toggleBtn} ${activeView === 'manager' ? styles.toggleBtnActive : ''}`}
+                // onClick={() => handleViewToggle('manager')}
+              >
+                <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+                </svg>
+                Manager View
+              </button>
+            </div>
+          )}
           <div className="flex items-center gap-[9px] mx-3 mb-5 rounded-[10px] bg-surface-alt px-[12px] py-[10px]">
             <div className={styles.liveDot} />
             <div>

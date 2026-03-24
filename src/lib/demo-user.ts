@@ -9,7 +9,7 @@ import { User } from "@/types/user";
 export const DEMO_USER: User = {
   initials: 'MR',
   name: 'Marcus R.',
-  role: 'owner',
+  role: 'employee',
   score: 84,
   jobTitle: 'Cashier',
   storeName: 'Main St. Store',
