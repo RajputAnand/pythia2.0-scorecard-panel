@@ -34,6 +34,20 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - `employee` → "My Dashboard" nav + employee score pill
   - `owner` / `manager` → "Navigate" + "Owner Tools" nav + view toggle + store pill
 
+## Shared Utilities
+- Common, reusable functions with no coupling to a specific component go in `src/utils/common.ts` as named exports on the `Utils` class or as standalone exports.
+- Do not duplicate utility logic across components — extract to `src/utils/common.ts` on first reuse.
+- If shared logic relies on React APIs (e.g. `useState`, `useEffect`), first evaluate whether a Context is the right fit: a Context makes sense when the state/logic is genuinely shared across many components in the tree and doesn't belong to one owner. If the logic is only incidentally duplicated or the coupling would be forced, keep it local or extract a plain utility instead. When Context is the right call, add it under `src/context/`.
+  - **Example:** `src/context/ToastContext.tsx` — manages toast visibility and message via `useState`; any component calls `useToast()` to trigger a toast without prop-drilling or duplicating the state.
+
+## Types
+- All TypeScript interfaces and types go in `src/types/` — never define them inline in component files.
+- Use an appropriate filename per domain (e.g. `src/types/shift.ts`, `src/types/coaching.ts`). Append to an existing file if the type belongs to the same domain; create a new file only when the domain is clearly distinct.
+
+## Demo Data
+- All hardcoded demo/seed data goes in `src/lib/` as a named export constant (e.g. `SHIFT_SUMMARY_DATA` in `src/lib/shift-data.ts`).
+- Components import from `src/lib/` and pass the constant to `useState` — no inline data literals in component files.
+
 ## Routes
 - All pages are under `/dashboard/<page-name>/` (e.g. `/dashboard/roi-attribution`).
 - The employee overview page is at `/dashboard/overview` — not at `/`.
