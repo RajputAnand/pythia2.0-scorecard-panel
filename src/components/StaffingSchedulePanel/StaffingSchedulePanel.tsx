@@ -3,13 +3,14 @@
 import { Fragment, useState } from 'react'
 import { useToast } from '@/context/ToastContext'
 import {
-  STAFF_EMPLOYEES,
   HEATMAP_ROWS,
   PEAK_BARS,
+} from '@/lib/staffing-data'
+import {
   type Shift,
   type ShiftVariant,
   type StaffEmployee,
-} from '@/lib/staffing-data'
+} from "@/types/staff"
 
 const shiftBlockClass: Record<ShiftVariant, string> = {
   high: 'bg-accent-light border border-[#B8D9C6]',

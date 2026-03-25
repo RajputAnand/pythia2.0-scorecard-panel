@@ -125,12 +125,41 @@ interface DomainState {
 - While a mutation is in-flight, set `redeemingId` (or equivalent) to the item's ID and disable all other action buttons to prevent double-submits.
 - **Example:** `src/store/swagStore.ts` — `fetchPoints` (GET on mount), `redeem` (POST per item); `SwagStore.tsx` drives all three states: `loading` pulse, per-button `redeemingId` spinner, `error` banner.
 
+## Timers and Async Side Effects
+- **Never call `setTimeout` (or `setInterval`) directly inside a `useCallback`, event handler, or any other non-effect function if the timeout updates component state.** Doing so schedules a state update with no cleanup path — in React 19 concurrent/strict mode this triggers "Can't perform a React state update on a component that hasn't mounted yet" because the callback can fire during a remount before the component commits.
+- Instead, **move the timer into a `useEffect`** that depends on the state that triggered it, and return a cleanup function that calls `clearTimeout`. This guarantees the timer is cancelled if the component unmounts or the effect re-runs.
+- **Correct pattern** (used in `AddCampaignButton` and `ToastContext`):
+  ```tsx
+  // In the handler / callback — only set state, never schedule timers:
+  const show = useCallback((msg: string) => {
+    setMessage(msg)
+    setVisible(true)
+  }, [])
+
+  // In an effect — own the timer lifecycle:
+  useEffect(() => {
+    if (!visible) return
+    const t = setTimeout(() => setVisible(false), 3000)
+    return () => clearTimeout(t)
+  }, [visible])
+  ```
+- The same rule applies to `setInterval`, `requestAnimationFrame`, and any other async scheduling API — always clean up in the `useEffect` return.
+
 ## Mock API Layer
 - All fake/mock API functions live in `src/mock/` — one file per domain, named `<domain>APIs.ts` (e.g. `src/mock/swagStoreAPIs.ts`).
 - Mock files are the **only** place where `setTimeout`-based fake network delays live. Never inline fake delays in stores or components.
 - Mock functions pull their seed data from `src/lib/` — reuse an existing data file if one exists, create a new one if not. Never hardcode data literals inside mock files.
 - Each mock function mirrors the real API contract it will eventually replace: same function name, same parameter shape, same return type. Swapping to a real `fetch` call means replacing only the mock file, nothing else.
 - **Example:** `src/mock/swagStoreAPIs.ts` — exports `fakeGet` (returns points + catalog from `SWAG_STORE`) and `fakePost` (simulates a redeem with a 15% failure rate); imported by `src/store/swagStore.ts`.
+
+## Loading Skeletons
+- **Every page route must have a `loading.tsx` co-located alongside its `page.tsx`.**
+- `loading.tsx` uses Next.js's built-in Suspense boundary — it is shown automatically while the page is loading and requires no extra wiring.
+- Structure the skeleton to mirror the real page layout: replicate the header bar, then each major section as a rounded `bg-border` block with `animate-pulse` on the root wrapper.
+- Use `bg-border` for all skeleton placeholder shapes — this matches the design token and works in both light/dark themes.
+- Repeat items that render from a list (cards, rows) with `Array.from({ length: N })` to match the expected count.
+- Never import real components or data inside `loading.tsx` — it must be a pure static render with no async work.
+- **When adding a new page, always create its `loading.tsx` at the same time.**
 
 ## Routes
 - Pages are organized by role under three route groups:

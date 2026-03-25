@@ -1,4 +1,4 @@
-import type { Employee } from '@/lib/coaching-tracker-data'
+import type { Employee  } from '@/types/employee'
 
 interface Props {
   employee: Employee

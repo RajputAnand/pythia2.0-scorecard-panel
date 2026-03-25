@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { RECOMMENDATIONS, type Recommendation } from '@/lib/staffing-data'
+import { RECOMMENDATIONS } from '@/lib/staffing-data'
 import { useToast } from '@/context/ToastContext'
+import { type Recommendation } from "@/types/staff"
 
 const typePillClass: Record<string, string> = {
   coverage: 'bg-danger-light text-danger',
