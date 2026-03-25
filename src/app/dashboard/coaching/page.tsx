@@ -1,11 +1,7 @@
 import Header from '@/components/shared/Header/Header'
-import HeroBanner from '@/components/HeroBanner/HeroBanner'
-import ShiftSummary from '@/components/ShiftSummary/ShiftSummary'
 import CoachingMoments from '@/components/CoachingMoments/CoachingMoments'
-import ProgressChart from '@/components/ProgressChart/ProgressChart'
-import Leaderboard from '@/components/Leaderboard/Leaderboard'
-import SwagStore from '@/components/SwagStore/SwagStore'
 import headerStyles from '@/components/shared/Header/Header.module.css'
+import { COACHING_ITEMS } from '@/lib/coaching-item-data'
 
 export default function CoachingPage() {
   return (
@@ -16,7 +12,7 @@ export default function CoachingPage() {
       </Header>
 
       <div className="grid px-[30px] py-[24px] gap-5">
-          <CoachingMoments />
+          <CoachingMoments items={COACHING_ITEMS} />
       </div>
     </>
   )

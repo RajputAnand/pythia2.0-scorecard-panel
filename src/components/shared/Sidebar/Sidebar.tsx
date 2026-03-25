@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import styles from './Sidebar.module.css'
-import { DEMO_USER } from '@/lib/demo-user'
 import type { ReactNode } from 'react'
-import { UserRole } from '@/types/user'
+import type { User, UserRole } from '@/types/user'
 import { useSwagStore } from '@/store/swagStore'
+import { logout } from '@/actions/auth'
 
 type NavItem = { label: string; href: string; badge?: number | null; icon: ReactNode }
 type NavSection = { section: string; items: NavItem[] }
@@ -201,21 +201,31 @@ const NAV_BY_ROLE: Record<string, NavSection[]> = {
   manager: MANAGER_NAV,
 }
 
-export default function Sidebar() {
+const VIEW_DEFAULT_ROUTES: Record<UserRole, string> = {
+  owner: '/owner/roi-attribution',
+  manager: '/manager/coaching-tracker',
+  employee: '/dashboard/overview',
+}
+
+export default function Sidebar({ user }: { user: User }) {
   const pathname = usePathname()
   const router = useRouter()
-  const user = DEMO_USER
-  const [activeView, setActiveView] = useState<UserRole>(user.role)
+  const [activeView, setActiveView] = useState<UserRole>(() => {
+    if (user.role !== 'owner') return user.role
+    return pathname.startsWith('/manager') ? 'manager' : 'owner'
+  })
+  const [isPending, startTransition] = useTransition()
 
   const navSections = NAV_BY_ROLE[activeView]
   const points = useSwagStore((s) => s.points)
 
-  // function handleViewToggle(view: UserRole) {
-  //   if (user.role != "owner") return
-  //   setActiveView(view)
-  //   if (view === 'owner') router.push('/owner/roi-attribution')
-  //   else router.push('/manager/coaching-tracker')
-  // }
+  function handleViewToggle(view: UserRole) {
+    if (user.role !== 'owner') return
+    setActiveView(view)
+    startTransition(() => {
+      router.push(VIEW_DEFAULT_ROUTES[view])
+    })
+  }
 
   return (
     <aside className="fixed inset-y-0 left-0 z-20 flex flex-col bg-surface border-r border-border w-[210px]">
@@ -268,7 +278,7 @@ export default function Sidebar() {
       {/* Bottom widget — role-specific */}
       {user.role === 'employee' ? (
         <div
-          className="flex items-center gap-[10px] mx-3 mb-5 rounded-[10px] border px-[14px] py-[12px]"
+          className="flex items-center gap-[10px] mx-3 mb-3 rounded-[10px] border px-[14px] py-[12px]"
           style={{ background: 'linear-gradient(135deg, var(--color-accent-light), #D0EAD8)', borderColor: '#B8D9C6' }}
         >
           <div className="flex items-center justify-center shrink-0 rounded-full bg-accent text-white font-bold w-9 h-9 text-[12px]">
@@ -291,8 +301,9 @@ export default function Sidebar() {
             <div className="mx-3 pt-4 border-t border-border mb-4">
               <div className="text-muted uppercase tracking-[.08em] text-[10px] mb-2 px-[2px]">Current View</div>
               <button
-                className={`${styles.toggleBtn} ${activeView === 'owner' ? styles.toggleBtnActive : ''}`}
-                // onClick={() => handleViewToggle('owner')}
+                className={`${styles.toggleBtn} ${activeView === 'owner' ? styles.toggleBtnActive : ''} ${isPending ? 'opacity-60' : ''}`}
+                onClick={() => handleViewToggle('owner')}
+                disabled={isPending}
               >
                 <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -300,8 +311,9 @@ export default function Sidebar() {
                 Owner View
               </button>
               <button
-                className={`${styles.toggleBtn} ${activeView === 'manager' ? styles.toggleBtnActive : ''}`}
-                // onClick={() => handleViewToggle('manager')}
+                className={`${styles.toggleBtn} ${activeView === 'manager' ? styles.toggleBtnActive : ''} ${isPending ? 'opacity-60' : ''}`}
+                onClick={() => handleViewToggle('manager')}
+                disabled={isPending}
               >
                 <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <circle cx="12" cy="8" r="4" />
@@ -311,7 +323,7 @@ export default function Sidebar() {
               </button>
             </div>
           )}
-          <div className="flex items-center gap-[9px] mx-3 mb-5 rounded-[10px] bg-surface-alt px-[12px] py-[10px]">
+          <div className="flex items-center gap-[9px] mx-3 mb-3 rounded-[10px] bg-surface-alt px-[12px] py-[10px]">
             <div className={styles.liveDot} />
             <div>
               <div className="text-[12px] font-medium">{user.storeName}</div>
@@ -320,6 +332,21 @@ export default function Sidebar() {
           </div>
         </>
       )}
+
+      {/* Logout */}
+      <form action={logout} className="mx-3 mb-4">
+        <button
+          type="submit"
+          className="w-full flex items-center gap-2 px-3 py-[9px] rounded-lg text-[12.5px] text-muted hover:text-danger hover:bg-danger/8 transition-colors cursor-pointer"
+        >
+          <svg className="shrink-0 w-[14px] h-[14px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Sign out
+        </button>
+      </form>
     </aside>
   )
 }

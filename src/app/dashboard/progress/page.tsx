@@ -1,6 +1,7 @@
 import Header from '@/components/shared/Header/Header'
 import ProgressChart from '@/components/ProgressChart/ProgressChart'
 import headerStyles from '@/components/shared/Header/Header.module.css'
+import { PROGRESS_CHART_DATA } from '@/lib/progress-chart-data'
 
 export default function ProgressPage() {
   return (
@@ -11,7 +12,7 @@ export default function ProgressPage() {
       </Header>
 
       <div className="grid px-[30px] py-[24px] gap-5">
-          <ProgressChart />
+          <ProgressChart data={PROGRESS_CHART_DATA} />
       </div>
     </>
   )

@@ -1,18 +1,41 @@
-import { User } from "@/types/user";
+import { User } from "@/types/user"
 
-/**
- * Change `role` here to test different sidebar layouts and page access:
- *   'employee' — shows employee nav + employee pill
- *   'owner'    — shows owner nav + view toggle + store pill
- *   'manager'  — same nav as owner but labelled manager
- */
-export const DEMO_USER: User = {
-  initials: 'MR',
-  name: 'Marcus R.',
-  role: 'employee',
-  score: 84,
-  jobTitle: 'Cashier',
-  storeName: 'Main St. Store',
-  storeLoc: 'Boise, ID',
-  nodesOnline: 2,
+interface DemoUser extends User {
+  email: string
+  password: string
 }
+
+export const DEMO_USERS: DemoUser[] = [
+  {
+    email: 'employee@demo.com',
+    password: 'demo1234',
+    initials: 'MR',
+    name: 'Marcus R.',
+    role: 'employee',
+    score: 84,
+    jobTitle: 'Cashier',
+    storeName: 'Main St. Store',
+    storeLoc: 'Boise, ID',
+    nodesOnline: 2,
+  },
+  {
+    email: 'manager@demo.com',
+    password: 'demo1234',
+    initials: 'JL',
+    name: 'Jamie L.',
+    role: 'manager',
+    storeName: 'Main St. Store',
+    storeLoc: 'Boise, ID',
+    nodesOnline: 3,
+  },
+  {
+    email: 'owner@demo.com',
+    password: 'demo1234',
+    initials: 'SB',
+    name: 'Sam B.',
+    role: 'owner',
+    storeName: 'Main St. Store',
+    storeLoc: 'Boise, ID',
+    nodesOnline: 5,
+  },
+]

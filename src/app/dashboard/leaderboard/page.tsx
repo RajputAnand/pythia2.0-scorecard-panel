@@ -1,6 +1,7 @@
 import Header from '@/components/shared/Header/Header'
 import Leaderboard from '@/components/Leaderboard/Leaderboard'
 import headerStyles from '@/components/shared/Header/Header.module.css'
+import { LEADERBOARD_DATA } from '@/lib/leaderboard-data'
 
 export default function LeaderboardPage() {
     return (
@@ -11,7 +12,7 @@ export default function LeaderboardPage() {
             </Header>
 
             <div className="grid px-[30px] py-[24px] gap-5">
-                <Leaderboard />
+                <Leaderboard data={LEADERBOARD_DATA} />
             </div>
         </>
     )
