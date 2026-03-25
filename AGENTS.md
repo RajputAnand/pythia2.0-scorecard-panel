@@ -27,19 +27,40 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - `headerStyles.btnAccent` — green background, white text
   - `headerStyles.btnPrimary` — dark (`bg-primary`) background, white text
 
+## Authentication
+- Auth is handled by **next-auth v5** (Auth.js). Config lives in `src/auth.ts` — exports `{ handlers, signIn, signOut, auth }`.
+- Demo credentials are defined in `src/lib/demo-user.ts` as `DEMO_USERS` — one entry per role with `email`, `password`, and full profile fields.
+- Demo accounts:
+  | Role     | Email                | Password   |
+  |----------|----------------------|------------|
+  | employee | employee@demo.com    | demo1234   |
+  | manager  | manager@demo.com     | demo1234   |
+  | owner    | owner@demo.com       | demo1234   |
+- The JWT callback stores role + profile fields in the token; the session callback surfaces them on `session.user`.
+- next-auth type augmentations live in `src/types/next-auth.d.ts` — extends `Session`, `User`, and `JWT` with `role`, `initials`, and profile fields.
+- `AUTH_SECRET` must be set in `.env.local`.
+
+## Server Actions
+- Server actions live in `src/actions/` as `'use server'` files, one file per domain (e.g. `src/actions/auth.ts`).
+- They are the required bridge between `'use client'` components and server-side logic. A file cannot mix `'use client'` and `'use server'` — so any client component that needs to call `signIn`, `signOut`, or mutate server state must import a server action.
+- Client components wire actions via `useActionState(action, initialState)` — the action receives `(prevState, formData)` and returns the next state (e.g. an error string, or `undefined` on success).
+- **Example:** `LoginForm.tsx` is `'use client'` and cannot call `signIn` directly. It imports `login` from `src/actions/auth.ts` and passes it to `useActionState`.
+
 ## Role-Based Sidebar + User Identity
-- All user/role data lives in `src/lib/demo-user.ts` — single source of truth.
-- Change `DEMO_USER.role` to `'employee'`, `'owner'`, or `'manager'` to test different sidebar layouts and route access.
-- `Sidebar.tsx` reads `DEMO_USER` and renders role-specific nav sections and bottom widget:
+- User identity comes from the **session**, not a static constant.
+- `Sidebar.tsx` accepts a `user: User` prop — layouts call `await auth()` to get the session and pass `session.user` down.
+- `Sidebar.tsx` renders role-specific nav sections and bottom widget:
   - `employee` → "My Dashboard" nav + employee score pill
   - `manager` → "Manager Tools" nav + store pill (no view toggle)
   - `owner` → "Owner Tools" nav + owner/manager view toggle + store pill; toggling navigates to the default route for that view and swaps nav sections
 
 ## Role-Based Routing
-- `src/proxy.ts` (Next.js 16 "Proxy" — replaces the deprecated `middleware.ts`) enforces role-based access on every request.
+- `src/proxy.ts` (Next.js 16 "Proxy" — replaces the deprecated `middleware.ts`) enforces auth and role-based access on every request.
   - **Note:** Next.js 16 renamed `middleware.ts` → `proxy.ts` and `export function middleware` → `export function proxy`. Always use `proxy.ts` and the `proxy` export in this project.
-- Visiting `/` redirects to the role's default page.
-- Accessing a route outside a role's allowed prefixes also redirects to the default page.
+- The proxy is wrapped with `auth()` from next-auth — `req.auth` holds the session.
+- Unauthenticated requests are redirected to `/login`; `/login` is always public.
+- Authenticated requests to `/` or `/login` redirect to the role's default page.
+- Accessing a route outside a role's allowed prefixes redirects to the default page.
 - Role → allowed route prefixes → default route:
   | Role       | Allowed prefixes          | Default route                     |
   |------------|---------------------------|-----------------------------------|
@@ -47,7 +68,6 @@ This version has breaking changes — APIs, conventions, and file structure may 
   | `owner`    | `/owner`, `/manager`      | `/owner/roi-attribution`          |
   | `manager`  | `/manager`                | `/manager/coaching-tracker`       |
 - Owners can access `/manager/*` routes (they oversee managers); managers cannot access `/owner/*`.
-- The proxy imports `DEMO_USER` from `src/lib/demo-user.ts` to read the role. Changing `DEMO_USER.role` immediately changes both routing and sidebar behavior.
 
 ## Shared Utilities
 - Common, reusable functions with no coupling to a specific component go in `src/utils/common.ts` as named exports on the `Utils` class or as standalone exports.
@@ -117,6 +137,6 @@ interface DomainState {
   - `src/app/dashboard/` — employee pages: `overview`, `progress`, `coaching`, `leaderboard`, `swag`
   - `src/app/owner/` — owner pages: `roi-attribution`, `benchmarking`, `marketing-loop`
   - `src/app/manager/` — manager pages: `coaching-tracker`, `staffing-intelligence`
-- Each group has its own `layout.tsx` that renders `<Sidebar />`.
+- Each group has its own `layout.tsx` — an `async` Server Component that calls `await auth()` and renders `<Sidebar user={...} />`.
 - The employee overview page is at `/dashboard/overview` — not at `/`.
 <!-- END:project-conventions -->
