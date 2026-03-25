@@ -3,14 +3,16 @@
 import { useState, useRef, useEffect } from 'react'
 import { useToast } from '@/context/ToastContext'
 import {
+  type Shift,
+  type ShiftVariant,
+  type StaffEmployee,
+} from '@/types/staff'
+import {
   STAFF_EMPLOYEES,
   SHIFT_HOURS_OPTIONS,
   STATION_OPTIONS,
   PAIRED_WITH_OPTIONS,
-  type Shift,
-  type ShiftVariant,
-  type StaffEmployee,
-} from '@/lib/staffing-data'
+} from "@/lib/staffing-data"
 import StaffingSchedulePanel from '@/components/StaffingSchedulePanel/StaffingSchedulePanel'
 import StaffingRecommendations from '@/components/StaffingRecommendations/StaffingRecommendations'
 import StaffingTeamScores from '@/components/StaffingTeamScores/StaffingTeamScores'
@@ -95,7 +97,7 @@ export default function StaffingPageContent() {
               </button>
             </div>
           )}
-          
+
           <StaffingSchedulePanel
             employees={employees}
             selectedShift={editTarget}

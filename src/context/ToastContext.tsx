@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 
 interface ToastContextValue {
   showToast: (msg: string) => void
@@ -15,8 +15,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const showToast = useCallback((msg: string) => {
     setMessage(msg)
     setVisible(true)
-    setTimeout(() => setVisible(false), 3000)
   }, [])
+
+  useEffect(() => {
+    if (!visible) return
+    const t = setTimeout(() => setVisible(false), 3000)
+    return () => clearTimeout(t)
+  }, [visible])
 
   return (
     <ToastContext.Provider value={{ showToast }}>
