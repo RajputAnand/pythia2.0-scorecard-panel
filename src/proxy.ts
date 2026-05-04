@@ -24,8 +24,8 @@ export const proxy = auth((req) => {
 
   // Unauthenticated: allow /login, redirect everything else
   if (!session) {
-    if (pathname === '/login') return NextResponse.next()
-    return NextResponse.redirect(new URL('/login', req.url))
+    if (pathname === '/login/employee' || pathname === '/login/manager' || pathname === '/login/owner') return NextResponse.next()
+    return NextResponse.redirect(new URL('/login/employee', req.url))
   }
 
   // Authenticated: redirect away from /login and /
