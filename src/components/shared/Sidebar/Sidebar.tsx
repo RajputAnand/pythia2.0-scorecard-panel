@@ -334,7 +334,7 @@ export default function Sidebar({ user }: { user: User }) {
       )}
 
       {/* Logout */}
-      <form action={logout} className="mx-3 mb-4">
+      <form action={logout.bind(null, user)} className="mx-3 mb-4">
         <button
           type="submit"
           className="w-full flex items-center gap-2 px-3 py-[9px] rounded-lg text-[12.5px] text-muted hover:text-danger hover:bg-danger/8 transition-colors cursor-pointer"
