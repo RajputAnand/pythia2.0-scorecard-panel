@@ -1,5 +1,5 @@
 import { DefaultSession } from "next-auth"
-import { UserRole } from "./user"
+import { UserRole, Store } from "./user"
 
 declare module "next-auth" {
   interface Session {
@@ -11,6 +11,7 @@ declare module "next-auth" {
       storeName?: string
       storeLoc?: string
       nodesOnline?: number
+      stores?: Store[]
     } & DefaultSession["user"]
   }
 
@@ -22,6 +23,7 @@ declare module "next-auth" {
     storeName?: string
     storeLoc?: string
     nodesOnline?: number
+    stores?: Store[]
   }
 }
 
@@ -34,5 +36,6 @@ declare module "next-auth/jwt" {
     storeName?: string
     storeLoc?: string
     nodesOnline?: number
+    stores?: Store[]
   }
 }

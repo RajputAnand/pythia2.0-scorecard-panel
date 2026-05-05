@@ -26,6 +26,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           storeName: user.storeName,
           storeLoc: user.storeLoc,
           nodesOnline: user.nodesOnline,
+          stores: user.stores,
         }
       },
     }),
@@ -40,6 +41,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.storeName = user.storeName
         token.storeLoc = user.storeLoc
         token.nodesOnline = user.nodesOnline
+        token.stores = user.stores
       }
       return token
     },
@@ -52,6 +54,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.storeName = t.storeName
       session.user.storeLoc = t.storeLoc
       session.user.nodesOnline = t.nodesOnline
+      session.user.stores = t.stores
       return session
     },
   },

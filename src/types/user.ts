@@ -1,5 +1,12 @@
 export type UserRole = 'employee' | 'owner' | 'manager'
 
+export interface Store {
+  id: string
+  name: string
+  location: string
+  nodesOnline?: number
+}
+
 export interface User {
   initials: string
   name: string
@@ -11,4 +18,6 @@ export interface User {
   storeName?: string
   storeLoc?: string
   nodesOnline?: number
+  /** Owner-only: full list of stores returned by the login API */
+  stores?: Store[]
 }
