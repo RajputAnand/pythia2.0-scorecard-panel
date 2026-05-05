@@ -8,11 +8,13 @@ import CheckoutSpeed from '@/components/CheckoutSpeed/CheckoutSpeed'
 import RevenueImpactTable from '@/components/RevenueImpactTable/RevenueImpactTable'
 import CostPerCoaching from '@/components/CostPerCoaching/CostPerCoaching'
 import ProjectionSummary from '@/components/ProjectionSummary/ProjectionSummary'
+import { getUser } from '@/lib/get-user'
 
-export default function RoiAttributionPage() {
+export default async function RoiAttributionPage() {
+  const user = await getUser()
   return (
     <>
-      <Header title="ROI Attribution">
+      <Header title="ROI Attribution" user={user}>
         <button className={headerStyles.btnGhost}>Export PDF</button>
         <button className={headerStyles.btnPrimary}>Share with Investor</button>
       </Header>

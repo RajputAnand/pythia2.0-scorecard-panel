@@ -37,5 +37,11 @@ export const DEMO_USERS: DemoUser[] = [
     storeName: 'Main St. Store',
     storeLoc: 'Boise, ID',
     nodesOnline: 5,
+    stores: [
+      { id: 'store-1', name: 'Main St. Store',    location: 'Boise, ID',     nodesOnline: 5 },
+      { id: 'store-2', name: 'Riverfront Plaza',  location: 'Portland, OR',  nodesOnline: 3 },
+      { id: 'store-3', name: 'Eastside Market',   location: 'Seattle, WA',   nodesOnline: 4 },
+      { id: 'store-4', name: 'Harbor View',       location: 'San Diego, CA', nodesOnline: 2 },
+    ],
   },
 ]

@@ -6,11 +6,13 @@ import NetworkLeaderboard from '@/components/NetworkLeaderboard/NetworkLeaderboa
 import StoreComparison from '@/components/StoreComparison/StoreComparison'
 import TopStorePractices from '@/components/TopStorePractices/TopStorePractices'
 import RankMovement from '@/components/RankMovement/RankMovement'
+import { getUser } from '@/lib/get-user'
 
-export default function BenchmarkingPage() {
+export default async function BenchmarkingPage() {
+  const user = await getUser()
   return (
     <>
-      <Header title="Competitor Benchmarking" subtitle="Feb 2026 · 24 peer stores in network">
+      <Header title="Competitor Benchmarking" subtitle="Feb 2026 · 24 peer stores in network" user={user}>
         <BenchmarkingMetricFilter />
         <button className={headerStyles.btnPrimary}>Export Report</button>
       </Header>
