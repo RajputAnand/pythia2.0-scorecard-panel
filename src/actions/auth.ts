@@ -3,6 +3,7 @@
 import { signIn, signOut, auth } from "@/auth"
 import { AuthError } from "next-auth"
 import { DEMO_USERS } from "@/lib/demo-user"
+import { User } from "@/types/user"
 
 // Returns null on success, error string on failure.
 // Using redirect: false so the session cookie is fully set before the client navigates.
@@ -43,6 +44,12 @@ export async function login(_prev: string | null | undefined, formData: FormData
   }
 }
 
-export async function logout() {
-  await signOut({ redirectTo: '/login' })
+export async function logout(user: User) {
+  let loginPage = '/login/employee'
+  if (user.role === 'owner') {
+    loginPage = '/login/owner'
+  } else if (user.role === 'manager') {
+    loginPage = '/login/manager'
+  }
+  await signOut({ redirectTo: loginPage })
 }
