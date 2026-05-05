@@ -118,9 +118,17 @@ export default function LoginForm({ role }: LoginFormProps) {
           </div>
 
           <div className="flex flex-col gap-[6px]">
-            <label className="text-[12px] font-medium text-secondary uppercase tracking-[.07em]">
-              Password
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-[12px] font-medium text-secondary uppercase tracking-[.07em]">
+                Password
+              </label>
+              <Link
+                href="/forgot-password"
+                className="text-[11.5px] text-accent hover:text-accent-mid transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <input
               name="password"
               type="password"
