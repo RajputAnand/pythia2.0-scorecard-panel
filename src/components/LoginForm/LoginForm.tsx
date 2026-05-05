@@ -75,29 +75,6 @@ export default function LoginForm({ role }: LoginFormProps) {
           <p className="text-secondary text-[13px] mt-1">{config.description}</p>
         </div>
 
-        {/* Demo Credentials Info */}
-        {demoUser && (
-          <div className="mb-6 p-3 bg-surface-alt border border-border rounded-lg">
-            <p className="text-[11px] font-semibold text-secondary uppercase tracking-[.07em] mb-2">
-              Demo Credentials
-            </p>
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] text-muted">Email:</span>
-                <code className="text-[12px] font-mono text-primary bg-surface px-2 py-1 rounded border border-border">
-                  {demoUser.email}
-                </code>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] text-muted">Password:</span>
-                <code className="text-[12px] font-mono text-primary bg-surface px-2 py-1 rounded border border-border">
-                  {demoUser.password}
-                </code>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Form */}
         <form action={action} className="flex flex-col gap-4">
           {/* Hidden role input */}
@@ -158,11 +135,10 @@ export default function LoginForm({ role }: LoginFormProps) {
               <Link
                 key={r}
                 href={`/login/${r}`}
-                className={`flex-1 px-2 py-2 text-[11px] font-semibold rounded-lg border transition-colors text-center capitalize ${
-                  r === role
+                className={`flex-1 px-2 py-2 text-[11px] font-semibold rounded-lg border transition-colors text-center capitalize ${r === role
                     ? 'bg-accent text-white border-accent'
                     : 'border-border text-secondary hover:bg-surface-alt'
-                }`}
+                  }`}
               >
                 {r}
               </Link>
