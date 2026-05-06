@@ -99,6 +99,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - The consuming components each own their own data file in `src/lib/` and pass it through `useState` as usual — the shared component only renders what it receives.
 - **Example:** `src/components/shared/LineChartSvg/LineChartSvg.tsx` — renders a multi-series SVG line chart; used by both `ProgressChart` and `ScoreVsTransactions`, each supplying its own data via `LineChartSvgProps`.
 
+## Forms and Validation
+- **Always use `DynamicForm`** (`src/components/shared/DynamicForm/DynamicForm.tsx`) for form implementations instead of setting up `react-hook-form` manually in individual components.
+- `DynamicForm` encapsulates all React Hook Form state, handles field rendering (including text, email, and password types with built-in show/hide toggles), and wires up validation.
+- **Validation**: Define Zod schemas in `src/schemas/` and pass them to `DynamicForm` via the `zodSchema` prop. The component automatically uses `zodResolver` to perform validation and display inline field errors.
+- Parent components should only manage server action state (`isPending`, `serverError`), define the `FormField` configuration array, and provide an `onSubmit` handler.
+- **Example**: `LoginForm.tsx` defines fields and passes `loginSchema` to `DynamicForm`, handling the actual submission via a server action inside a `useTransition`.
+
+
 ## State Management — Zustand
 - Zustand stores live in `src/store/` as individual files named after their domain (e.g. `src/store/swagStore.ts`).
 - Each store file exports a single `use<Domain>Store` hook created with `create<State>(...)`.
@@ -106,6 +114,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Actions mutate state via `set((state) => ({ ... }))`. Return the same `state` object unchanged for no-op cases (e.g. guard clauses).
 - Selectors: consume individual slices with `useStore((s) => s.field)` rather than subscribing to the whole store, to avoid unnecessary re-renders.
 - Zustand is the right choice when state needs to be shared across unrelated components or when it outlives a single component's lifetime. For state that is purely local to one component, keep using `useState`. For state shared only within a React subtree, prefer Context.
+
+### Store Subscriptions
+- Stores can subscribe to changes in other stores to coordinate global state (e.g., refetching data when the user switches their active store context).
+- This is achieved using the `subscribeWithSelector` middleware.
+- Create and export a dedicated subscription function for the state slice (e.g., `onStoreChange` in `userStore`) to encapsulate the subscription logic.
+- **Example:** `userStore.ts` exports `onStoreChange((next, prev) => ...)`. Other stores or components can call this to trigger a data refetch when `next?.id !== prev?.id`. Always remember to call the returned unsubscribe function on cleanup to prevent memory leaks.
 
 ### Async action pattern
 Every store that talks to an API follows this shape:

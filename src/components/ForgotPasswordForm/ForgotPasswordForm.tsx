@@ -1,42 +1,45 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { fakeForgotPassword } from '@/mock/authAPIs'
-import type { ForgotPasswordResult } from '@/types/auth'
-
-type Phase = 'form'
+import { forgotPasswordSchema, type ForgotPasswordSchema } from '@/schemas/auth'
+import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
+import type { FormField } from '@/types/dynamic-form'
 
 export default function ForgotPasswordForm() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [pending, setPending] = useState(false)
-  const [phase, setPhase] = useState<Phase>('form')
+  const [serverError, setServerError] = useState<string | undefined>()
+  const [isPending, startTransition] = useTransition()
 
+  const fields: FormField[] = [
+    {
+      id: 'email',
+      type: 'email',
+      label: 'Email',
+      placeholder: 'you@company.com',
+    },
+  ]
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault()
-      if (!email.trim() || pending) return
+    (values: ForgotPasswordSchema) => {
+      setServerError(undefined)
 
-      setPending(true)
-      try {
-        const res = await fakeForgotPassword(email.trim())
-        if (res.success) {
-          router.replace(`/forgot-password/success?message=${encodeURIComponent(res.message)}`)
-        } else {
-          router.replace(`/forgot-password/error?message=${encodeURIComponent(res.message)}`)
+      startTransition(async () => {
+        try {
+          const res = await fakeForgotPassword(values.email.trim())
+          if (res.success) {
+            router.replace(`/forgot-password/success`)
+          } else {
+            router.replace(`/forgot-password/error?message=${encodeURIComponent(res.message)}`)
+          }
+        } catch {
+          router.replace(`/forgot-password/error`)
         }
-      } catch {
-        router.replace(`/forgot-password/error?message=${encodeURIComponent('Something went wrong. Please try again later.')}`)
-      } finally {
-        setPending(false)
-      }
+      })
     },
-    [email, pending],
+    [router],
   )
-
-
 
   /* ── Form ── */
   return (
@@ -65,32 +68,14 @@ export default function ForgotPasswordForm() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-[6px]">
-            <label htmlFor="forgot-email" className="text-[12px] font-medium text-secondary uppercase tracking-[.07em]">
-              Email
-            </label>
-            <input
-              id="forgot-email"
-              type="email"
-              placeholder="you@company.com"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-surface-alt border border-border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
-            />
-          </div>
-
-          <button type="submit" disabled={pending} className="mt-1 w-full bg-accent text-white font-semibold text-[13.5px] rounded-lg py-[11px] hover:bg-accent-mid transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-            {pending ? (
-              <span className="inline-flex items-center gap-2">
-                <span className="animate-[spin_0.6s_linear_infinite] inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full" /> Sending…
-              </span>
-            ) : (
-              'Send reset link'
-            )}
-          </button>
-        </form>
+        <DynamicForm
+          fields={fields}
+          zodSchema={forgotPasswordSchema}
+          onSubmit={handleSubmit}
+          submitLabel="Send reset link"
+          loading={isPending}
+          serverError={serverError}
+        />
 
         {/* Back link */}
         <div className="mt-6 pt-6 border-t border-border text-center">
