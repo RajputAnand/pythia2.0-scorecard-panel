@@ -99,6 +99,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - The consuming components each own their own data file in `src/lib/` and pass it through `useState` as usual — the shared component only renders what it receives.
 - **Example:** `src/components/shared/LineChartSvg/LineChartSvg.tsx` — renders a multi-series SVG line chart; used by both `ProgressChart` and `ScoreVsTransactions`, each supplying its own data via `LineChartSvgProps`.
 
+## Modals and Status States
+- For recurring status states (like success confirmations or error screens), use the shared `SuccessPage` (`src/components/shared/Modals/Success.tsx`) and `ErrorModal` (`src/components/shared/Modals/Error.tsx`) components.
+- These components are already utilized in authentication flows (e.g., Forgot Password, Reset Password) but should be reused anywhere a standard success or error state is needed.
+- Both components accept a standard set of props to customize their content: `heading` (string), `message` (string), `actionLabel` (string), and `action` (callback function).
+- They enforce a consistent layout (a centered card with an icon, heading, text, and an action button) and ensure visual uniformity across the application.
+
 ## Forms and Validation
 - **Always use `DynamicForm`** (`src/components/shared/DynamicForm/DynamicForm.tsx`) for form implementations instead of setting up `react-hook-form` manually in individual components.
 - `DynamicForm` encapsulates all React Hook Form state, handles field rendering (including text, email, and password types with built-in show/hide toggles), and wires up validation.
