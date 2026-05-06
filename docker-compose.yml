@@ -1,0 +1,15 @@
+services:
+  scorecard-ui:
+    build: ./
+    container_name: scorecard-ui
+    ports:
+      - 3000:${PORT}
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=${PORT}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - AUTH_TRUST_HOST=${AUTH_TRUST_HOST}
+    volumes:
+      - /app/node_modules
