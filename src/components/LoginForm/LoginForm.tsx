@@ -1,10 +1,12 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { login } from '@/actions/auth'
 import Link from 'next/link'
-import { DEMO_USERS } from '@/lib/demo-user'
+import { login } from '@/actions/auth'
+import { loginSchema, type LoginSchema } from '@/schemas/auth'
+import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
+import type { FormField } from '@/types/dynamic-form'
 
 interface LoginFormProps {
   role: 'employee' | 'manager' | 'owner'
@@ -15,35 +17,68 @@ const roleConfig = {
     title: 'Employee Login',
     description: 'Sign in as an employee to access your dashboard',
     color: 'from-blue-500 to-blue-600',
-    bgColor: 'bg-blue-50',
   },
   manager: {
     title: 'Manager Login',
     description: 'Sign in as a manager to access coaching tools',
     color: 'from-purple-500 to-purple-600',
-    bgColor: 'bg-purple-50',
   },
   owner: {
     title: 'Owner Login',
     description: 'Sign in as an owner to access business insights',
     color: 'from-green-500 to-green-600',
-    bgColor: 'bg-green-50',
   },
 }
 
 export default function LoginForm({ role }: LoginFormProps) {
   const router = useRouter()
-  const [result, action, pending] = useActionState(login, undefined)
-  const [showPassword, setShowPassword] = useState(false)
+  const [serverError, setServerError] = useState<string | undefined>()
+  const [isPending, startTransition] = useTransition()
+
   const config = roleConfig[role]
-  const demoUser = DEMO_USERS.find((u) => u.role === role)
 
-  // null = success; navigate to / so the proxy redirects to the role's default page
-  useEffect(() => {
-    if (result === null) router.push('/')
-  }, [result, router])
+  // Field config for DynamicForm
+  const fields: FormField[] = [
+    {
+      id: 'email',
+      type: 'email',
+      label: 'Email',
+      placeholder: 'you@company.com',
+    },
+    {
+      id: 'password',
+      type: 'password',
+      label: 'Password',
+      labelSiblings: [
+        <Link
+          key="forgot"
+          href="/forgot-password"
+          className="text-[11.5px] text-accent hover:text-accent-mid transition-colors"
+        >
+          Forgot password?
+        </Link>,
+      ],
+      placeholder: '••••••••',
+    },
+  ]
 
-  const error = typeof result === 'string' ? result : undefined
+  const handleSubmit = (values: LoginSchema) => {
+    setServerError(undefined)
+
+    const formData = new FormData()
+    formData.set('email', values.email)
+    formData.set('password', values.password)
+    formData.set('role', role)
+
+    startTransition(async () => {
+      const result = await login(undefined, formData)
+      if (result === null) {
+        router.push('/')
+      } else if (typeof result === 'string') {
+        setServerError(result)
+      }
+    })
+  }
 
   return (
     <div className="w-full max-w-[420px]">
@@ -76,80 +111,15 @@ export default function LoginForm({ role }: LoginFormProps) {
           <p className="text-secondary text-[13px] mt-1">{config.description}</p>
         </div>
 
-        {/* Form */}
-        <form action={action} className="flex flex-col gap-4">
-          {/* Hidden role input */}
-          <input type="hidden" name="role" value={role} />
-
-          <div className="flex flex-col gap-[6px]">
-            <label className="text-[12px] font-medium text-secondary uppercase tracking-[.07em]">
-              Email
-            </label>
-            <input
-              name="email"
-              type="email"
-              placeholder="you@company.com"
-              defaultValue={demoUser?.email || ''}
-              required
-              className="w-full bg-surface-alt border border-border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
-            />
-          </div>
-
-          <div className="flex flex-col gap-[6px]">
-            <div className="flex items-center justify-between">
-              <label className="text-[12px] font-medium text-secondary uppercase tracking-[.07em]">
-                Password
-              </label>
-              <Link
-                href="/forgot-password"
-                className="text-[11.5px] text-accent hover:text-accent-mid transition-colors"
-              >
-                Forgot password?
-              </Link>
-            </div>
-            <div className="relative">
-              <input
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                defaultValue={demoUser?.password || ''}
-                required
-                className="w-full bg-surface-alt border border-border rounded-lg px-3 pr-10 py-[10px] text-[13.5px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-muted hover:text-secondary transition-colors"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? (
-                  // Eye-off icon
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                  </svg>
-                ) : (
-                  // Eye icon
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {error && <p className="text-[12.5px] text-danger">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={pending}
-            className="mt-1 w-full bg-accent text-white font-semibold text-[13.5px] rounded-lg py-[11px] hover:bg-accent-mid transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {pending ? 'Signing in…' : 'Sign in as ' + role}
-          </button>
-        </form>
+        {/* Form — all state lives inside DynamicForm */}
+        <DynamicForm
+          fields={fields}
+          zodSchema={loginSchema}
+          onSubmit={handleSubmit}
+          submitLabel={`Sign in as ${role}`}
+          loading={isPending}
+          serverError={serverError}
+        />
 
         {/* Switch Role Links */}
         <div className="mt-6 pt-6 border-t border-border">
@@ -159,10 +129,11 @@ export default function LoginForm({ role }: LoginFormProps) {
               <Link
                 key={r}
                 href={`/login/${r}`}
-                className={`flex-1 px-2 py-2 text-[11px] font-semibold rounded-lg border transition-colors text-center capitalize ${r === role
+                className={`flex-1 px-2 py-2 text-[11px] font-semibold rounded-lg border transition-colors text-center capitalize ${
+                  r === role
                     ? 'bg-accent text-white border-accent'
                     : 'border-border text-secondary hover:bg-surface-alt'
-                  }`}
+                }`}
               >
                 {r}
               </Link>
