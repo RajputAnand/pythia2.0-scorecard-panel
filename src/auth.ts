@@ -1,6 +1,5 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
-import { DEMO_USERS } from "@/lib/demo-user"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
@@ -9,25 +8,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: {},
         password: {},
+        userData: {},
       },
       authorize(credentials) {
-        const user = DEMO_USERS.find(
-          (u) => u.email === credentials.email && u.password === credentials.password
-        )
-        if (!user) return null
-        return {
-          id: user.email,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          initials: user.initials,
-          score: user.score,
-          jobTitle: user.jobTitle,
-          storeName: user.storeName,
-          storeLoc: user.storeLoc,
-          nodesOnline: user.nodesOnline,
-          stores: user.stores,
+        if (credentials?.userData) {
+          try {
+            return JSON.parse(credentials.userData as string)
+          } catch (e) {
+            console.error("Failed to parse userData in authorize callback:", e)
+          }
         }
+        return null
       },
     }),
   ],
@@ -36,6 +27,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.role = user.role
         token.initials = user.initials
+        token.token = user.token
         token.score = user.score
         token.jobTitle = user.jobTitle
         token.storeName = user.storeName
@@ -49,6 +41,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const t = token as import("next-auth/jwt").JWT
       session.user.role = t.role
       session.user.initials = t.initials
+      session.user.token = t.token
       session.user.score = t.score
       session.user.jobTitle = t.jobTitle
       session.user.storeName = t.storeName

@@ -6,6 +6,7 @@ declare module "next-auth" {
     user: {
       role: UserRole
       initials: string
+      token?: string
       score?: number
       jobTitle?: string
       storeName?: string
@@ -18,6 +19,7 @@ declare module "next-auth" {
   interface User {
     role: UserRole
     initials: string
+    token?: string
     score?: number
     jobTitle?: string
     storeName?: string
@@ -31,6 +33,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     role: UserRole
     initials: string
+    token?: string
     score?: number
     jobTitle?: string
     storeName?: string

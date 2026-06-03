@@ -72,6 +72,9 @@ export default function LoginForm({ role }: LoginFormProps) {
 
     startTransition(async () => {
       const result = await login(undefined, formData)
+
+      // console.log("result--- login form", result)
+
       if (result === null) {
         router.push('/')
       } else if (typeof result === 'string') {
@@ -129,11 +132,10 @@ export default function LoginForm({ role }: LoginFormProps) {
               <Link
                 key={r}
                 href={`/login/${r}`}
-                className={`flex-1 px-2 py-2 text-[11px] font-semibold rounded-lg border transition-colors text-center capitalize ${
-                  r === role
-                    ? 'bg-accent text-white border-accent'
-                    : 'border-border text-secondary hover:bg-surface-alt'
-                }`}
+                className={`flex-1 px-2 py-2 text-[11px] font-semibold rounded-lg border transition-colors text-center capitalize ${r === role
+                  ? 'bg-accent text-white border-accent'
+                  : 'border-border text-secondary hover:bg-surface-alt'
+                  }`}
               >
                 {r}
               </Link>
