@@ -11,6 +11,7 @@ export interface User {
   initials: string
   name: string
   role: UserRole
+  token?: string
   // Employee-specific
   score?: number
   jobTitle?: string
