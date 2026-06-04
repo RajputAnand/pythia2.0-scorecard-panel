@@ -4,6 +4,7 @@ import { signIn, signOut } from "@/auth"
 import { AuthError } from "next-auth"
 import { User } from "@/types/user"
 import { API_ENDPOINTS } from "@/utils/api-endpoints"
+import type { ForgotPasswordResult, ResetPasswordResult } from "@/types/auth"
 
 interface ApiStore {
   _id?: string
@@ -172,4 +173,69 @@ export async function logout(user: User) {
     loginPage = '/login/manager'
   }
   await signOut({ redirectTo: loginPage })
+}
+
+export async function forgotPassword(email: string): Promise<ForgotPasswordResult> {
+  try {
+    const res = await fetch(API_ENDPOINTS.auth.forgotPassword, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    })
+
+    const result = await res.json()
+
+    if (res.ok && (result.statusCode === 200 || result.statusCode === 201)) {
+      return {
+        success: true,
+        message: result.message || 'Reset link sent to your email',
+      }
+    } else {
+      return {
+        success: false,
+        message: result.message || 'User not found!',
+      }
+    }
+  } catch (err) {
+    console.error('API forgot-password error:', err)
+    return {
+      success: false,
+      message: 'Unable to connect to the server. Please try again later.',
+    }
+  }
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<ResetPasswordResult> {
+  try {
+    const url = `${API_ENDPOINTS.auth.resetPassword}/${encodeURIComponent(token)}?token=${encodeURIComponent(token)}`
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ newPassword }),
+    })
+
+    const result = await res.json()
+
+    if (res.ok && (result.statusCode === 200 || result.statusCode === 201)) {
+      return {
+        success: true,
+        message: result.message || 'Reset link sent to your email',
+      }
+    } else {
+      return {
+        success: false,
+        message: result.message || 'User not found!',
+      }
+    }
+  } catch (err) {
+    console.error('API reset-password error:', err)
+    return {
+      success: false,
+      message: 'Unable to connect to the server. Please try again later.',
+    }
+  }
 }
