@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useTransition } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { fakeValidateKey, fakeResetPassword } from '@/mock/authAPIs'
+import { resetPassword } from '@/actions/auth'
 import { resetPasswordSchema, type ResetPasswordSchema } from '@/schemas/auth'
 import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
 import type { FormField } from '@/types/dynamic-form'
@@ -37,7 +37,7 @@ export default function ResetPasswordForm() {
 
   // ── Extract key from query string & validate it ──
   useEffect(() => {
-    const keyParam = searchParams.get('key') ?? ''
+    const keyParam = searchParams.get('token') ?? searchParams.get('key') ?? ''
     setKey(keyParam)
 
     if (!keyParam) {
@@ -46,18 +46,7 @@ export default function ResetPasswordForm() {
       return
     }
 
-    let cancelled = false
-    fakeValidateKey(keyParam).then((res) => {
-      if (cancelled) return
-      if (res.valid) {
-        setPhase('form')
-      } else {
-        setInvalidMessage(res.message)
-        setPhase('invalid')
-      }
-    })
-
-    return () => { cancelled = true }
+    setPhase('form')
   }, [searchParams])
 
   // ── Submit reset ──
@@ -67,14 +56,14 @@ export default function ResetPasswordForm() {
 
       startTransition(async () => {
         try {
-          const res = await fakeResetPassword(key, values.password, values.confirmPassword)
+          const res = await resetPassword(key, values.password)
           if (res.success) {
             router.replace(`/reset-password/success`)
           } else {
-            router.replace(`/reset-password/error?message=${encodeURIComponent(res.message)}`)
+            router.replace(`/reset-password/error?message=${encodeURIComponent(res.message)}&key=${encodeURIComponent(key)}`)
           }
         } catch {
-          router.replace(`/reset-password/error?message=${encodeURIComponent('Something went wrong. Please try again later.')}`)
+          router.replace(`/reset-password/error?message=${encodeURIComponent('Something went wrong. Please try again later.')}&key=${encodeURIComponent(key)}`)
         }
       })
     },

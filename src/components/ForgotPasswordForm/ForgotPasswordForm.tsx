@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { fakeForgotPassword } from '@/mock/authAPIs'
+import { forgotPassword } from '@/actions/auth'
 import { forgotPasswordSchema, type ForgotPasswordSchema } from '@/schemas/auth'
 import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
 import type { FormField } from '@/types/dynamic-form'
@@ -27,7 +27,7 @@ export default function ForgotPasswordForm() {
 
       startTransition(async () => {
         try {
-          const res = await fakeForgotPassword(values.email.trim())
+          const res = await forgotPassword(values.email.trim())
           if (res.success) {
             router.replace(`/forgot-password/success`)
           } else {
