@@ -1,38 +1,42 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
-import { User, Store } from '@/types/user'
+import { Store } from '@/types/store'
 
 interface UserStoreState {
-  /** Full user object hydrated from the session on first render */
-  user: User | null
-  /** The store the owner is currently viewing — null for non-owner roles */
+  /** Full list of stores the authenticated user has access to */
+  stores: Store[]
+  /** The store currently selected in the UI (defaults to stores[0] on load) */
   currentStore: Store | null
+  /** Employee's current score from the latest weekly stats fetch */
+  currentScore: number | null
 
-  /** Called once (from Header) after the session is resolved server-side */
-  setUser: (user: User) => void
-  /** Owner selects a different store from the dropdown */
+  /** Called when the stores query resolves — fully replaces the stores list */
+  setStores: (stores: Store[]) => void
+  /** User picks a different store from the header dropdown */
   setCurrentStore: (store: Store) => void
+  /** Called when weeklyStats resolves — stores the employee's current score */
+  setCurrentScore: (score: number) => void
 }
 
 export const useUserStore = create<UserStoreState>()(
   subscribeWithSelector((set) => ({
-    user: null,
+    stores: [],
     currentStore: null,
+    currentScore: null,
 
-    setUser(user) {
+    setStores(stores) {
       set((state) => {
-        // Derive the default currentStore from the first store in the list
-        // (or keep it if already set and still valid for this user)
-        const stores = user.stores ?? []
-        const existing = state.currentStore
-        const stillValid = existing && stores.some((s) => s.id === existing.id)
-        const currentStore = stillValid ? existing : (stores[0] ?? null)
-        return { user, currentStore }
+        const stillValid = state.currentStore && stores.some((s) => s._id === state.currentStore!._id)
+        return { stores, currentStore: stillValid ? state.currentStore : (stores[0] ?? null) }
       })
     },
 
     setCurrentStore(store) {
       set({ currentStore: store })
+    },
+
+    setCurrentScore(score) {
+      set({ currentScore: score })
     },
   }))
 )
@@ -55,5 +59,5 @@ export const onStoreChange = (
   useUserStore.subscribe(
     (state) => state.currentStore,
     callback,
-    { equalityFn: (a, b) => a?.id === b?.id, fireImmediately: false }
+    { equalityFn: (a, b) => a?._id === b?._id, fireImmediately: false }
   )

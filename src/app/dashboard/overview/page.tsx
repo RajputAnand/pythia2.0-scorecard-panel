@@ -1,37 +1,48 @@
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
 import Header from '@/components/shared/Header/Header'
-import HeroBanner from '@/components/HeroBanner/HeroBanner'
-import ShiftSummary from '@/components/ShiftSummary/ShiftSummary'
-import CoachingMoments from '@/components/CoachingMoments/CoachingMoments'
-import ProgressChart from '@/components/ProgressChart/ProgressChart'
-import Leaderboard from '@/components/Leaderboard/Leaderboard'
-import SwagStore from '@/components/SwagStore/SwagStore'
+import OverviewContent from '@/components/OverviewContent/OverviewContent'
 import headerStyles from '@/components/shared/Header/Header.module.css'
-import { fakeGetOverview } from '@/mock/overviewAPIs'
+import { fetchOverview } from '@/queries/overview'
+import { queryKeys } from '@/queries/keys'
+import { fetchWeeklyStats } from '@/queries/scorecard'
+import { auth } from '@/auth'
+import type { WeeklyStats } from '@/types/overview'
+import { getWeekSubtitle } from '@/utils/common'
 
 export default async function OverviewPage() {
-  const data = await fakeGetOverview()
+  const currentDate = new Date(2026, 5, 14) // replace with new Date() in production
+  const queryClient = new QueryClient()
+
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.overview.dashboard(),
+    queryFn: fetchOverview,
+  })
+
+  // MIXED-CONTENT FIX: fetchWeeklyStats calls an http:// endpoint which is
+  // blocked by browsers when the app is served over HTTPS. Fetching server-side
+  // avoids the restriction because Node.js has no mixed-content policy.
+  // TODO: remove this workaround once the API is served over HTTPS.
+  const session = await auth()
+  let weeklyStats: WeeklyStats | null = null
+  if (session?.user?.token) {
+    try {
+      weeklyStats = await fetchWeeklyStats(session.user.token)
+    } catch {
+      // non-fatal — OverviewContent renders an empty state when null
+    }
+  }
 
   return (
     <>
-      <Header title="My Dashboard" subtitle="Week of Feb 23 – Mar 1, 2026">
+      <Header title="My Dashboard" subtitle={getWeekSubtitle(currentDate)}>
         <button className={headerStyles.btnGhost}>View Last Week</button>
         <button className={headerStyles.btnAccent}>📣 Share My Score</button>
       </Header>
 
       <div className="grid px-[30px] py-[24px] gap-5">
-        <HeroBanner data={data.heroBanner} />
-
-        <div className="grid grid-cols-2 items-start gap-[18px]">
-          <ShiftSummary data={data.shiftSummary} />
-          <CoachingMoments items={data.coachingItems} />
-        </div>
-
-        <div className="grid grid-cols-2 items-start gap-[18px]">
-          <ProgressChart data={data.progressChart} />
-          <Leaderboard data={data.leaderboard} />
-        </div>
-
-        <SwagStore />
+        <HydrationBoundary state={dehydrate(queryClient)}>
+          <OverviewContent weeklyStats={weeklyStats} />
+        </HydrationBoundary>
       </div>
     </>
   )

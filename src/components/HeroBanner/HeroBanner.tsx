@@ -1,8 +1,11 @@
 'use client'
 
 import styles from './HeroBanner.module.css'
-import { useSwagStore } from '@/store/swagStore'
+import { useSwagStoreQuery } from '@/queries/swag'
 import { HeroBannerData, MetricData } from '@/types/hero-banner'
+import { WeeklyStats } from '@/types/overview'
+import { useSession } from 'next-auth/react'
+import { getGreeting } from '@/utils/common'
 
 interface MetricProps extends MetricData {}
 
@@ -27,10 +30,12 @@ function Metric({ label, value, change, valueColor }: MetricProps) {
 
 const RING_CIRCUMFERENCE = 289
 
-export default function HeroBanner({ data }: { data: HeroBannerData }) {
-  const points = useSwagStore((s) => s.points)
+export default function HeroBanner({ data, weeklyStats }: { data: HeroBannerData, weeklyStats: WeeklyStats }) {
+  const { data: swag } = useSwagStoreQuery()
+  const { data: user } = useSession()
+  const points = swag?.points ?? 0
 
-  const ringOffset = RING_CIRCUMFERENCE * (1 - data.score / 100)
+  const ringOffset = RING_CIRCUMFERENCE * (1 - Math.round(weeklyStats.avg_score) / 100)
 
   return (
     <div
@@ -54,7 +59,7 @@ export default function HeroBanner({ data }: { data: HeroBannerData }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="font-mono font-bold text-white leading-none text-[32px]">{data.score}</div>
+          <div className="font-mono font-bold text-white leading-none text-[32px]">{weeklyStats.avg_score}</div>
           <div className="uppercase text-white/40 tracking-[.1em] text-[9px] mt-[2px]">Score</div>
         </div>
       </div>
@@ -62,16 +67,17 @@ export default function HeroBanner({ data }: { data: HeroBannerData }) {
       {/* Center */}
       <div className="flex flex-col gap-[10px]">
         <div className="font-bold text-white leading-tight text-[20px]">
-          {data.greeting}, <span style={{ color: '#78C99A' }}>{data.name}.</span>
+          {getGreeting()}, <span style={{ color: '#78C99A' }}>{(user!.user.name)?.split(" ")[0]}.</span>
           <br />You&apos;re on a {data.streakWeeks}-week improvement streak. 🔥
         </div>
         <div className="text-white/50 leading-relaxed text-[13px]">
           {data.scoreSubtitle}
         </div>
         <div className="flex flex-wrap gap-[10px]">
-          {data.metrics.map((metric) => (
-            <Metric key={metric.label} {...metric} />
-          ))}
+          <Metric key={"Hospitality"} change='↑ +4 this week' label='Hospitality' value={weeklyStats.avg_hospitality.toString()} valueColor='#78C99A' />
+          <Metric key={"Checkout Spd"} change='→ Coaching active' label='Checkout Spd' value={weeklyStats.avg_checkout_spd.toString()} valueColor='#F5C842' />
+          <Metric key={"Time to Svc"} change='↑ +2 this week' label='Time to Svc' value={weeklyStats.avg_time_to_service.toString()} valueColor='#78C99A' />
+          <Metric key={"Shift Hours"} change='This week' label='Shift Hours' value='36h' />
         </div>
       </div>
 

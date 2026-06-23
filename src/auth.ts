@@ -30,10 +30,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.token = user.token
         token.score = user.score
         token.jobTitle = user.jobTitle
-        token.storeName = user.storeName
-        token.storeLoc = user.storeLoc
-        token.nodesOnline = user.nodesOnline
-        token.stores = user.stores
       }
       return token
     },
@@ -44,10 +40,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.token = t.token
       session.user.score = t.score
       session.user.jobTitle = t.jobTitle
-      session.user.storeName = t.storeName
-      session.user.storeLoc = t.storeLoc
-      session.user.nodesOnline = t.nodesOnline
-      session.user.stores = t.stores
       return session
     },
   },

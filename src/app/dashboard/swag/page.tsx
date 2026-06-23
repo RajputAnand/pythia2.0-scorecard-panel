@@ -1,11 +1,13 @@
 import Header from '@/components/shared/Header/Header'
 import SwagStore from '@/components/SwagStore/SwagStore'
 import headerStyles from '@/components/shared/Header/Header.module.css'
+import { getWeekSubtitle } from '@/utils/common'
 
 export default function SwagPage() {
+  const currentDate = new Date(2026, 5, 14) // replace with new Date() in production
   return (
     <>
-      <Header title="Swag Store" subtitle="Week of Feb 23 – Mar 1, 2026">
+      <Header title="Swag Store" subtitle={getWeekSubtitle(currentDate)}>
         <button className={headerStyles.btnGhost}>View Last Week</button>
         <button className={headerStyles.btnAccent}>📣 Share My Score</button>
       </Header>

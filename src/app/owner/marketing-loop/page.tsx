@@ -6,13 +6,10 @@ import DemographicShifts from '@/components/DemographicShifts/DemographicShifts'
 import CustomerSegmentShifts from '@/components/CustomerSegmentShifts/CustomerSegmentShifts'
 import SpendVsTraffic from '@/components/SpendVsTraffic/SpendVsTraffic'
 import CampaignCards from '@/components/CampaignCards/CampaignCards'
-import { getUser } from '@/lib/get-user'
-
 export default async function MarketingLoopPage() {
-  const user = await getUser()
   return (
     <>
-      <Header title="Marketing Feedback Loop" subtitle="Nov 2025 – Feb 2026 · Node 2 data" user={user}>
+      <Header title="Marketing Feedback Loop" subtitle="Nov 2025 – Feb 2026 · Node 2 data">
         <button className={headerStyles.btnGhost}>Export</button>
         <AddCampaignButton />
       </Header>
