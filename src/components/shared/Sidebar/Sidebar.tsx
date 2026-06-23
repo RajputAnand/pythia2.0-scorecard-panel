@@ -6,7 +6,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import styles from './Sidebar.module.css'
 import type { ReactNode } from 'react'
 import type { User, UserRole } from '@/types/user'
-import { useSwagStore } from '@/store/swagStore'
+import { useSwagStoreQuery } from '@/queries/swag'
+import { useUserStore } from '@/store/userStore'
 import { logout } from '@/actions/auth'
 
 type NavItem = { label: string; href: string; badge?: number | null; icon: ReactNode }
@@ -217,7 +218,10 @@ export default function Sidebar({ user }: { user: User }) {
   const [isPending, startTransition] = useTransition()
 
   const navSections = NAV_BY_ROLE[activeView]
-  const points = useSwagStore((s) => s.points)
+  const { data: swag } = useSwagStoreQuery()
+  const points = swag?.points ?? 0
+  const currentStore = useUserStore((s) => s.currentStore)
+  const currentScore = useUserStore((s) => s.currentScore)
 
   function handleViewToggle(view: UserRole) {
     if (user.role !== 'owner') return
@@ -286,11 +290,11 @@ export default function Sidebar({ user }: { user: User }) {
           </div>
           <div>
             <div className="text-[12.5px] font-semibold text-accent">{user.name}</div>
-            <div className="text-accent-mid text-[10.5px]">{user.jobTitle} · {user.storeName}</div>
+            <div className="text-accent-mid text-[10.5px]">{user.jobTitle} · {currentStore?.name}</div>
           </div>
-          {user.score != null && (
+          {(currentScore ?? user.score) != null && (
             <div className="ml-auto text-right">
-              <div className="font-mono font-bold text-accent text-[18px]">{user.score}</div>
+              <div className="font-mono font-bold text-accent text-[18px]">{currentScore ?? user.score}</div>
               <div className="font-mono font-bold text-[11px]" style={{ color: '#F5C842' }}>{points.toLocaleString()} pts</div>
             </div>
           )}
@@ -326,8 +330,8 @@ export default function Sidebar({ user }: { user: User }) {
           <div className="flex items-center gap-[9px] mx-3 mb-3 rounded-[10px] bg-surface-alt px-[12px] py-[10px]">
             <div className={styles.liveDot} />
             <div>
-              <div className="text-[12px] font-medium">{user.storeName}</div>
-              <div className="text-muted text-[10.5px]">{user.storeLoc} · {user.nodesOnline} nodes online</div>
+              <div className="text-[12px] font-medium">{currentStore?.name}</div>
+              <div className="text-muted text-[10.5px]">{currentStore?.location} · 2 nodes online</div>
             </div>
           </div>
         </>

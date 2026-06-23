@@ -1,41 +1,34 @@
 'use client'
 
 import { ReactNode, useEffect, useRef, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import styles from './Header.module.css'
 import { useUserStore } from '@/store/userStore'
-import { User, Store } from '@/types/user'
+import { useStoresQuery } from '@/queries/stores'
 
 interface HeaderProps {
   title: string
   subtitle?: string
-  /** Session user — pass from the page/layout server component */
-  user?: User | null
   children?: ReactNode
 }
 
-export default function Header({ title, subtitle, user, children }: HeaderProps) {
-  const setUser = useUserStore((s) => s.setUser)
-  const currentStore = useUserStore((s) => s.currentStore)
-  const setCurrentStore = useUserStore((s) => s.setCurrentStore)
-  const storeUser = useUserStore((s) => s.user)
+export default function Header({ title, subtitle, children }: HeaderProps) {
+  const { data: session } = useSession()
+  const token = session?.user?.token
+  const role = session?.user?.role
+  const isManagerOrOwner = role === 'owner' || role === 'manager'
 
-  // Hydrate the store once we receive the user from the server
+  const { stores, currentStore, setStores, setCurrentStore } = useUserStore()
+  const { data: fetchedStores } = useStoresQuery(token)
+
   useEffect(() => {
-    if (user) setUser(user)
-  }, [user, setUser])
-
-  // Derive role/stores: prefer zustand (already hydrated) then fall back to prop
-  const resolvedUser = storeUser ?? user ?? null
-  const stores: Store[] = resolvedUser?.stores ?? []
-  // Gate strictly on the server-supplied prop — stale Zustand state from a
-  // previous owner session must not bleed into non-owner pages.
-  const isOwner = user?.role === 'owner'
+    if (fetchedStores) setStores(fetchedStores)
+  }, [fetchedStores, setStores])
 
   // Dropdown open/close
   const [open, setOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent) => {
@@ -59,8 +52,8 @@ export default function Header({ title, subtitle, user, children }: HeaderProps)
       </div>
 
       <div className="flex items-center gap-[10px]">
-        {/* Store selector — owner only */}
-        {isOwner && stores.length > 0 && (
+        {/* Store selector — owner and manager */}
+        {isManagerOrOwner && stores.length > 0 && (
           <div ref={dropdownRef} className="relative">
             <button
               id="store-selector-trigger"
@@ -69,7 +62,6 @@ export default function Header({ title, subtitle, user, children }: HeaderProps)
               aria-haspopup="listbox"
               aria-expanded={open}
             >
-              {/* Store icon */}
               <svg
                 className="w-[14px] h-[14px] shrink-0 text-accent"
                 viewBox="0 0 16 16"
@@ -94,7 +86,6 @@ export default function Header({ title, subtitle, user, children }: HeaderProps)
                 {currentStore?.name ?? 'Select store'}
               </span>
 
-              {/* Chevron */}
               <svg
                 className={`w-[11px] h-[11px] shrink-0 text-muted transition-transform duration-200${open ? ' rotate-180' : ''}`}
                 viewBox="0 0 12 12"
@@ -112,10 +103,10 @@ export default function Header({ title, subtitle, user, children }: HeaderProps)
                 className="absolute top-[calc(100%+6px)] right-0 min-w-[220px] bg-surface border border-border rounded-[10px] p-[4px] shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] list-none m-0 z-50"
               >
                 {stores.map((store) => {
-                  const active = store.id === currentStore?.id
+                  const active = store._id === currentStore?._id
                   return (
                     <li
-                      key={store.id}
+                      key={store._id}
                       role="option"
                       aria-selected={active}
                       className={`flex items-center gap-2 rounded-md cursor-pointer transition-colors duration-100 px-[10px] py-[9px] ${active ? 'bg-accent-light' : 'hover:bg-surface-alt'}`}

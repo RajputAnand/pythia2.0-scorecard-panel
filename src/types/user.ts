@@ -12,13 +12,6 @@ export interface User {
   name: string
   role: UserRole
   token?: string
-  // Employee-specific
   score?: number
   jobTitle?: string
-  // Owner/Manager-specific
-  storeName?: string
-  storeLoc?: string
-  nodesOnline?: number
-  /** Owner-only: full list of stores returned by the login API */
-  stores?: Store[]
 }

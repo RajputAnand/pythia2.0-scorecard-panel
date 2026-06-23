@@ -73,7 +73,6 @@ export default function LoginForm({ role }: LoginFormProps) {
     startTransition(async () => {
       const result = await login(undefined, formData)
 
-      // console.log("result--- login form", result)
 
       if (result === null) {
         router.push('/')

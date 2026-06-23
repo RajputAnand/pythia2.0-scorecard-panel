@@ -2,18 +2,11 @@
 
 import { signIn, signOut } from "@/auth"
 import { AuthError } from "next-auth"
+import axios from "axios"
 import { User } from "@/types/user"
-import { API_ENDPOINTS } from "@/utils/api-endpoints"
+import { pythia1Client, pythia2Client } from "@/lib/api-client"
+import { PYTHIA_1_API, PYTHIA_2_API } from "@/utils/api-endpoints"
 import type { ForgotPasswordResult, ResetPasswordResult } from "@/types/auth"
-
-interface ApiStore {
-  _id?: string
-  id?: string
-  name?: string
-  location?: string
-  address?: string
-  nodesOnline?: number
-}
 
 // Returns null on success, error string on failure.
 // Using redirect: false so the session cookie is fully set before the client navigates.
@@ -36,21 +29,9 @@ export async function login(_prev: string | null | undefined, formData: FormData
     let apiToken = ''
 
     try {
-      const res = await fetch(API_ENDPOINTS.auth.login, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
+      const { data: result } = await pythia1Client.post(PYTHIA_1_API.auth.login, { email, password })
 
-      // console.log("res---", res)
-
-      const result = await res.json()
-
-      // console.log("result---", result)
-
-      if (res.ok && result.statusCode === 200) {
+      if (result.statusCode === 200) {
         apiUser = result.data.user
         apiToken = result.data.token
         roleSlug = apiUser.role?.slug?.toLowerCase() === "employee_6a1088c624446509847e9dfe" ? "employee" : apiUser.role?.slug?.toLowerCase()
@@ -58,60 +39,19 @@ export async function login(_prev: string | null | undefined, formData: FormData
         apiErrorMessage = result.message || 'Invalid email or password.'
       }
     } catch (err) {
-      console.error('API login error:', err)
-      apiErrorMessage = 'Unable to connect to the login server. Please try again later.'
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        apiErrorMessage = err.response.data.message
+      } else {
+        console.error('API login error:', err)
+        apiErrorMessage = 'Unable to connect to the login server. Please try again later.'
+      }
     }
 
     // Dynamic Login Success
     if (apiUser) {
-      // Verify the user's role matches the required role for this page
       if (roleSlug !== requiredRole) {
         return `This account is registered as a ${roleSlug}. Please log in to the correct role page.`
       }
-
-      // Fetch store details if token is available
-      let fetchedStores: ApiStore[] = []
-      if (apiToken) {
-        try {
-          const storesRes = await fetch(API_ENDPOINTS.stores.list, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${apiToken}`,
-              'Content-Type': 'application/json',
-            },
-          })
-          if (storesRes.ok) {
-            const storesResult = await storesRes.json()
-            // console.log("storesResult---", storesResult)
-            if (storesResult && Array.isArray(storesResult)) {
-              fetchedStores = storesResult
-            } else if (storesResult && Array.isArray(storesResult.data)) {
-              fetchedStores = storesResult.data
-            } else if (storesResult && storesResult.data && Array.isArray(storesResult.data.stores)) {
-              fetchedStores = storesResult.data.stores
-            }
-          } else {
-            console.warn("Failed to fetch stores, status:", storesRes.status)
-          }
-        } catch (storesErr) {
-          console.error("Error fetching stores from API:", storesErr)
-        }
-      }
-
-      const stores = apiUser.storeIds?.map((id: string, index: number) => {
-        const apiStore = fetchedStores.find((s) => (s._id || s.id) === id)
-        return {
-          id,
-          name: apiStore?.name || (index === 0 ? 'Main St. Store' : `Branch Store ${index}`),
-          location: apiStore?.location || apiStore?.address || (index === 0 ? 'Boise, ID' : 'Branch Loc'),
-          nodesOnline: typeof apiStore?.nodesOnline === 'number' ? apiStore.nodesOnline : (3 + index),
-        }
-      }) || []
-
-      const primaryStore = stores[0] || null
-      const storeName = primaryStore?.name || 'Main St. Store'
-      const storeLoc = primaryStore?.location || 'Boise, ID'
-      const nodesOnline = primaryStore?.nodesOnline ?? 5
 
       await signIn('credentials', {
         email,
@@ -125,10 +65,6 @@ export async function login(_prev: string | null | undefined, formData: FormData
           initials: `${apiUser.firstName?.[0] || ''}${apiUser.lastName?.[0] || ''}`.toUpperCase() || 'UR',
           score: roleSlug === 'employee' ? 85 : undefined,
           jobTitle: apiUser.role?.name || 'User',
-          storeName,
-          storeLoc,
-          nodesOnline,
-          stores,
         }),
         redirect: false,
       })
@@ -177,65 +113,35 @@ export async function logout(user: User) {
 
 export async function forgotPassword(email: string): Promise<ForgotPasswordResult> {
   try {
-    const res = await fetch(API_ENDPOINTS.auth.forgotPassword, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email }),
-    })
+    const { data } = await pythia1Client.post(PYTHIA_1_API.auth.forgotPassword, { email })
 
-    const result = await res.json()
-
-    if (res.ok && (result.statusCode === 200 || result.statusCode === 201)) {
-      return {
-        success: true,
-        message: result.message || 'Reset link sent to your email',
-      }
-    } else {
-      return {
-        success: false,
-        message: result.message || 'User not found!',
-      }
+    if (data.statusCode === 200 || data.statusCode === 201) {
+      return { success: true, message: data.message || 'Reset link sent to your email' }
     }
+    return { success: false, message: data.message || 'User not found!' }
   } catch (err) {
-    console.error('API forgot-password error:', err)
-    return {
-      success: false,
-      message: 'Unable to connect to the server. Please try again later.',
+    if (axios.isAxiosError(err) && err.response?.data?.message) {
+      return { success: false, message: err.response.data.message }
     }
+    console.error('API forgot-password error:', err)
+    return { success: false, message: 'Unable to connect to the server. Please try again later.' }
   }
 }
 
 export async function resetPassword(token: string, newPassword: string): Promise<ResetPasswordResult> {
   try {
-    const url = `${API_ENDPOINTS.auth.resetPassword}/${encodeURIComponent(token)}?token=${encodeURIComponent(token)}`
-    const res = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ newPassword }),
-    })
+    const url = `${PYTHIA_1_API.auth.resetPassword}/${encodeURIComponent(token)}`
+    const { data } = await pythia1Client.put(url, { newPassword }, { params: { token } })
 
-    const result = await res.json()
-
-    if (res.ok && (result.statusCode === 200 || result.statusCode === 201)) {
-      return {
-        success: true,
-        message: result.message || 'Reset link sent to your email',
-      }
-    } else {
-      return {
-        success: false,
-        message: result.message || 'User not found!',
-      }
+    if (data.statusCode === 200 || data.statusCode === 201) {
+      return { success: true, message: data.message || 'Password reset successfully.' }
     }
+    return { success: false, message: data.message || 'User not found!' }
   } catch (err) {
-    console.error('API reset-password error:', err)
-    return {
-      success: false,
-      message: 'Unable to connect to the server. Please try again later.',
+    if (axios.isAxiosError(err) && err.response?.data?.message) {
+      return { success: false, message: err.response.data.message }
     }
+    console.error('API reset-password error:', err)
+    return { success: false, message: 'Unable to connect to the server. Please try again later.' }
   }
 }
