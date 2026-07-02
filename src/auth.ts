@@ -28,8 +28,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = user.role
         token.initials = user.initials
         token.token = user.token
+        token.pythia2Token = user.pythia2Token
         token.score = user.score
         token.jobTitle = user.jobTitle
+        token.points = user.points
       }
       return token
     },
@@ -38,8 +40,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.role = t.role
       session.user.initials = t.initials
       session.user.token = t.token
+      session.user.pythia2Token = t.pythia2Token
       session.user.score = t.score
       session.user.jobTitle = t.jobTitle
+      session.user.points = t.points || 0
       return session
     },
   },

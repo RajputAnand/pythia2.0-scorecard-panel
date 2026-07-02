@@ -12,6 +12,8 @@ export interface User {
   name: string
   role: UserRole
   token?: string
+  pythia2Token?: string
   score?: number
   jobTitle?: string
+  points: number
 }

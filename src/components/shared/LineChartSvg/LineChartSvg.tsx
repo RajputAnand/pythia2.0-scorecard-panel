@@ -6,6 +6,7 @@ export default function LineChartSvg({
   yLabels,
   series,
   xLabels,
+  minorTicks,
   verticalMarker,
   streakBadge,
 }: LineChartSvgProps) {
@@ -17,6 +18,11 @@ export default function LineChartSvg({
         {/* Grid lines */}
         {gridLines.map((gl) => (
           <line key={gl.y} x1="0" y1={gl.y} x2={svgWidth} y2={gl.y} stroke="#F0EDE8" strokeWidth="1" />
+        ))}
+
+        {/* Minor ticks — finer-grained markers along the x-axis (e.g. one per week under monthly labels) */}
+        {minorTicks?.map((tick, i) => (
+          <line key={i} x1={tick.x} y1={tick.y1} x2={tick.x} y2={tick.y2} stroke="#D8D2C8" strokeWidth="1" />
         ))}
 
         {/* Vertical marker */}

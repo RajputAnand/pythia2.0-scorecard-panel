@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fakeGet, fakePost } from '@/mock/swagStoreAPIs'
 import type { SwagItem } from '@/types/swagstore'
 import { queryKeys } from './keys'
+import { useUserStore } from '@/store/userStore'
 
 // ---------------------------------------------------------------------------
 // Query & mutation functions — colocated with their hooks.
@@ -40,30 +41,34 @@ export function useRedeemSwagItem() {
   return useMutation({
     mutationFn: (item: SwagItem) => redeemSwagItem(item.id),
 
-    // Optimistic update: deduct points and mark the item redeemed instantly.
+    // Optimistic update: mark item redeemed and deduct points from userStore.
     onMutate: async (item) => {
-      // Cancel any in-flight refetch so it doesn't overwrite our optimistic state.
       await queryClient.cancelQueries({ queryKey: queryKeys.swag.store() })
 
       const previous = queryClient.getQueryData<SwagSnapshot>(queryKeys.swag.store())
+      const previousPoints = useUserStore.getState().points
 
       queryClient.setQueryData<SwagSnapshot>(queryKeys.swag.store(), (old) => {
         if (!old) return old
         return {
-          points: old.points - item.cost,
           catalog: old.catalog.map((i) =>
             i.id === item.id ? { ...i, redeemed: true } : i,
           ),
         }
       })
 
-      return { previous }
+      useUserStore.getState().setPoints((previousPoints ?? 0) - item.cost)
+
+      return { previous, previousPoints }
     },
 
     // Roll back on failure.
     onError: (_err, _item, context) => {
       if (context?.previous) {
         queryClient.setQueryData(queryKeys.swag.store(), context.previous)
+      }
+      if (context?.previousPoints != null) {
+        useUserStore.getState().setPoints(context.previousPoints)
       }
     },
 

@@ -15,7 +15,8 @@ import CoachingMoments from '@/components/CoachingMoments/CoachingMoments'
 import ProgressChart from '@/components/ProgressChart/ProgressChart'
 import Leaderboard from '@/components/Leaderboard/Leaderboard'
 import SwagStore from '@/components/SwagStore/SwagStore'
-import type { WeeklyStats } from '@/types/overview'
+import type { ProgressOverTimeData, TeamRankingData, TodayShiftSummary, WeeklyStats } from '@/types/overview'
+import { useSession } from 'next-auth/react'
 
 function OverviewError({ onRetry }: { onRetry: () => void }) {
   return (
@@ -43,28 +44,39 @@ function OverviewEmpty() {
   )
 }
 
-export default function OverviewContent({ weeklyStats }: { weeklyStats: WeeklyStats | null }) {
+export default function OverviewContent({
+  weeklyStats,
+  shiftSummary,
+  teamRankingData,
+  progressChart,
+}: {
+  weeklyStats: WeeklyStats | null
+  shiftSummary: TodayShiftSummary | null
+  teamRankingData: TeamRankingData | null
+  progressChart: ProgressOverTimeData | null
+}) {
   const { overview: data, isError, isFetching, isStale, refetch } = useOverviewPageData()
   const setCurrentScore = useUserStore((s) => s.setCurrentScore)
+  const { data: session } = useSession()
 
   useEffect(() => {
-    if (weeklyStats?.current_score != null) {
-      setCurrentScore(weeklyStats.current_score)
+    if (weeklyStats?.overall_score != null) {
+      setCurrentScore(weeklyStats.overall_score)
     }
-  }, [weeklyStats?.current_score, setCurrentScore])
+  }, [weeklyStats?.overall_score, setCurrentScore])
 
   // MIXED-CONTENT FIX: client-side fetch replaced by server-side prop.
   // Restore this block (and remove the prop) once the API is served over HTTPS:
   // const { data: session } = useSession()
-  // const token = session?.user?.token
+  // const pythia2Token = session?.user?.pythia2Token
   // const [weeklyStats, setWeeklyStats] = useState<WeeklyStats | null>(null)
   // useEffect(() => {
-  //   if (!token) return
-  //   fetchWeeklyStats(token).then(setWeeklyStats).catch(() => {})
-  // }, [token])
-
+  //   if (!pythia2Token) return
+  //   fetchWeeklyStats(pythia2Token).then(setWeeklyStats).catch(() => {})
+  // }, [pythia2Token])
+  console.log(weeklyStats, shiftSummary,teamRankingData ,"fffff")
   if (isError) return <OverviewError onRetry={refetch} />
-  if (!data || !weeklyStats) return <OverviewEmpty />
+  if (!data || !weeklyStats || !shiftSummary || !teamRankingData || !progressChart || !session) return <OverviewEmpty />
 
   const hasCoachingItems = data.coachingItems.length > 0
 
@@ -89,7 +101,7 @@ export default function OverviewContent({ weeklyStats }: { weeklyStats: WeeklySt
       <HeroBanner data={data.heroBanner} weeklyStats={weeklyStats} />
 
       <div className="grid grid-cols-2 items-start gap-[18px]">
-        <ShiftSummary data={data.shiftSummary} weeklyStats={weeklyStats} />
+        <ShiftSummary data={data.shiftSummary} shiftSummary={shiftSummary} />
 
         {hasCoachingItems ? (
           <CoachingMoments items={data.coachingItems} />
@@ -103,8 +115,8 @@ export default function OverviewContent({ weeklyStats }: { weeklyStats: WeeklySt
       </div>
 
       <div className="grid grid-cols-2 items-start gap-[18px]">
-        <ProgressChart data={data.progressChart} />
-        <Leaderboard data={data.leaderboard} />
+        <ProgressChart data={progressChart} />
+        <Leaderboard data={teamRankingData} />
       </div>
 
       <SwagStore />

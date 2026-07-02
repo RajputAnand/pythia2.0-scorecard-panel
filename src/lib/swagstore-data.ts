@@ -3,7 +3,6 @@ import { SwagStoreConfig } from "@/types/swagstore";
 export const SWAG_STORE: SwagStoreConfig = {
     title: 'Swag Store',
     subtitle: 'Redeem your points for rewards',
-    initialPoints: 1840,
     earnRateText: 'You earn **~120 pts/shift** at your current score level. Higher score = more points per shift.',
     catalog: [
         { id: 'coffee', emoji: '☕', name: 'Free Coffee — Any Size', desc: 'Redeem at the register anytime during your shift', cost: 250 },

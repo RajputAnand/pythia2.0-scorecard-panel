@@ -6,9 +6,9 @@ import { SWAG_STORE } from "@/lib/swagstore-data";
 import { SwagItem } from "@/types/swagstore";
 
 // ---------------------------------------------------------------------------
-export function fakeGet(): Promise<{ points: number; catalog: SwagItem[] }> {
+export function fakeGet(): Promise<{ catalog: SwagItem[] }> {
   return new Promise((resolve) =>
-    setTimeout(() => resolve({ points: SWAG_STORE.initialPoints, catalog: SWAG_STORE.catalog }), 800)
+    setTimeout(() => resolve({ catalog: SWAG_STORE.catalog }), 800)
   )
 }
 

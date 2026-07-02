@@ -1,32 +1,38 @@
-import { User } from "@/types/user"
+import { User, UserRole } from "@/types/user";
 
-interface DemoUser extends User {
-  email: string
-  password: string
+interface DemoUser {
+  initials: string;
+  name: string;
+  role: UserRole;
+  token?: string;
+  score?: number;
+  jobTitle?: string;
+  email: string;
+  password: string;
 }
 
 export const DEMO_USERS: DemoUser[] = [
   {
-    email: 'employee@demo.com',
-    password: 'demo1234',
-    initials: 'MR',
-    name: 'Marcus R.',
-    role: 'employee',
+    email: "employee@demo.com",
+    password: "demo1234",
+    initials: "MR",
+    name: "Marcus R.",
+    role: "employee",
     score: 84,
-    jobTitle: 'Cashier',
+    jobTitle: "Cashier",
   },
   {
-    email: 'manager@demo.com',
-    password: 'demo1234',
-    initials: 'JL',
-    name: 'Jamie L.',
-    role: 'manager',
+    email: "manager@demo.com",
+    password: "demo1234",
+    initials: "JL",
+    name: "Jamie L.",
+    role: "manager",
   },
   {
-    email: 'owner@demo.com',
-    password: 'demo1234',
-    initials: 'SB',
-    name: 'Sam B.',
-    role: 'owner',
+    email: "owner@demo.com",
+    password: "demo1234",
+    initials: "SB",
+    name: "Sam B.",
+    role: "owner",
   },
-]
+];

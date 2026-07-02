@@ -4,9 +4,9 @@ import OverviewContent from '@/components/OverviewContent/OverviewContent'
 import headerStyles from '@/components/shared/Header/Header.module.css'
 import { fetchOverview } from '@/queries/overview'
 import { queryKeys } from '@/queries/keys'
-import { fetchWeeklyStats } from '@/queries/scorecard'
+import { fetchProgressOverTime, fetchTeamRanking, fetchTodayShiftSummary, fetchWeeklyStats } from '@/queries/scorecard'
 import { auth } from '@/auth'
-import type { WeeklyStats } from '@/types/overview'
+import type { CoachingMoment, ProgressOverTimeData, TeamRankingData, TodayShiftSummary, WeeklyStats } from '@/types/overview'
 import { getWeekSubtitle } from '@/utils/common'
 
 export default async function OverviewPage() {
@@ -24,10 +24,34 @@ export default async function OverviewPage() {
   // TODO: remove this workaround once the API is served over HTTPS.
   const session = await auth()
   let weeklyStats: WeeklyStats | null = null
-  if (session?.user?.token) {
+  let shiftSummary: TodayShiftSummary | null = null
+  let teamRankingData: TeamRankingData | null = null
+  let progressChart: ProgressOverTimeData | null = null
+  const coachingMoments: CoachingMoment[] = []
+
+  if (session?.user?.pythia2Token) {
     try {
-      weeklyStats = await fetchWeeklyStats(session.user.token)
-    } catch {
+      weeklyStats = await fetchWeeklyStats(session.user.pythia2Token)
+    } catch(err) {
+      console.log(err)
+      // non-fatal — OverviewContent renders an empty state when null
+    }
+    try {
+      shiftSummary = await fetchTodayShiftSummary(session.user.pythia2Token)
+    } catch(err) {
+      console.log(err)
+      // non-fatal — OverviewContent renders an empty state when null
+    }
+    try {
+      teamRankingData = await fetchTeamRanking(session.user.pythia2Token)
+    } catch(err) {
+      console.log(err)
+      // non-fatal — OverviewContent renders an empty state when null
+    }
+    try {
+      progressChart = await fetchProgressOverTime(session.user.pythia2Token)
+    } catch(err) {
+      console.log(err)
       // non-fatal — OverviewContent renders an empty state when null
     }
   }
@@ -41,7 +65,7 @@ export default async function OverviewPage() {
 
       <div className="grid px-[30px] py-[24px] gap-5">
         <HydrationBoundary state={dehydrate(queryClient)}>
-          <OverviewContent weeklyStats={weeklyStats} />
+          <OverviewContent weeklyStats={weeklyStats} shiftSummary={shiftSummary} teamRankingData={teamRankingData} progressChart={progressChart} />
         </HydrationBoundary>
       </div>
     </>
