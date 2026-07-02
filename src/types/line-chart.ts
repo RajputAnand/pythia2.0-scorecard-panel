@@ -45,6 +45,12 @@ export interface ChartXLabel {
   opacity?: number
 }
 
+export interface ChartMinorTick {
+  x: number
+  y1: number
+  y2: number
+}
+
 export interface ChartVerticalMarker {
   x: number
   height: number
@@ -67,6 +73,7 @@ export interface LineChartSvgProps {
   yLabels: ChartYLabel[]
   series: LineChartSeries[]
   xLabels: ChartXLabel[]
+  minorTicks?: ChartMinorTick[]
   verticalMarker?: ChartVerticalMarker
   streakBadge?: ChartStreakBadge
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import { ToastProvider } from "@/context/ToastContext";
 import QueryProvider from "@/providers/QueryProvider";
 import SessionProvider from "@/providers/SessionProvider";
+import { auth } from "@/auth";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -21,15 +22,16 @@ export const metadata: Metadata = {
   description: "Pythia employee scorecard",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth()
   return (
     <html lang="en" className={`${dmSans.variable} ${dmMono.variable}`}>
       <body className="min-h-screen">
-        <SessionProvider>
+        <SessionProvider session={session}>
           <QueryProvider>
             <ToastProvider>{children}</ToastProvider>
           </QueryProvider>

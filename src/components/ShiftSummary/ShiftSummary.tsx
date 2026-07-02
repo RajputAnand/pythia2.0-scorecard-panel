@@ -4,7 +4,7 @@ import Panel from "@/components/shared/Panel/Panel";
 import styles from "./ShiftSummary.module.css";
 import { ShiftSummaryData } from "@/types/shift";
 import { renderText } from "@/utils/common";
-import { WeeklyStats } from "@/types/overview";
+import { TodayShiftSummary } from "@/types/overview";
 
 const metricValClass: Record<string, string> = {
   good: "text-accent",
@@ -47,12 +47,12 @@ function MetricCard({
 
 export default function ShiftSummary({
   data,
-  weeklyStats,
+  shiftSummary,
 }: {
   data: ShiftSummaryData;
-  weeklyStats: WeeklyStats;
+  shiftSummary: TodayShiftSummary;
 }) {
-  const scoreDiff = weeklyStats.current_score - weeklyStats.avg_score;
+  const scoreDiff = shiftSummary.overall_score_delta;
   const scoreDiffLabel =
     scoreDiff > 0
       ? `↑ +${scoreDiff} vs. your avg`
@@ -60,6 +60,24 @@ export default function ShiftSummary({
         ? `↓ ${scoreDiff} vs. your avg`
         : `→ same as your avg`;
   const scoreDiffClass = scoreDiff > 0 ? "up" : scoreDiff < 0 ? "down" : "flat";
+
+  const customersDiff = shiftSummary.customers_served_delta;
+  const customersDiffLabel =
+    customersDiff > 0
+      ? `↑ +${customersDiff}% vs. avg shift`
+      : customersDiff < 0
+        ? `↓ ${customersDiff}% vs. avg shift`
+        : `→ same as avg shift`;
+  const customersDiffClass = customersDiff > 0 ? "up" : customersDiff < 0 ? "down" : "flat";
+
+  const checkoutDiff = shiftSummary.checkout_target_seconds - shiftSummary.avg_checkout_seconds;
+  const checkoutDiffLabel =
+    checkoutDiff > 0
+      ? `↓ ${checkoutDiff.toFixed(1)}s under target`
+      : checkoutDiff < 0
+        ? `↑ ${Math.abs(checkoutDiff).toFixed(1)}s over target`
+        : `→ At target`;
+  const checkoutDiffClass = checkoutDiff > 0 ? "up" : checkoutDiff < 0 ? "down" : "flat";
 
   const badge = data.shiftComplete ? (
     <span className="bg-accent-light text-accent font-semibold rounded-[20px] text-[11px] px-[9px] py-[3px]">
@@ -75,31 +93,31 @@ export default function ShiftSummary({
       >
         <MetricCard
           label="Overall Score"
-          value={weeklyStats.current_score}
+          value={shiftSummary.overall_score}
           change={scoreDiffLabel}
           valueClass="good"
           changeClass={scoreDiffClass}
         />
         <MetricCard
           label="Customers Served"
-          value={weeklyStats.customers_served}
-          change="↑ +12 vs. avg shift"
+          value={shiftSummary.customers_served}
+          change={customersDiffLabel}
           valueClass="great"
-          changeClass="up"
+          changeClass={customersDiffClass}
         />
         <MetricCard
           label="Avg Checkout"
-          value="31s"
-          change="→ Target is 25s"
-          valueClass="ok"
-          changeClass="flat"
+          value={`${shiftSummary.avg_checkout_seconds}s`}
+          change={checkoutDiffLabel}
+          valueClass={checkoutDiffClass === "down" ? "ok" : "great"}
+          changeClass={checkoutDiffClass}
         />
         <MetricCard
           label="Points Earned"
-          value={`+${weeklyStats.avg_score}`}
-          change="↑ Best shift this week"
+          value={`+${shiftSummary.points_earned}`}
+          change={shiftSummary.is_best_shift_this_week ? "↑ Best shift this week" : "→ Shift complete"}
           valueClass="great"
-          changeClass="up"
+          changeClass={shiftSummary.is_best_shift_this_week ? "up" : "flat"}
         />
       </div>
 

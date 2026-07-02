@@ -6,7 +6,7 @@ import axios from "axios"
 import { User } from "@/types/user"
 import { pythia1Client, pythia2Client } from "@/lib/api-client"
 import { PYTHIA_1_API, PYTHIA_2_API } from "@/utils/api-endpoints"
-import type { ForgotPasswordResult, ResetPasswordResult } from "@/types/auth"
+import type { ForgotPasswordResult, ResetPasswordResult, TokenExchangeResponse } from "@/types/auth"
 
 // Returns null on success, error string on failure.
 // Using redirect: false so the session cookie is fully set before the client navigates.
@@ -21,8 +21,7 @@ export async function login(_prev: string | null | undefined, formData: FormData
     if (!requiredRole) {
       return 'Invalid role.'
     }
-
-    // const isDemoEmail = DEMO_USERS.some((u) => u.email === email)
+    
     let apiUser = null
     let roleSlug = ''
     let apiErrorMessage = ''
@@ -53,6 +52,25 @@ export async function login(_prev: string | null | undefined, formData: FormData
         return `This account is registered as a ${roleSlug}. Please log in to the correct role page.`
       }
 
+      // Exchange the Pythia-1 token for a Pythia-2 token so both are available for API authorization.
+      // Non-fatal: if the exchange fails, login still proceeds with the Pythia-1 token only.
+      let pythia2Token = ''
+      let points = 0
+      try {
+        const { data: exchangeResult } = await pythia2Client.post<TokenExchangeResponse>(
+          PYTHIA_2_API.auth.exchange,
+          { role: roleSlug, pythia1_token: apiToken },
+        )
+        if (exchangeResult.success) {
+          // Use the exchange-issued tokens for all subsequent API calls (both Pythia-1 and Pythia-2).
+          apiToken = exchangeResult.pythia1_token
+          pythia2Token = exchangeResult.pythia2_token
+          points = exchangeResult.user?.points ?? 0
+        }
+      } catch (err) {
+        console.error('Pythia-2 token exchange error:', err)
+      }
+
       await signIn('credentials', {
         email,
         password,
@@ -62,9 +80,11 @@ export async function login(_prev: string | null | undefined, formData: FormData
           name: `${apiUser.firstName || ''} ${apiUser.lastName || ''}`.trim() || apiUser.email,
           role: roleSlug,
           token: apiToken,
+          pythia2Token,
           initials: `${apiUser.firstName?.[0] || ''}${apiUser.lastName?.[0] || ''}`.toUpperCase() || 'UR',
-          score: roleSlug === 'employee' ? 85 : undefined,
+          score: roleSlug === 'employee' ? 0 : undefined,
           jobTitle: apiUser.role?.name || 'User',
+          points,
         }),
         redirect: false,
       })

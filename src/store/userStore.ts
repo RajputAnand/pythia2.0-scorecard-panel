@@ -9,6 +9,8 @@ interface UserStoreState {
   currentStore: Store | null
   /** Employee's current score from the latest weekly stats fetch */
   currentScore: number | null
+  /** Employee's available swag points — seeded from session, updated on redemption */
+  points: number | null
 
   /** Called when the stores query resolves — fully replaces the stores list */
   setStores: (stores: Store[]) => void
@@ -16,6 +18,8 @@ interface UserStoreState {
   setCurrentStore: (store: Store) => void
   /** Called when weeklyStats resolves — stores the employee's current score */
   setCurrentScore: (score: number) => void
+  /** Seed from session on Sidebar mount; decremented by swag redemptions */
+  setPoints: (points: number) => void
 }
 
 export const useUserStore = create<UserStoreState>()(
@@ -23,6 +27,7 @@ export const useUserStore = create<UserStoreState>()(
     stores: [],
     currentStore: null,
     currentScore: null,
+    points: null,
 
     setStores(stores) {
       set((state) => {
@@ -37,6 +42,10 @@ export const useUserStore = create<UserStoreState>()(
 
     setCurrentScore(score) {
       set({ currentScore: score })
+    },
+
+    setPoints(points) {
+      set({ points })
     },
   }))
 )

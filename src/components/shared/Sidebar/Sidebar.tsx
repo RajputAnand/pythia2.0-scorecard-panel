@@ -1,12 +1,11 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import styles from './Sidebar.module.css'
 import type { ReactNode } from 'react'
 import type { User, UserRole } from '@/types/user'
-import { useSwagStoreQuery } from '@/queries/swag'
 import { useUserStore } from '@/store/userStore'
 import { logout } from '@/actions/auth'
 
@@ -218,10 +217,15 @@ export default function Sidebar({ user }: { user: User }) {
   const [isPending, startTransition] = useTransition()
 
   const navSections = NAV_BY_ROLE[activeView]
-  const { data: swag } = useSwagStoreQuery()
-  const points = swag?.points ?? 0
   const currentStore = useUserStore((s) => s.currentStore)
   const currentScore = useUserStore((s) => s.currentScore)
+  const storePoints = useUserStore((s) => s.points)
+  const setPoints = useUserStore((s) => s.setPoints)
+  const points = storePoints ?? (user.points ?? 0)
+
+  useEffect(() => {
+    if (user.points != null) setPoints(user.points)
+  }, [user.points, setPoints])
 
   function handleViewToggle(view: UserRole) {
     if (user.role !== 'owner') return

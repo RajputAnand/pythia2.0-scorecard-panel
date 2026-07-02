@@ -7,6 +7,7 @@ import type { SwagItem } from '@/types/swagstore'
 import { SWAG_STORE } from '@/lib/swagstore-data'
 import { renderText } from '@/utils/common'
 import { useSwagStoreQuery, useRedeemSwagItem } from '@/queries/swag'
+import { useUserStore } from '@/store/userStore'
 
 export default function SwagStore() {
   const config = SWAG_STORE
@@ -17,7 +18,7 @@ export default function SwagStore() {
   // variables holds the SwagItem passed to the current in-flight mutate call.
   const { mutate, isPending, variables: redeemingItem } = useRedeemSwagItem()
 
-  const points = data?.points ?? 0
+  const points = useUserStore((s) => s.points) ?? 0
   const items = data?.catalog ?? []
   // Track which item button shows "Redeeming…" — only one at a time.
   const redeemingId = isPending ? redeemingItem?.id : null
@@ -26,9 +27,8 @@ export default function SwagStore() {
     if (!data || points < item.cost || item.redeemed) return
     mutate(item, {
       onSuccess: () => {
-        // points is stale here; read from optimistically updated cache value.
-        const cached = points - item.cost
-        showToast(`${item.emoji} ${item.name} redeemed! ${cached.toLocaleString()} pts remaining`)
+        const remaining = useUserStore.getState().points ?? 0
+        showToast(`${item.emoji} ${item.name} redeemed! ${remaining.toLocaleString()} pts remaining`)
       },
       onError: () => {
         showToast(`Failed to redeem "${item.name}". Please try again.`)

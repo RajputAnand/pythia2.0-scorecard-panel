@@ -10,7 +10,6 @@ export interface SwagItem {
 export interface SwagStoreConfig {
   title: string
   subtitle: string
-  initialPoints: number
   /** Use **text** for bold segments */
   earnRateText: string
   catalog: SwagItem[]

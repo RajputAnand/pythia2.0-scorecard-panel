@@ -19,6 +19,6 @@ export async function getUser(): Promise<User | null> {
     return session.user as unknown as User
   }
 
-  const { password: _pw, email: _email, ...user } = demo
+  const { password: _pw, email: _email, ...user } = demo as any
   return user
 }

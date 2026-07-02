@@ -12,7 +12,13 @@ export const PYTHIA_1_API = {
 
 // Endpoints served by the data service (dataClient)
 export const PYTHIA_2_API = {
-  scorecard: {
-    weekly: '/score/latest/weekly',
-  }
+  auth: {
+    exchange: '/auth/exchange',
+  },
+  dashboard: {
+    today: '/dashboard/today',
+    weekly: '/dashboard/weekly',
+    leaderboard: '/dashboard/leaderboard',
+    progress: '/dashboard/progress',
+  },
 } as const
