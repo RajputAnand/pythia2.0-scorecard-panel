@@ -74,7 +74,6 @@ export default function OverviewContent({
   //   if (!pythia2Token) return
   //   fetchWeeklyStats(pythia2Token).then(setWeeklyStats).catch(() => {})
   // }, [pythia2Token])
-  console.log(weeklyStats, shiftSummary,teamRankingData ,"fffff")
   if (isError) return <OverviewError onRetry={refetch} />
   if (!data || !weeklyStats || !shiftSummary || !teamRankingData || !progressChart || !session) return <OverviewEmpty />
 
