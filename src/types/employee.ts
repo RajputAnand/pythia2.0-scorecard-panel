@@ -1,3 +1,15 @@
+// Raw shape returned by the Pythia-2 /employees endpoint
+export interface ApiEmployee {
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+  role_name: string
+  store_ids: string[]
+  device_id: string | null
+  is_active: boolean
+}
+
 export type IssueCategory = 'hospitality' | 'checkout' | 'time' | 'tone'
 export type IssueStatus = 'resolved' | 'progress' | 'stalled'
 export type PipColor = 'filled-green' | 'filled-amber' | 'filled-red' | 'empty'

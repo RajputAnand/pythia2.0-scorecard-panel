@@ -21,4 +21,11 @@ export const PYTHIA_2_API = {
     leaderboard: '/dashboard/leaderboard',
     progress: '/dashboard/progress',
   },
+  employees: {
+    list: '/employees',
+  },
+  unknownIdentities: {
+    list: '/unknown-identities',
+    assign: (identityId: string) => `/unknown-identities/${identityId}/assign`,
+  },
 } as const
