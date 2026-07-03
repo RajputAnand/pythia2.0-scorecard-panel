@@ -40,4 +40,16 @@ export const queryKeys = {
       [...queryKeys.staffing.all, 'intelligence', storeId] as const,
   },
 
+  employees: {
+    all: ['employees'] as const,
+    list: (params: { search?: string; skip?: number; limit?: number } = {}) =>
+      [...queryKeys.employees.all, 'list', params] as const,
+  },
+
+  unknownIdentities: {
+    all: ['unknownIdentities'] as const,
+    list: (skip = 0, limit = 50) =>
+      [...queryKeys.unknownIdentities.all, 'list', skip, limit] as const,
+  },
+
 } as const

@@ -22,6 +22,16 @@ export function getWeekSubtitle(date: Date): string {
   return `Week of ${fmt(weekStart)} – ${fmt(weekEnd)}, ${weekEnd.getFullYear()}`
 }
 
+/**
+ * Builds a viewable URL for an S3-backed asset from its key.
+ * NEXT_PUBLIC_S3_ASSET_BASE_URL is a virtual-hosted-style bucket URL
+ * (e.g. https://<bucket>.s3.<region>.amazonaws.com) — the bucket is already
+ * part of the host, so only the key is appended.
+ */
+export function getS3AssetUrl(key: string): string {
+  return `${process.env.NEXT_PUBLIC_S3_ASSET_BASE_URL}/${key}`
+}
+
 /** Renders a string with **bold** markers as React nodes */
 export function renderText(text: string): ReactNode[] {
   const parts = text.split(/\*\*(.*?)\*\*/g)
