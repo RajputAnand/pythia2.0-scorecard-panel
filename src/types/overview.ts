@@ -1,6 +1,5 @@
 import { HeroBannerData } from "./hero-banner";
 import { ShiftSummaryData } from "./shift";
-import { CoachingItem } from "./coaching";
 
 export interface WeeklyStats {
   overall_score: number;
@@ -49,7 +48,7 @@ export interface TeamRankingData {
     improvement_rate: number | null;
     weeks_to_first: number | null;
     message: string;
-  };
+  } | null;
 }
 
 export interface ProgressOverTimeChartData {
@@ -68,13 +67,13 @@ export interface ProgressOverTimeData {
 export interface OverviewPageData {
   heroBanner: HeroBannerData;
   shiftSummary: ShiftSummaryData;
-  coachingItems: CoachingItem[];
   progressChart: ProgressOverTimeData;
   leaderboard: TeamRankingData;
 }
 
 export interface CoachingMoment {
   tip_id: string;
+  record_id: string;
   title: string;
   target_text: string;
   target_value: number;
@@ -83,11 +82,34 @@ export interface CoachingMoment {
   target_points: number;
   current_score: number;
   weekly_change: number;
-  status: "in_progress" | "resolved" | "stalled";
+  status: "in_progress" | "declining" | "resolved" | "stalled";
   areas: string[];
   description: string;
   callout_text: string;
   category: string;
-  resolved: false;
+  resolved: boolean;
   callout_type: "tip" | "compliment";
+}
+
+export interface CoachingWeeklySnapshot {
+  week_score_id: string;
+  avg_score: number;
+  avg_hospitality: number;
+  avg_checkout_spd: number;
+  avg_time_to_service: number;
+  avg_engagement: number;
+  current_score: number;
+  customers_served: number;
+  week_start: string;
+  week_end: string;
+}
+
+export interface CoachingMomentsResponse {
+  success: boolean;
+  message: string;
+  weekly_data: { success: boolean; data: CoachingWeeklySnapshot; weekly_data: CoachingWeeklySnapshot }[];
+  coaching_tips: CoachingMoment[];
+  cached: boolean;
+  generated_at: string;
+  source: string;
 }

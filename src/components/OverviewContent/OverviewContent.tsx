@@ -15,7 +15,7 @@ import CoachingMoments from '@/components/CoachingMoments/CoachingMoments'
 import ProgressChart from '@/components/ProgressChart/ProgressChart'
 import Leaderboard from '@/components/Leaderboard/Leaderboard'
 import SwagStore from '@/components/SwagStore/SwagStore'
-import type { ProgressOverTimeData, TeamRankingData, TodayShiftSummary, WeeklyStats } from '@/types/overview'
+import type { CoachingMoment, ProgressOverTimeData, TeamRankingData, TodayShiftSummary, WeeklyStats } from '@/types/overview'
 import { useSession } from 'next-auth/react'
 
 function OverviewError({ onRetry }: { onRetry: () => void }) {
@@ -49,11 +49,13 @@ export default function OverviewContent({
   shiftSummary,
   teamRankingData,
   progressChart,
+  coachingMoments,
 }: {
   weeklyStats: WeeklyStats | null
   shiftSummary: TodayShiftSummary | null
   teamRankingData: TeamRankingData | null
   progressChart: ProgressOverTimeData | null
+  coachingMoments: CoachingMoment[]
 }) {
   const { overview: data, isError, isFetching, isStale, refetch } = useOverviewPageData()
   const setCurrentScore = useUserStore((s) => s.setCurrentScore)
@@ -77,7 +79,7 @@ export default function OverviewContent({
   if (isError) return <OverviewError onRetry={refetch} />
   if (!data || !weeklyStats || !shiftSummary || !teamRankingData || !progressChart || !session) return <OverviewEmpty />
 
-  const hasCoachingItems = data.coachingItems.length > 0
+  const hasCoachingItems = coachingMoments.length > 0
 
   return (
     <div className="grid gap-5">
@@ -103,7 +105,7 @@ export default function OverviewContent({
         <ShiftSummary data={data.shiftSummary} shiftSummary={shiftSummary} />
 
         {hasCoachingItems ? (
-          <CoachingMoments items={data.coachingItems} />
+          <CoachingMoments items={coachingMoments} />
         ) : (
           <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-10">
             <span className="text-[28px]">🎉</span>

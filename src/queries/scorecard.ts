@@ -1,7 +1,7 @@
 import { pythia2Client } from '@/lib/api-client'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
 import type { ApiResponseV2 } from '@/types/api'
-import type { ProgressOverTimeData, TeamRankingData, TodayShiftSummary, WeeklyStats } from '@/types/overview'
+import type { CoachingMoment, CoachingMomentsResponse, ProgressOverTimeData, TeamRankingData, TodayShiftSummary, WeeklyStats } from '@/types/overview'
 
 export async function fetchWeeklyStats(token: string): Promise<WeeklyStats> {
   const { data: response } = await pythia2Client.get<ApiResponseV2<WeeklyStats>>(
@@ -35,4 +35,13 @@ export async function fetchProgressOverTime(token: string): Promise<ProgressOver
     { headers: { Authorization: `Bearer ${token}` } },
   )
   return response
+}
+
+export async function fetchCoachingMoments(token: string): Promise<CoachingMoment[]> {
+  const { data: response } = await pythia2Client.post<CoachingMomentsResponse>(
+    PYTHIA_2_API.coaching.moments,
+    undefined,
+    { headers: { Authorization: `Bearer ${token}` }, params: { use_cached: true } },
+  )
+  return response.coaching_tips
 }

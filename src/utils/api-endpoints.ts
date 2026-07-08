@@ -21,6 +21,9 @@ export const PYTHIA_2_API = {
     leaderboard: '/dashboard/leaderboard',
     progress: '/dashboard/progress',
   },
+  coaching: {
+    moments: '/coaching-moments',
+  },
   employees: {
     list: '/employees',
   },

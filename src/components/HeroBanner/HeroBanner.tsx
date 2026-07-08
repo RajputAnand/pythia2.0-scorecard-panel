@@ -31,8 +31,8 @@ const RING_CIRCUMFERENCE = 289
 
 export default function HeroBanner({ data, weeklyStats }: { data: HeroBannerData, weeklyStats: WeeklyStats }) {
   const { data: user } = useSession()
-  const points = (user?.user.points ?? 0)
   if (!weeklyStats) return <></>
+  const points = weeklyStats.points ?? 0
   const ringOffset = RING_CIRCUMFERENCE * (1 - Math.round(weeklyStats.overall_score ?? 0) / 100)
   return (
     <div

@@ -1,6 +1,4 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { pythia2Client } from '@/lib/api-client'
-import { PYTHIA_2_API } from '@/utils/api-endpoints'
 import type { ApiResponseV2Paginated } from '@/types/api'
 import type { ApiEmployee } from '@/types/employee'
 import { queryKeys } from './keys'
@@ -12,14 +10,19 @@ export interface FetchEmployeesParams {
   limit?: number
 }
 
+// Called from a client component (EmployeeAssignPicker), so this goes through
+// the same-origin /api/employees proxy rather than pythia2Client directly —
+// the Pythia-2 backend is plain HTTP and the browser blocks it as mixed
+// content on the HTTPS-deployed app.
 export async function fetchEmployees({ token, search, skip = 0, limit = 8 }: FetchEmployeesParams) {
-  const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<ApiEmployee[]>>(
-    PYTHIA_2_API.employees.list,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { search: search || undefined, skip, limit },
-    },
-  )
+  const params = new URLSearchParams({ skip: String(skip), limit: String(limit) })
+  if (search) params.set('search', search)
+
+  const res = await fetch(`/api/employees?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const response: ApiResponseV2Paginated<ApiEmployee[]> = await res.json()
+  if (!res.ok) throw new Error(response.message || 'Failed to fetch employees')
   return response
 }
 
