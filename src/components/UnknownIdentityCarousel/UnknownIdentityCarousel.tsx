@@ -6,6 +6,8 @@ import { getS3AssetUrl } from '@/utils/common'
 
 interface UnknownIdentityCarouselProps {
   identities: UnknownIdentity[]
+  /** Overall count across all pages — may exceed identities.length while later pages are still loading. */
+  total?: number
   activeIndex: number
   onSelectIndex: (index: number) => void
 }
@@ -15,7 +17,28 @@ const STATUS_STYLES: Record<string, string> = {
   resolved: 'bg-accent-light text-accent',
 }
 
-export default function UnknownIdentityCarousel({ identities, activeIndex, onSelectIndex }: UnknownIdentityCarouselProps) {
+// Beyond this count, showing one dot per identity overflows/wraps badly —
+// collapse to a first…window…last layout instead (standard truncated pagination).
+const MAX_DOTS = 12
+const DOT_WINDOW = 5
+
+function visibleDotIndices(total: number, activeIndex: number): (number | 'ellipsis')[] {
+  if (total <= MAX_DOTS) return Array.from({ length: total }, (_, i) => i)
+
+  const half = Math.floor(DOT_WINDOW / 2)
+  let start = Math.max(1, activeIndex - half)
+  const end = Math.min(total - 2, start + DOT_WINDOW - 1)
+  start = Math.max(1, end - DOT_WINDOW + 1)
+
+  const indices: (number | 'ellipsis')[] = [0]
+  if (start > 1) indices.push('ellipsis')
+  for (let i = start; i <= end; i++) indices.push(i)
+  if (end < total - 2) indices.push('ellipsis')
+  indices.push(total - 1)
+  return indices
+}
+
+export default function UnknownIdentityCarousel({ identities, total, activeIndex, onSelectIndex }: UnknownIdentityCarouselProps) {
   const active = identities[activeIndex]
   const [renderedIndex, setRenderedIndex] = useState(activeIndex)
   const [photoIndex, setPhotoIndex] = useState(0)
@@ -37,11 +60,21 @@ export default function UnknownIdentityCarousel({ identities, activeIndex, onSel
 
   if (!active) return null
 
-  const total = identities.length
+  const loaded = identities.length
+  const totalCount = total ?? loaded
   const photo = active.images[photoIndex]
+  // Later pages may not be loaded yet — don't wrap past the end of what's
+  // loaded so far if there's still more to fetch (see UnknownIdentitiesPanel).
+  const hasMoreToLoad = totalCount > loaded
+  const atLastLoaded = activeIndex === loaded - 1
 
   function goTo(index: number) {
-    onSelectIndex((index + total) % total)
+    if (index >= loaded) {
+      if (hasMoreToLoad) return
+      onSelectIndex(0)
+      return
+    }
+    onSelectIndex((index + loaded) % loaded)
   }
 
   return (
@@ -52,7 +85,7 @@ export default function UnknownIdentityCarousel({ identities, activeIndex, onSel
           {active.status}
         </span>
         <span className="font-mono text-[11px] text-muted whitespace-nowrap">
-          Identity {activeIndex + 1} of {total}
+          Identity {activeIndex + 1} of {totalCount}
         </span>
       </div>
 
@@ -61,7 +94,7 @@ export default function UnknownIdentityCarousel({ identities, activeIndex, onSel
         <button
           type="button"
           onClick={() => goTo(activeIndex - 1)}
-          disabled={total <= 1}
+          disabled={loaded <= 1}
           aria-label="Previous identity"
           className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-border bg-surface text-secondary hover:text-primary hover:border-accent transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-default"
         >
@@ -139,7 +172,7 @@ export default function UnknownIdentityCarousel({ identities, activeIndex, onSel
         <button
           type="button"
           onClick={() => goTo(activeIndex + 1)}
-          disabled={total <= 1}
+          disabled={loaded <= 1 || (atLastLoaded && hasMoreToLoad)}
           aria-label="Next identity"
           className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-border bg-surface text-secondary hover:text-primary hover:border-accent transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-default"
         >
@@ -149,20 +182,26 @@ export default function UnknownIdentityCarousel({ identities, activeIndex, onSel
         </button>
       </div>
 
-      {/* Dot indicators */}
-      {total > 1 && (
+      {/* Dot indicators — windowed (first…current±2…last) once the list gets large, so it never wraps/overflows */}
+      {loaded > 1 && (
         <div className="flex items-center justify-center gap-[6px] pb-[16px]">
-          {identities.map((identity, i) => (
-            <button
-              key={identity.id}
-              type="button"
-              onClick={() => onSelectIndex(i)}
-              aria-label={`Go to identity ${i + 1}`}
-              className={`rounded-full transition-all duration-150 cursor-pointer ${
-                i === activeIndex ? 'w-5 h-2 bg-accent' : 'w-2 h-2 bg-border hover:bg-muted'
-              }`}
-            />
-          ))}
+          {visibleDotIndices(loaded, activeIndex).map((i, pos) =>
+            i === 'ellipsis' ? (
+              <span key={`ellipsis-${pos}`} className="text-muted text-[10px] px-px select-none">
+                …
+              </span>
+            ) : (
+              <button
+                key={identities[i].id}
+                type="button"
+                onClick={() => onSelectIndex(i)}
+                aria-label={`Go to identity ${i + 1}`}
+                className={`rounded-full shrink-0 transition-all duration-150 cursor-pointer ${
+                  i === activeIndex ? 'w-5 h-2 bg-accent' : 'w-2 h-2 bg-border hover:bg-muted'
+                }`}
+              />
+            ),
+          )}
         </div>
       )}
     </div>

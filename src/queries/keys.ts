@@ -48,8 +48,10 @@ export const queryKeys = {
 
   unknownIdentities: {
     all: ['unknownIdentities'] as const,
-    list: (skip = 0, limit = 50) =>
-      [...queryKeys.unknownIdentities.all, 'list', skip, limit] as const,
+    // Single key for the whole infinite list — TanStack Query stores all
+    // fetched pages under one cache entry keyed only by domain (+ token).
+    infinite: (token = 'unauthenticated') =>
+      [...queryKeys.unknownIdentities.all, 'infinite', token] as const,
   },
 
 } as const
