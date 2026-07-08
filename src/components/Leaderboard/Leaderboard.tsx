@@ -90,9 +90,11 @@ export default function Leaderboard({ data }: { data: TeamRankingData }) {
         })}
       </div>
 
-      <div className="bg-surface-alt border-t border-border text-secondary leading-relaxed px-5 py-[10px] text-[12px] [&_strong]:font-semibold [&_strong]:text-primary">
-        {renderText(data.insight.message)}
-      </div>
+      {data.insight && (
+        <div className="bg-surface-alt border-t border-border text-secondary leading-relaxed px-5 py-[10px] text-[12px] [&_strong]:font-semibold [&_strong]:text-primary">
+          {renderText(data.insight.message)}
+        </div>
+      )}
     </Panel>
   )
 }
