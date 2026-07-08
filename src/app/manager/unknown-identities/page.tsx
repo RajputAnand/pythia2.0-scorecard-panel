@@ -17,9 +17,10 @@ export default async function UnknownIdentitiesPage() {
 
   if (token) {
     try {
-      await queryClient.prefetchQuery({
-        queryKey: queryKeys.unknownIdentities.list(),
-        queryFn: () => fetchUnknownIdentities({ token }),
+      await queryClient.prefetchInfiniteQuery({
+        queryKey: queryKeys.unknownIdentities.infinite(token),
+        queryFn: ({ pageParam }) => fetchUnknownIdentities({ token, skip: pageParam as number, limit: 50 }),
+        initialPageParam: 0,
       })
     } catch {
       // non-fatal — UnknownIdentitiesPanel renders an error state with retry

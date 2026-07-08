@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { pythia2Client } from '@/lib/api-client'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
 import type { ApiResponseV2, ApiResponseV2Paginated } from '@/types/api'
@@ -37,10 +37,22 @@ export async function fetchUnknownIdentities({ token, skip = 0, limit = 50 }: Fe
   return response
 }
 
+// 50 per page matches the backend's default page size — the list can hold
+// far more than that, so pages are fetched lazily as the carousel advances.
+const PAGE_SIZE = 50
+
+// Paginated (not just capped at 50) — fetches additional pages as the
+// carousel's activeIndex approaches the end of what's already loaded.
+// See UnknownIdentitiesPanel's fetchNextPage effect.
 export function useUnknownIdentitiesQuery(token?: string) {
-  return useQuery({
-    queryKey: queryKeys.unknownIdentities.list(),
-    queryFn: () => fetchUnknownIdentities({ token: token! }),
+  return useInfiniteQuery({
+    queryKey: queryKeys.unknownIdentities.infinite(token),
+    queryFn: ({ pageParam }) => fetchUnknownIdentities({ token: token!, skip: pageParam, limit: PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((sum, page) => sum + page.data.length, 0)
+      return loaded < lastPage.meta.total ? loaded : undefined
+    },
     enabled: !!token,
     staleTime: 60 * 1000,
   })

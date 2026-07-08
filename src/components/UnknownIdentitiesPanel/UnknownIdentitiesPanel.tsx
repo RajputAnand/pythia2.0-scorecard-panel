@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useUnknownIdentitiesQuery } from '@/queries/unknown-identities'
 import UnknownIdentityCarousel from '@/components/UnknownIdentityCarousel/UnknownIdentityCarousel'
@@ -51,14 +51,32 @@ export default function UnknownIdentitiesPanel() {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
 
-  const { data, isLoading, isError, isFetching, refetch } = useUnknownIdentitiesQuery(token)
-  const identities = data?.data ?? []
+  const {
+    data,
+    isLoading,
+    isError,
+    isFetching,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    refetch,
+  } = useUnknownIdentitiesQuery(token)
+  const identities = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data])
+  const total = data?.pages[0]?.meta.total ?? identities.length
   const [activeIndex, setActiveIndex] = useState(0)
 
   // Clamp the active index if the list shrinks (e.g. after an assign invalidates the cache).
   if (identities.length > 0 && activeIndex >= identities.length) {
     setActiveIndex(identities.length - 1)
   }
+
+  // Prefetch the next page once the carousel gets close to the end of what's
+  // already loaded, so browsing past 50 identities feels seamless.
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage && activeIndex >= identities.length - 5) {
+      fetchNextPage()
+    }
+  }, [activeIndex, identities.length, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   if (isError) return <PanelError onRetry={refetch} />
   if (isLoading) return <PanelSkeleton />
@@ -68,7 +86,7 @@ export default function UnknownIdentitiesPanel() {
 
   return (
     <div className="flex flex-col gap-3">
-      {isFetching && (
+      {(isFetching || isFetchingNextPage) && (
         <div className="flex items-center justify-end -mb-2">
           <span className="flex items-center gap-1.5 rounded-full bg-accent-light px-3 py-1 text-[11px] font-medium text-accent">
             <span className="inline-block h-1.5 w-1.5 animate-ping rounded-full bg-accent" />
@@ -78,7 +96,12 @@ export default function UnknownIdentitiesPanel() {
       )}
 
       <div className="grid grid-cols-2 items-start gap-[18px]">
-        <UnknownIdentityCarousel identities={identities} activeIndex={activeIndex} onSelectIndex={setActiveIndex} />
+        <UnknownIdentityCarousel
+          identities={identities}
+          total={total}
+          activeIndex={activeIndex}
+          onSelectIndex={setActiveIndex}
+        />
         <EmployeeAssignPicker identity={activeIdentity} onAssigned={refetch} />
       </div>
     </div>
