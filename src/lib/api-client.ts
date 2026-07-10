@@ -1,4 +1,7 @@
 import axios, { type AxiosInstance } from 'axios'
+import { redirect } from 'next/navigation'
+
+const LOGIN_ROUTE = '/login/employee'
 
 function createClient(baseURL: string | undefined): AxiosInstance {
   const client = axios.create({
@@ -15,7 +18,16 @@ function createClient(baseURL: string | undefined): AxiosInstance {
   // Response interceptor — central place for 401 redirects and error normalisation.
   client.interceptors.response.use(
     (response) => response,
-    (error) => Promise.reject(error),
+    (error) => {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        if (typeof window !== 'undefined') {
+          window.location.href = LOGIN_ROUTE
+        } else {
+          redirect(LOGIN_ROUTE)
+        }
+      }
+      return Promise.reject(error)
+    },
   )
 
   return client
