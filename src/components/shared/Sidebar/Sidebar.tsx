@@ -231,6 +231,7 @@ export default function Sidebar({ user }: { user: User }) {
   const currentScore = useUserStore((s) => s.currentScore)
   const storePoints = useUserStore((s) => s.points)
   const setPoints = useUserStore((s) => s.setPoints)
+  const currentStore = useUserStore((s) => s.currentStore)
   const points = storePoints ?? (user.points ?? 0)
 
   useEffect(() => {
@@ -302,12 +303,15 @@ export default function Sidebar({ user }: { user: User }) {
           <div className="flex items-center justify-center shrink-0 rounded-full bg-accent text-white font-bold w-9 h-9 text-[12px]">
             {user.initials}
           </div>
-          <div>
-            <div className="text-[12.5px] font-semibold text-accent">{user.name}</div>
-            <div className="text-accent-mid text-[10.5px]">{user.jobTitle} · Lionmart Store</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[12.5px] font-semibold text-accent truncate">{user.name}</div>
+            <div className="text-accent-mid text-[10.5px] truncate">
+              {user.jobTitle}
+              {currentStore && ` · ${currentStore.name}`}
+            </div>
           </div>
           {(currentScore ?? user.score) != null && (
-            <div className="ml-auto text-right">
+            <div className="ml-auto text-right shrink-0">
               <div className="font-mono font-bold text-accent text-[18px]">{currentScore ?? user.score}</div>
               <div className="font-mono font-bold text-[11px]" style={{ color: '#F5C842' }}>{points.toLocaleString()} pts</div>
             </div>
@@ -343,9 +347,9 @@ export default function Sidebar({ user }: { user: User }) {
           )}
           <div className="flex items-center gap-[9px] mx-3 mb-3 rounded-[10px] bg-surface-alt px-[12px] py-[10px]">
             <div className={styles.liveDot} />
-            <div>
-              <div className="text-[12px] font-medium">Lionmart Store</div>
-              <div className="text-muted text-[10.5px]">2 Nodes online</div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[12px] font-medium truncate">{currentStore?.name ?? 'Select store'}</div>
+              <div className="text-muted text-[10.5px] truncate">{currentStore?.location ?? '—'}</div>
             </div>
           </div>
         </>

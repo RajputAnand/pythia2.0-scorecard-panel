@@ -1,7 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "Bash(curl -s -X POST \"http://pythia-be.inheritxdev.in/auth/login\" -H \"Content-Type: application/json\" -d '{\"userid_email_or_mobile\":\"test_manager@yopmail.com\",\"password\":\"Inx@!123\",\"role\":\"manager\"}' -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" --max-time 15)",
+      "Bash(curl -s \"http://pythia-be.inheritxdev.in/\" -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" --max-time 15)",
+      "Bash(curl -s \"http://pythia-be.inheritxdev.in/docs\" -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" --max-time 15)",
+      "Bash(curl -s \"http://pythia-be.inheritxdev.in/openapi.json\" -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" --max-time 15)",
+      "Bash(curl -s \"http://pythia-be.inheritxdev.in/openapi.json\" --max-time 15)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s \"http://localhost/openapi.json\" --max-time 10)",
+      "Bash(curl -s -X POST \"http://localhost/auth/login\" -H \"Content-Type: application/json\" -d '{\"userid_email_or_mobile\":\"test_manager@yopmail.com\",\"password\":\"Inx@!123\",\"role\":\"manager\"}' -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" --max-time 10)",
+      "Bash(curl -s \"http://localhost:3000/login/manager\" -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" --max-time 10)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" --max-time 5 http://localhost:3000/login/employee)",
+      "Bash(disown)",
+      "Bash(curl -s -o /dev/null -w \"HTTP_STATUS:%{http_code}\\\\n\" --max-time 5 http://localhost:3000/login/manager)",
+      "Bash(echo \"TYPECHECK_EXIT:$?\")",
+      "Bash(curl -s -X POST \"http://localhost/auth/login\" -H \"Content-Type: application/json\" -d '{\"userid_email_or_mobile\":\"test_employee@yopmail.com\",\"password\":\"demo1234\",\"role\":\"employee\"}' -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" --max-time 10)"
     ]
   }
 }

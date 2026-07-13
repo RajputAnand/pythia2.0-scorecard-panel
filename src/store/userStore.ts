@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { Store } from '@/types/store'
+import { STORES } from '@/lib/store-data'
 
 interface UserStoreState {
   /** Full list of stores the authenticated user has access to */
@@ -24,8 +25,8 @@ interface UserStoreState {
 
 export const useUserStore = create<UserStoreState>()(
   subscribeWithSelector((set) => ({
-    stores: [],
-    currentStore: null,
+    stores: STORES,
+    currentStore: STORES[0] ?? null,
     currentScore: null,
     points: null,
 
