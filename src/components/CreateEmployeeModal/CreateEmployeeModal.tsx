@@ -1,17 +1,37 @@
 'use client'
 
-import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useRef, useState } from 'react'
 import { createEmployee, fetchEmployee } from '@/queries/employees'
 import { createEmployeeSchema, type CreateEmployeeSchema } from '@/schemas/employee'
 import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
 import CredentialsReveal from '@/components/shared/CredentialsReveal/CredentialsReveal'
-import { extractApiErrorMessage, getS3AssetUrl } from '@/utils/common'
+import { extractApiErrorMessage } from '@/utils/common'
 import type { FormField } from '@/types/dynamic-form'
 import type { ApiEmployee } from '@/types/employee'
-import type { UnknownIdentityImage } from '@/types/unknown-identity'
 
-const MAX_IMAGES = 5
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024
+// Photo upload/prefill is disabled for now — the unknown-identity S3 bucket
+// has no CORS/public-read policy, so client-side fetches of those photos are
+// always blocked, and there's no presigned-URL/proxy endpoint yet either.
+// See the "S3 photo access gap" memory. All of it is commented out below
+// rather than deleted so it's a straight uncomment once the backend exposes
+// these images.
+//
+// import { useEffect, useRef } from 'react'
+// import { getS3AssetUrl } from '@/utils/common'
+// import type { ChangeEvent } from 'react'
+// import type { UnknownIdentityImage } from '@/types/unknown-identity'
+//
+// const MAX_IMAGES = 5
+// const MAX_IMAGE_SIZE = 5 * 1024 * 1024
+//
+// async function toFile(img: UnknownIdentityImage): Promise<File> {
+//   const res = await fetch(getS3AssetUrl(img.s3_key))
+//   if (!res.ok) throw new Error(`Failed to fetch ${img.s3_key}`)
+//   const blob = await res.blob()
+//   if (blob.size > MAX_IMAGE_SIZE) throw new Error(`${img.s3_key} exceeds the 5MB size limit`)
+//   const filename = img.s3_key.split('/').pop() || `photo-${img.photo_index}.jpg`
+//   return new File([blob], filename, { type: blob.type || 'image/jpeg' })
+// }
 
 const FIELDS: FormField[] = [
   { id: 'firstName', type: 'text', label: 'First Name', placeholder: 'Jane' },
@@ -24,97 +44,89 @@ interface CreateEmployeeModalProps {
   token: string
   onClose: () => void
   onCreated: (employee: ApiEmployee) => void
-  /** The unknown identity's own captured photos — prefilled as this employee's photos. */
-  sourceImages?: UnknownIdentityImage[]
+  // /** The unknown identity's own captured photos — prefilled as this employee's photos. */
+  // sourceImages?: UnknownIdentityImage[]
 }
 
-async function toFile(img: UnknownIdentityImage): Promise<File> {
-  const res = await fetch(getS3AssetUrl(img.s3_key))
-  if (!res.ok) throw new Error(`Failed to fetch ${img.s3_key}`)
-  const blob = await res.blob()
-  if (blob.size > MAX_IMAGE_SIZE) throw new Error(`${img.s3_key} exceeds the 5MB size limit`)
-  const filename = img.s3_key.split('/').pop() || `photo-${img.photo_index}.jpg`
-  return new File([blob], filename, { type: blob.type || 'image/jpeg' })
-}
-
-export default function CreateEmployeeModal({ token, onClose, onCreated, sourceImages }: CreateEmployeeModalProps) {
+export default function CreateEmployeeModal({ token, onClose, onCreated }: CreateEmployeeModalProps) {
   const [step, setStep] = useState<'form' | 'credentials'>('form')
   const [isPending, setIsPending] = useState(false)
   const [serverError, setServerError] = useState<string | undefined>()
-  const [images, setImages] = useState<File[]>([])
-  const [imageError, setImageError] = useState<string | undefined>()
-  const [isPrefillingPhotos, setIsPrefillingPhotos] = useState(!!sourceImages?.length)
-  const [previews, setPreviews] = useState<string[]>([])
   const [tempPassword, setTempPassword] = useState('')
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const createdEmployeeRef = useRef<ApiEmployee | null>(null)
 
-  // Pull this identity's own captured photos in as the new employee's photos,
-  // so the manager doesn't have to re-upload what's already on file. Non-fatal
-  // per-photo — a failed fetch (e.g. a CORS-restricted bucket) just falls back
-  // to letting the manager add photos manually below.
-  useEffect(() => {
-    if (!sourceImages || sourceImages.length === 0) return
-    let cancelled = false
-
-    Promise.allSettled(sourceImages.slice(0, MAX_IMAGES).map(toFile)).then((results) => {
-      if (cancelled) return
-      const files = results
-        .filter((r): r is PromiseFulfilledResult<File> => r.status === 'fulfilled')
-        .map((r) => r.value)
-      if (files.length > 0) setImages(files)
-      if (files.length < sourceImages.length) {
-        setImageError(
-          files.length === 0
-            ? "Couldn't load this identity's photos automatically — add them manually below."
-            : `Loaded ${files.length} of ${sourceImages.length} photos from this identity.`,
-        )
-      }
-      setIsPrefillingPhotos(false)
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [sourceImages])
-
-  // Object URLs for thumbnail previews — regenerated whenever the file list changes.
-  useEffect(() => {
-    const urls = images.map((file) => URL.createObjectURL(file))
-    setPreviews(urls)
-    return () => {
-      urls.forEach((url) => URL.revokeObjectURL(url))
-    }
-  }, [images])
-
-  function handleFilesSelected(e: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? [])
-    e.target.value = ''
-    if (files.length === 0) return
-
-    setImageError(undefined)
-    const next = [...images]
-    for (const file of files) {
-      if (next.length >= MAX_IMAGES) {
-        setImageError(`Maximum ${MAX_IMAGES} images allowed.`)
-        break
-      }
-      if (!file.type.startsWith('image/')) {
-        setImageError(`${file.name} is not a valid image.`)
-        continue
-      }
-      if (file.size > MAX_IMAGE_SIZE) {
-        setImageError(`${file.name} exceeds the 5MB size limit.`)
-        continue
-      }
-      next.push(file)
-    }
-    setImages(next)
-  }
-
-  function removeImage(index: number) {
-    setImages((prev) => prev.filter((_, i) => i !== index))
-  }
+  // const [images, setImages] = useState<File[]>([])
+  // const [imageError, setImageError] = useState<string | undefined>()
+  // const [isPrefillingPhotos, setIsPrefillingPhotos] = useState(!!sourceImages?.length)
+  // const [previews, setPreviews] = useState<string[]>([])
+  // const fileInputRef = useRef<HTMLInputElement>(null)
+  //
+  // // Pull this identity's own captured photos in as the new employee's photos,
+  // // so the manager doesn't have to re-upload what's already on file. Non-fatal
+  // // per-photo — a failed fetch (e.g. a CORS-restricted bucket) just falls back
+  // // to letting the manager add photos manually below.
+  // useEffect(() => {
+  //   if (!sourceImages || sourceImages.length === 0) return
+  //   let cancelled = false
+  //
+  //   Promise.allSettled(sourceImages.slice(0, MAX_IMAGES).map(toFile)).then((results) => {
+  //     if (cancelled) return
+  //     const files = results
+  //       .filter((r): r is PromiseFulfilledResult<File> => r.status === 'fulfilled')
+  //       .map((r) => r.value)
+  //     if (files.length > 0) setImages(files)
+  //     if (files.length < sourceImages.length) {
+  //       setImageError(
+  //         files.length === 0
+  //           ? "Couldn't load this identity's photos automatically — add them manually below."
+  //           : `Loaded ${files.length} of ${sourceImages.length} photos from this identity.`,
+  //       )
+  //     }
+  //     setIsPrefillingPhotos(false)
+  //   })
+  //
+  //   return () => {
+  //     cancelled = true
+  //   }
+  // }, [sourceImages])
+  //
+  // // Object URLs for thumbnail previews — regenerated whenever the file list changes.
+  // useEffect(() => {
+  //   const urls = images.map((file) => URL.createObjectURL(file))
+  //   setPreviews(urls)
+  //   return () => {
+  //     urls.forEach((url) => URL.revokeObjectURL(url))
+  //   }
+  // }, [images])
+  //
+  // function handleFilesSelected(e: ChangeEvent<HTMLInputElement>) {
+  //   const files = Array.from(e.target.files ?? [])
+  //   e.target.value = ''
+  //   if (files.length === 0) return
+  //
+  //   setImageError(undefined)
+  //   const next = [...images]
+  //   for (const file of files) {
+  //     if (next.length >= MAX_IMAGES) {
+  //       setImageError(`Maximum ${MAX_IMAGES} images allowed.`)
+  //       break
+  //     }
+  //     if (!file.type.startsWith('image/')) {
+  //       setImageError(`${file.name} is not a valid image.`)
+  //       continue
+  //     }
+  //     if (file.size > MAX_IMAGE_SIZE) {
+  //       setImageError(`${file.name} exceeds the 5MB size limit.`)
+  //       continue
+  //     }
+  //     next.push(file)
+  //   }
+  //   setImages(next)
+  // }
+  //
+  // function removeImage(index: number) {
+  //   setImages((prev) => prev.filter((_, i) => i !== index))
+  // }
 
   async function handleSubmit(values: CreateEmployeeSchema) {
     setServerError(undefined)
@@ -126,7 +138,7 @@ export default function CreateEmployeeModal({ token, onClose, onCreated, sourceI
         lastName: values.lastName,
         email: values.email || undefined,
         phone: values.phone || undefined,
-        images,
+        // images,
       })
       // The create response only returns `user_id`, not the Mongo `_id` the
       // assign endpoint actually needs — fetch the full record so "select for
@@ -186,6 +198,7 @@ export default function CreateEmployeeModal({ token, onClose, onCreated, sourceI
               serverError={serverError}
             />
 
+            {/*
             <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[12px] font-medium text-secondary uppercase tracking-[.07em]">
@@ -220,10 +233,7 @@ export default function CreateEmployeeModal({ token, onClose, onCreated, sourceI
                       key={`${file.name}-${i}`}
                       className="relative w-14 h-14 rounded-[8px] overflow-hidden border border-border bg-surface-alt"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      {previews[i] && (
-                        <img src={previews[i]} alt={file.name} className="w-full h-full object-cover" />
-                      )}
+                      <img src={previews[i]} alt={file.name} className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => removeImage(i)}
@@ -242,6 +252,7 @@ export default function CreateEmployeeModal({ token, onClose, onCreated, sourceI
               {imageError && <p className="text-[11.5px] text-danger">{imageError}</p>}
               <p className="text-[11px] text-muted">Up to 5 images, 5MB each.</p>
             </div>
+            */}
           </>
         ) : (
           <CredentialsReveal

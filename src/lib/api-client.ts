@@ -78,20 +78,30 @@ function createClient(baseURL: string | undefined): AxiosInstance {
     async (error) => {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         const config = error.config as RetriableConfig | undefined
+        const wasAuthenticatedRequest = !!config?.headers?.get?.('Authorization')
 
-        if (typeof window !== 'undefined' && config && !config._retriedAfterRefresh) {
-          const newAccessToken = await refreshAccessToken()
-          if (newAccessToken) {
-            config._retriedAfterRefresh = true
-            config.headers.set('Authorization', `Bearer ${newAccessToken}`)
-            return client(config)
+        // Only a 401 from a request that actually carried a bearer token can
+        // mean "session expired" — login/forgot-password/reset-password never
+        // send one, and a 401 there just means wrong credentials, a normal
+        // business-logic response the caller needs verbatim. Treating it as
+        // a session expiry here would (server-side) throw a NEXT_REDIRECT
+        // that gets silently swallowed by the caller's own try/catch, masking
+        // the real error behind a generic fallback message.
+        if (wasAuthenticatedRequest) {
+          if (typeof window !== 'undefined' && config && !config._retriedAfterRefresh) {
+            const newAccessToken = await refreshAccessToken()
+            if (newAccessToken) {
+              config._retriedAfterRefresh = true
+              config.headers.set('Authorization', `Bearer ${newAccessToken}`)
+              return client(config)
+            }
           }
-        }
 
-        if (typeof window !== 'undefined') {
-          window.location.href = LOGIN_ROUTE
-        } else {
-          redirect(LOGIN_ROUTE)
+          if (typeof window !== 'undefined') {
+            window.location.href = LOGIN_ROUTE
+          } else {
+            redirect(LOGIN_ROUTE)
+          }
         }
       }
       return Promise.reject(error)
