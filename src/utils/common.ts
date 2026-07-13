@@ -1,6 +1,26 @@
 import { createElement, ReactNode } from 'react'
+import axios from 'axios'
+import type { ApiEmployee } from '@/types/employee'
 
 export class Utils {}
+
+/**
+ * Extracts a user-facing message from a FastAPI error response.
+ * 401/400s carry `detail` as a plain string; 422s carry `detail` as an array
+ * of field errors (`{ msg, loc, type }`).
+ */
+export function extractApiErrorMessage(err: unknown, fallback: string): string {
+  if (axios.isAxiosError(err)) {
+    const detail = err.response?.data?.detail
+    if (typeof detail === 'string') return detail
+    if (Array.isArray(detail)) {
+      const msg = detail.map((d: { msg?: string }) => d.msg).filter(Boolean).join(', ')
+      if (msg) return msg
+    }
+  }
+  console.error('API error:', err)
+  return fallback
+}
 
 /** Returns "Good morning", "Good afternoon", or "Good evening" based on the hour. */
 export function getGreeting(date: Date = new Date()): string {
@@ -30,6 +50,25 @@ export function getWeekSubtitle(date: Date): string {
  */
 export function getS3AssetUrl(key: string): string {
   return `${process.env.NEXT_PUBLIC_S3_ASSET_BASE_URL}/${key}`
+}
+
+/**
+ * Resolves an employee's display name, tolerating both response shapes the
+ * /employees endpoint returns — snake_case first_name/last_name for records
+ * created via POST /employees, camelCase firstName/lastName for records
+ * migrated from Pythia-1. Falls back to email when neither is present.
+ */
+export function getEmployeeName(employee: Pick<ApiEmployee, 'first_name' | 'last_name' | 'firstName' | 'lastName' | 'email'>): string {
+  const first = employee.first_name || employee.firstName || ''
+  const last = employee.last_name || employee.lastName || ''
+  return `${first} ${last}`.trim() || employee.email
+}
+
+/** Same field tolerance as getEmployeeName — see its comment. */
+export function getEmployeeInitials(employee: Pick<ApiEmployee, 'first_name' | 'last_name' | 'firstName' | 'lastName'>): string {
+  const first = employee.first_name || employee.firstName || ''
+  const last = employee.last_name || employee.lastName || ''
+  return `${first[0] || ''}${last[0] || ''}`.toUpperCase() || 'UR'
 }
 
 /** Renders a string with **bold** markers as React nodes */

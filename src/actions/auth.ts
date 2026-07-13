@@ -2,26 +2,11 @@
 
 import { signIn, signOut } from "@/auth"
 import { AuthError } from "next-auth"
-import axios from "axios"
 import { User } from "@/types/user"
 import { pythia2Client } from "@/lib/api-client"
 import { PYTHIA_2_API } from "@/utils/api-endpoints"
+import { extractApiErrorMessage } from "@/utils/common"
 import type { ForgotPasswordResult, ResetPasswordResult, LoginResponse } from "@/types/auth"
-
-// Extracts a user-facing message from a FastAPI error response.
-// 401s carry `detail` as a plain string; 422s carry `detail` as an array of field errors.
-function apiErrorMessage(err: unknown, fallback: string): string {
-  if (axios.isAxiosError(err)) {
-    const detail = err.response?.data?.detail
-    if (typeof detail === 'string') return detail
-    if (Array.isArray(detail)) {
-      const msg = detail.map((d: { msg?: string }) => d.msg).filter(Boolean).join(', ')
-      if (msg) return msg
-    }
-  }
-  console.error('Auth API error:', err)
-  return fallback
-}
 
 // Returns null on success, error string on failure.
 // Using redirect: false so the session cookie is fully set before the client navigates.
@@ -46,7 +31,7 @@ export async function login(_prev: string | null | undefined, formData: FormData
       })
       result = data
     } catch (err) {
-      return apiErrorMessage(err, 'Unable to connect to the login server. Please try again later.')
+      return extractApiErrorMessage(err, 'Unable to connect to the login server. Please try again later.')
     }
 
     if (!result.success) {
@@ -101,7 +86,7 @@ export async function forgotPassword(email: string): Promise<ForgotPasswordResul
     const { data } = await pythia2Client.post(PYTHIA_2_API.auth.forgotPassword, { identifier: email })
     return { success: data.success, message: data.message || 'If an account exists, a password reset email has been sent.' }
   } catch (err) {
-    return { success: false, message: apiErrorMessage(err, 'Unable to connect to the server. Please try again later.') }
+    return { success: false, message: extractApiErrorMessage(err, 'Unable to connect to the server. Please try again later.') }
   }
 }
 
@@ -114,6 +99,6 @@ export async function resetPassword(token: string, newPassword: string): Promise
     }
     return { success: false, message: data.message || 'Invalid or expired reset token.' }
   } catch (err) {
-    return { success: false, message: apiErrorMessage(err, 'Unable to connect to the server. Please try again later.') }
+    return { success: false, message: extractApiErrorMessage(err, 'Unable to connect to the server. Please try again later.') }
   }
 }
