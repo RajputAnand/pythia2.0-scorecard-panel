@@ -5,19 +5,13 @@ import { useSession } from 'next-auth/react'
 import { fetchEmployees } from '@/queries/employees'
 import { assignUnknownIdentity } from '@/queries/unknown-identities'
 import { useToast } from '@/context/ToastContext'
+import { getEmployeeName, getEmployeeInitials } from '@/utils/common'
+import CreateEmployeeModal from '@/components/CreateEmployeeModal/CreateEmployeeModal'
 import type { ApiEmployee } from '@/types/employee'
 import type { ApiMeta } from '@/types/api'
 import type { UnknownIdentity } from '@/types/unknown-identity'
 
 const PAGE_LIMIT = 8
-
-function employeeName(employee: ApiEmployee): string {
-  return `${employee.first_name} ${employee.last_name}`.trim()
-}
-
-function employeeInitials(employee: ApiEmployee): string {
-  return `${employee.first_name[0] ?? ''}${employee.last_name[0] ?? ''}`.toUpperCase()
-}
 
 interface EmployeeAssignPickerProps {
   identity: UnknownIdentity
@@ -63,6 +57,7 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
   const [meta, setMeta] = useState<ApiMeta | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(false)
   const [isPending, setIsPending] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   useEffect(() => {
     if (!token) return
@@ -91,8 +86,8 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
     if (!selectedEmployee || !token || isResolved) return
     setIsPending(true)
     try {
-      await assignUnknownIdentity({ token, identityId: identity.id, userId: selectedEmployee.id })
-      showToast(`Assigned ${employeeName(selectedEmployee)} to this identity`)
+      await assignUnknownIdentity({ token, identityId: identity.id, userId: selectedEmployee._id })
+      showToast(`Assigned ${getEmployeeName(selectedEmployee)} to this identity`)
       setSelectedEmployee(null)
       setSearch('')
       onAssigned()
@@ -103,18 +98,34 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
     }
   }
 
+  function handleEmployeeCreated(employee: ApiEmployee) {
+    setSelectedEmployee(employee)
+    setShowCreateModal(false)
+    setOpen(false)
+    setSearch('')
+  }
+
   return (
     <div className="bg-surface border border-border rounded-[14px] p-5 flex flex-col gap-3">
-      <div className="text-[13.5px] font-semibold">Assign to Employee</div>
+      <div className="flex items-center justify-between">
+        <div className="text-[13.5px] font-semibold">Assign to Employee</div>
+        <button
+          type="button"
+          onClick={() => setShowCreateModal(true)}
+          className="text-[11.5px] font-semibold text-accent hover:text-accent-mid cursor-pointer"
+        >
+          + New Employee
+        </button>
+      </div>
 
       <div ref={dropdownRef} className="relative">
         {selectedEmployee ? (
           <div className="flex items-center gap-[10px] rounded-lg border border-border bg-surface-alt px-3 py-[9px]">
             <div className="flex items-center justify-center shrink-0 rounded-full bg-accent text-white font-bold w-7 h-7 text-[10.5px]">
-              {employeeInitials(selectedEmployee)}
+              {getEmployeeInitials(selectedEmployee)}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[12.5px] font-medium truncate">{employeeName(selectedEmployee)}</div>
+              <div className="text-[12.5px] font-medium truncate">{getEmployeeName(selectedEmployee)}</div>
               <div className="text-[10.5px] text-muted truncate">{selectedEmployee.email}</div>
             </div>
             <button
@@ -150,7 +161,7 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
               ) : (
                 employees.map((employee) => (
                   <li
-                    key={employee.id}
+                    key={employee.user_id}
                     role="option"
                     aria-selected={false}
                     onClick={() => {
@@ -160,10 +171,10 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
                     className="flex items-center gap-[9px] rounded-md cursor-pointer transition-colors duration-100 px-[10px] py-[8px] hover:bg-surface-alt"
                   >
                     <div className="flex items-center justify-center shrink-0 rounded-full bg-surface-alt text-secondary font-bold w-7 h-7 text-[10.5px]">
-                      {employeeInitials(employee)}
+                      {getEmployeeInitials(employee)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[12.5px] font-medium truncate">{employeeName(employee)}</div>
+                      <div className="text-[12.5px] font-medium truncate">{getEmployeeName(employee)}</div>
                       <div className="text-[10.5px] text-muted truncate">{employee.email}</div>
                     </div>
                   </li>
@@ -206,6 +217,15 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
       >
         {isResolved ? 'Already Resolved' : isPending ? 'Assigning…' : 'Assign Employee'}
       </button>
+
+      {showCreateModal && token && (
+        <CreateEmployeeModal
+          token={token}
+          sourceImages={identity.images}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={handleEmployeeCreated}
+        />
+      )}
     </div>
   )
 }

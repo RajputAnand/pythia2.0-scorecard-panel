@@ -157,7 +157,7 @@ const MANAGER_NAV: NavSection[] = [
       },
       {
         label: 'Employees',
-        href: '#manager-employee',
+        href: '/manager/employees',
         icon: (
           <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <circle cx="12" cy="8" r="4" />

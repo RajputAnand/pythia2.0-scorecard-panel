@@ -17,6 +17,9 @@ export const PYTHIA_2_API = {
   },
   employees: {
     list: '/employees',
+    create: '/employees',
+    detail: (userId: string) => `/employees/${userId}`,
+    credentials: (userId: string) => `/employees/${userId}/credentials`,
   },
   unknownIdentities: {
     list: '/unknown-identities',
