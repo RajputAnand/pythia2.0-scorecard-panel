@@ -1,9 +1,9 @@
-import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
 import Header from '@/components/shared/Header/Header'
 import UnknownIdentitiesPanel from '@/components/UnknownIdentitiesPanel/UnknownIdentitiesPanel'
 import { fetchUnknownIdentities } from '@/queries/unknown-identities'
-import { queryKeys } from '@/queries/keys'
 import { auth } from '@/auth'
+import type { ApiResponseV2Paginated } from '@/types/api'
+import type { UnknownIdentity } from '@/types/unknown-identity'
 
 export const metadata = {
   title: 'Pythia — Unknown Identities',
@@ -13,15 +13,11 @@ export const metadata = {
 export default async function UnknownIdentitiesPage() {
   const session = await auth()
   const token = session?.user?.pythia2Token
-  const queryClient = new QueryClient()
 
+  let initialData: ApiResponseV2Paginated<UnknownIdentity[]> | null = null
   if (token) {
     try {
-      await queryClient.prefetchInfiniteQuery({
-        queryKey: queryKeys.unknownIdentities.infinite(token),
-        queryFn: ({ pageParam }) => fetchUnknownIdentities({ token, skip: pageParam as number, limit: 50 }),
-        initialPageParam: 0,
-      })
+      initialData = await fetchUnknownIdentities({ token, skip: 0, limit: 50 })
     } catch {
       // non-fatal — UnknownIdentitiesPanel renders an error state with retry
     }
@@ -32,9 +28,7 @@ export default async function UnknownIdentitiesPage() {
       <Header title="Unknown Identity" subtitle="Resolve unmatched in-store detections" />
 
       <div className="px-[30px] py-[26px]">
-        <HydrationBoundary state={dehydrate(queryClient)}>
-          <UnknownIdentitiesPanel />
-        </HydrationBoundary>
+        <UnknownIdentitiesPanel initialData={initialData} />
       </div>
     </>
   )

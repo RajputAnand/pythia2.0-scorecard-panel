@@ -37,7 +37,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
   | manager  | manager@demo.com     | demo1234   |
   | owner    | owner@demo.com       | demo1234   |
 - The JWT callback stores auth-only fields in the token; the session callback surfaces them on `session.user`.
-- **Session shape** — only these fields are stored in the JWT/session: `role`, `initials`, `token` (API bearer token), `score`, `jobTitle`. Store data (`storeName`, `storeLoc`, `nodesOnline`, `stores`) is **not** in the session — it is fetched client-side via `useStoresQuery`.
+- **Session shape** — only these fields are stored in the JWT/session: `role`, `initials`, `token` (API bearer token), `score`, `jobTitle`. Store data (`storeName`, `storeLoc`, `nodesOnline`, `stores`) is **not** in the session — it is fetched client-side by `Header` via `fetchStores(token)` (`src/queries/stores.ts`).
 - next-auth type augmentations live in `src/types/next-auth.d.ts` — extends `Session`, `User`, and `JWT` with the auth-only fields above.
 - `NEXTAUTH_SECRET` must be set in `.env.local`.
 - **`SessionProvider`** is mounted in the root layout (`src/providers/SessionProvider.tsx`) so that `useSession()` works in all client components.
@@ -47,7 +47,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - They are the required bridge between `'use client'` components and server-side logic. A file cannot mix `'use client'` and `'use server'` — so any client component that needs to call `signIn`, `signOut`, or mutate server state must import a server action.
 - Client components wire actions via `useActionState(action, initialState)` — the action receives `(prevState, formData)` and returns the next state (e.g. an error string, or `undefined` on success).
 - **Example:** `LoginForm.tsx` is `'use client'` and cannot call `signIn` directly. It imports `login` from `src/actions/auth.ts` and passes it to `useActionState`.
-- **Login action is auth-only.** `src/actions/auth.ts → login()` only POSTs credentials and calls `signIn` with the auth fields (`id`, `email`, `name`, `role`, `token`, `initials`, `score`, `jobTitle`). It does **not** fetch stores — that happens client-side after login via `useStoresQuery`.
+- **Login action is auth-only.** `src/actions/auth.ts → login()` only POSTs credentials and calls `signIn` with the auth fields (`id`, `email`, `name`, `role`, `token`, `initials`, `score`, `jobTitle`). It does **not** fetch stores — that happens client-side after login via `Header`'s `fetchStores(token)` effect.
 
 ## Role-Based Sidebar + User Identity
 - User identity comes from the **session**, not a static constant.
@@ -60,7 +60,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - The employee score in the Sidebar bottom widget uses **`useUserStore(s => s.currentScore)`** with a fallback to `user.score` from the session (`currentScore ?? user.score`). `currentScore` is populated by `OverviewContent` when weekly stats load; before that, the session score is shown.
 - `Header.tsx` does **not** accept a `user` prop. It calls `useSession()` directly to read the token and role. Pages must not pass `user` to `<Header>`.
 - **Header store selector** — renders for both `owner` and `manager` roles (not employee). Condition: `(role === 'owner' || role === 'manager') && stores.length > 0`. Do not restrict it to `owner` only.
-- Store data flow: `Header` calls `useStoresQuery(token)` → on success calls `useUserStore.setStores()` → Sidebar and other components read `currentStore` from Zustand.
+- Store data flow: `Header` calls `fetchStores(token)` in a `useEffect` on mount/token-change → on success calls `useUserStore.setStores()` → Sidebar and other components read `currentStore` from Zustand.
 
 ## Role-Based Routing
 - `src/proxy.ts` (Next.js 16 "Proxy" — replaces the deprecated `middleware.ts`) enforces auth and role-based access on every request.
@@ -148,17 +148,19 @@ Raw API shapes (as returned by the backend before any mapping) live in domain ty
 
 ## Server Component Data Fetching
 
-**Preferred pattern — TanStack Query + HydrationBoundary (used by `dashboard/overview`):**
-- `page.tsx` (server component) creates a fresh `QueryClient`, calls `prefetchQuery` with the domain query function, then wraps the client component in `<HydrationBoundary state={dehydrate(queryClient)}>`.
-- The client component (e.g. `OverviewContent.tsx`) calls `useOverviewQuery()` — finds the cache already populated, renders immediately with no loading flash.
-- After `staleTime`, TanStack Query background-refetches on the next window-focus, showing `isFetching` without a loading skeleton.
-- See the **Server State — TanStack Query** section above for the full pattern.
+**No TanStack Query / React Query in this project — do not reintroduce it.** All server-fetched data is handled with plain `async`/`await` and React state; there is no client-side cache library.
 
-**Legacy pattern — props drilling (retained for simple static pages):**
-- `page.tsx` is an `async` Server Component that `await`s the API call and passes data down as props.
-- The page-level fetch uses a fake API helper from `src/mock/<domain>APIs.ts`. Swap for a real `fetch` when the backend is ready — nothing else changes.
-- Use this only when the page data is static (no background refresh needed) or when the component tree is shallow enough that props are simpler than a query hook.
-- ISR (`revalidate`) may be added to `page.tsx` in the future — keep the async pattern compatible by not mixing server fetches with client-only code inside the page file.
+**Server-fetched data — props drilling (the only pattern for page-level fetches):**
+- `page.tsx` is an `async` Server Component that `await`s the API call (via `pythia1Client`/`pythia2Client` in a `src/queries/<domain>.ts` file, or a fake helper from `src/mock/<domain>APIs.ts` for still-mocked domains) and passes the result down as props.
+- Wrap each fetch in `try { } catch { /* non-fatal */ }` — the receiving component renders an empty/skeleton state when the prop is `null`, it never throws.
+- Now that both Pythia backends are served over HTTPS, server-side fetching is purely an optimization (no loading flash, one round trip during SSR) — not a workaround for anything. Client components are free to call `pythia1Client`/`pythia2Client` directly too.
+- **Example:** `dashboard/overview/page.tsx` fetches `overview`, `weeklyStats`, `shiftSummary`, `teamRankingData`, `progressChart`, and `coachingMoments` server-side (via `Promise.allSettled` for the real endpoints) and passes them all as props into `OverviewContent`.
+
+**Client-fetched data — plain `useState` + `useEffect` (for interactive/paginated data):**
+- Components that need to fetch after mount (search-as-you-type, infinite scroll, background refresh) call the domain's plain async function directly from a `useEffect`, track `loading`/`error` with local `useState`, and guard against stale responses with a `cancelled` flag.
+- If the same data also needs a server-side initial value (e.g. to avoid a loading flash on first paint), the server component fetches page 1 and passes it as an `initialData` prop; the client component seeds its state from that prop and only fetches client-side as a fallback or for subsequent pages/refetches.
+- **Example:** `EmployeeAssignPicker.tsx` debounces search input, then fetches via `fetchEmployees()` in a `useEffect` keyed on `[token, debouncedSearch, skip]`. `UnknownIdentitiesPanel.tsx` seeds from a server-fetched `initialData` prop and fetches subsequent pages client-side via `fetchUnknownIdentities()` as the carousel approaches the end of what's loaded.
+- Mutations (`assignUnknownIdentity`, swag redemption, etc.) are plain `async` calls wrapped in a local `isPending` state — no mutation hook, no cache invalidation machinery. On success, call whatever callback prop refreshes the relevant data (e.g. re-run the page-1 fetch).
 
 ## Shared Components
 - When two or more components share a non-trivial piece of UI (e.g. a reusable SVG chart, a card shell, a data table), extract it into its own component under `src/components/shared/<SharedComponentName>/`.
@@ -181,137 +183,54 @@ Raw API shapes (as returned by the backend before any mapping) live in domain ty
 - **Example**: `LoginForm.tsx` defines fields and passes `loginSchema` to `DynamicForm`, handling the actual submission via a server action inside a `useTransition`.
 
 
-## Server State — TanStack Query
+## Server State — Plain Fetch (no query library)
 
-TanStack Query (`@tanstack/react-query`) owns all server-fetched data. Do **not** store server responses in Zustand — keep them in the query cache.
-
-### Setup
-- `src/lib/query-client.ts` — `makeQueryClient()` factory (browser singleton via `getQueryClient()`).
-- `src/providers/QueryProvider.tsx` — `'use client'` wrapper; mounts `QueryClientProvider` + `ReactQueryDevtools`.
-- `src/providers/SessionProvider.tsx` — `'use client'` wrapper around next-auth's `SessionProvider`; required for `useSession()` in client components.
-- Root layout wraps the app in `<SessionProvider><QueryProvider>…</QueryProvider></SessionProvider>`.
-
-### Query keys
-All keys live in `src/queries/keys.ts` as a single `queryKeys` object with a hierarchical shape:
-```ts
-// Targeted invalidation: invalidate all swag queries
-queryClient.invalidateQueries({ queryKey: queryKeys.swag.all })
-
-// Targeted invalidation: only the store query
-queryClient.invalidateQueries({ queryKey: queryKeys.swag.store() })
-```
-Add new domains to `keys.ts` — never define keys inline in components or hooks.
+There is **no client-side data-fetching/cache library** in this project (TanStack Query was removed once both Pythia backends moved to HTTPS). Server-fetched data lives in plain component/store state — `useState` for local, per-component data; a Zustand store's async action pattern (see below) when the data needs to be shared or mutated from multiple places.
 
 ### Query files
-One file per domain in `src/queries/<domain>.ts`. Each file exports:
-1. **A plain async function** — the query function (e.g. `fetchSwagStore`). Use `pythia1Client` / `pythia2Client` (never raw `fetch`).
-2. **`use<Domain>Query()`** — a `useQuery` hook with the domain key and `staleTime`.
-3. **`use<Domain>Mutation()`** — a `useMutation` hook for writes, with optimistic updates where the operation is reversible.
+One file per domain in `src/queries/<domain>.ts`. Each file exports **plain async functions only** — no hooks, no query keys, no cache:
+- GET functions call `pythia1Client` / `pythia2Client` directly (never raw `fetch`) and return the parsed response body.
+- Mutation functions (POST/PATCH) do the same and return the mutated resource or `void`.
+- **Example:** `src/queries/unknown-identities.ts` exports `fetchUnknownIdentities({ token, skip, limit })` and `assignUnknownIdentity({ token, identityId, userId })`; `src/queries/employees.ts` exports `fetchEmployees({ token, search, skip, limit })`; `src/queries/stores.ts` exports `fetchStores(token)`; `src/queries/scorecard.ts` exports `fetchWeeklyStats`, `fetchTodayShiftSummary`, `fetchTeamRanking`, `fetchProgressOverTime`, `fetchCoachingMoments`.
 
-**Exception — plain-vanilla fetches:** Some endpoints are not yet integrated into TanStack Query. These files export only the plain async function (no hook, no query key). The consuming component fetches with `useState` + `useEffect` directly.
-- `src/queries/scorecard.ts` — exports `fetchWeeklyStats(token)` only. Do **not** add a `useWeeklyStatsQuery` hook or a `scorecard` key to `keys.ts` until full TanStack Query integration is intentionally wired up.
+### Calling pattern
+- **From a Server Component** (`page.tsx`): `await` the function directly, wrap in `try/catch`, pass the result as a prop. See **Server Component Data Fetching** above.
+- **From a Client Component**: call the function inside a `useEffect`, track `loading`/`error` with local `useState`, guard against stale responses with a `cancelled` flag in the effect cleanup. See **Server Component Data Fetching** above for the `initialData`-seeded variant used for paginated/infinite lists.
+- Both Pythia backends are now served over HTTPS, so client components may call `pythia1Client`/`pythia2Client` directly — there is no mixed-content restriction and no need for a same-origin proxy route under `src/app/api/`. (A previous version of this app proxied `/api/employees` and `/api/unknown-identities` through Next.js route handlers to work around a plain-HTTP backend; those routes have been removed now that the workaround is no longer needed.)
 
-### Mixed-content workaround — server-side proxy fetch
-When a Pythia-2 API endpoint is served over plain HTTP but the app is deployed to an HTTPS origin, browsers block the client-side `XMLHttpRequest` (mixed-content policy). Node.js has no such restriction, so the fix is to move the call to the server component.
-
-**Pattern** (used by `dashboard/overview`):
-1. In `page.tsx` (server component), call `await auth()` to get the bearer token, then call the query function directly (e.g. `fetchWeeklyStats(token)`).
-2. Pass the result as a prop to the client component.
-3. Comment out (do **not** delete) the original `useEffect`/`useState` client-side fetch in the client component so it can be restored when the API is behind HTTPS.
-
-```tsx
-// page.tsx — server component
-const session = await auth()
-let weeklyStats: WeeklyStats | null = null
-if (session?.user?.token) {
-  try { weeklyStats = await fetchWeeklyStats(session.user.token) } catch { /* non-fatal */ }
-}
-// ...
-<OverviewContent weeklyStats={weeklyStats} />
-```
-
-**This is a temporary workaround.** Once the API endpoint is served over HTTPS, revert by:
-- Removing the `auth()` call and prop drilling from `page.tsx`.
-- Restoring the commented-out `useState`/`useEffect` block in the client component.
-
-### Login-gated queries (stores)
-Queries that need an auth token use the token as part of their query key so a new login always triggers a fresh fetch:
+### Optimistic updates (Zustand async action pattern)
+For data that needs an optimistic update with rollback (e.g. swag redemption), use the **Async action pattern** documented under **State Management — Zustand** below rather than a mutation hook:
 ```ts
-// src/queries/stores.ts
-export function useStoresQuery(token?: string) {
-  return useQuery({
-    queryKey: queryKeys.stores.list(token),   // key includes token
-    queryFn: () => fetchStores(token!),
-    enabled: !!token,
-    staleTime: 10 * 60 * 1000,
-    gcTime: 0,   // wipe cache when Header unmounts (logout) → fresh fetch on next login
-  })
+async redeemItem(item) {
+  const previous = get().catalog
+  set({ redeemingId: item.id, catalog: /* apply optimistic change */ })
+  try {
+    await fakePost(item.id)
+    set({ redeemingId: null })
+    return true
+  } catch {
+    set({ redeemingId: null, catalog: previous })   // roll back
+    return false
+  }
 }
 ```
-- `gcTime: 0` guarantees a fresh fetch on every login even if the token hasn't changed, because the cache is dropped the moment the last observer (Header) unmounts on logout.
-- The `Header` component is the single caller of `useStoresQuery`. It syncs the result into Zustand via `useEffect → setStores()`. All other components read from `useUserStore` — they do not call `useStoresQuery` directly.
+`redeemItem` returns `boolean` so the component can show a toast on success/failure without the store knowing about UI — see **Mutation feedback** below.
 
-### Optimistic updates pattern
-```ts
-useMutation({
-  mutationFn: (item) => redeemSwagItem(item.id),
-  onMutate: async (item) => {
-    await queryClient.cancelQueries({ queryKey: queryKeys.swag.store() })
-    const previous = queryClient.getQueryData(queryKeys.swag.store())
-    queryClient.setQueryData(queryKeys.swag.store(), (old) => /* apply change */)
-    return { previous }       // saved for rollback
-  },
-  onError: (_err, _item, ctx) => {
-    queryClient.setQueryData(queryKeys.swag.store(), ctx?.previous)
-  },
-  onSettled: () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.swag.store() })
-  },
-})
-```
-- `onMutate` → cancel in-flight refetches, snapshot cache, apply optimistic change.
-- `onError` → roll back to snapshot.
-- `onSettled` → always invalidate to sync with server truth.
-
-### Five states every query consumer must handle
-| State | Flag | How to surface |
+### States every fetch consumer should handle
+| State | How to track | How to surface |
 |---|---|---|
-| Loading (initial fetch, empty cache) | `isLoading` | Skeleton with `animate-pulse` |
-| Error | `isError` | Error card with retry button |
-| Empty | `!data \|\| data.items.length === 0` | Empty-state illustration |
-| Background refetch | `isFetching && !isLoading` | Subtle "Syncing…" pill |
-| Stale data | `isStale && !isFetching` | "Data may be outdated" badge |
+| Loading (initial fetch) | local `loading` state, `true` until the promise settles | Skeleton with `animate-pulse` |
+| Error | local `error`/`isError` state set in `.catch()` | Error card with retry button (retry = re-run the fetch function) |
+| Empty | `!data \|\| data.length === 0` after a successful fetch | Empty-state illustration |
+| Fetching more (pagination/infinite scroll) | a separate `isFetchingMore` flag, distinct from the initial `loading` | Subtle "Syncing…" pill |
 
-### Server prefetch + Hydration (Next.js App Router)
-For pages where the data should be ready on first render (no loading flash), prefetch in the server component and pass the dehydrated state to `HydrationBoundary`:
-```tsx
-// page.tsx — server component
-import { QueryClient, dehydrate, HydrationBoundary } from '@tanstack/react-query'
-import { fetchOverview } from '@/queries/overview'
-import { queryKeys } from '@/queries/keys'
-
-export default async function Page() {
-  const queryClient = new QueryClient()   // fresh per-request instance
-  await queryClient.prefetchQuery({
-    queryKey: queryKeys.overview.dashboard(),
-    queryFn: fetchOverview,
-  })
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <OverviewContent />    {/* 'use client' — calls useOverviewQuery() */}
-    </HydrationBoundary>
-  )
-}
-```
-The client component finds data already in cache: `isLoading` is `false`, no network round-trip. After `staleTime` elapses, TanStack Query background-refetches on the next window-focus event.
+There is no automatic background refetch or staleness tracking (no `isFetching`/`isStale` — those were TanStack Query concepts). If a screen needs fresher data, re-run the fetch explicitly (e.g. on a user action or an interval you own).
 
 ### Mutation feedback
-Mutations return `void` — side-effects (toasts, navigation) belong in the component's `onSuccess`/`onError` callbacks passed to `mutate(item, { onSuccess, onError })`. Do not put toast calls inside the mutation hook.
+Mutation functions return the resource (or `boolean`/`void`) — side-effects (toasts, navigation, refetching) belong in the calling component's `try { ... } catch { ... }` around the `await`, not inside the query file. Do not put toast calls inside `src/queries/*.ts`.
 
-### Zustand — client-only UI state
-Zustand remains the right tool for **client-only** state that is not fetched from the server and that outlives a single component (e.g. `userStore` for store selection UI state, sidebar view-mode toggles). Never use Zustand to cache server responses — that belongs in the TanStack Query cache.
-
-**Example:** `src/queries/swag.ts` — `fetchSwagStore` (GET), `useSwagStoreQuery` (query hook), `useRedeemSwagItem` (mutation with optimistic update); consumed by `SwagStore.tsx`, `HeroBanner.tsx`, and `Sidebar.tsx`.
+### Zustand — client and server-derived state
+Zustand holds both client-only UI state (store selection, sidebar view-mode) and data fetched from the server where that data needs to be shared across components or mutated via the async action pattern (e.g. `swagStore`'s catalog + redeem flow). There is no query cache to defer to anymore — a Zustand store is the right home for any server data that more than one component needs to read or that supports optimistic mutation.
 
 ## State Management — Zustand
 - Zustand stores live in `src/store/` as individual files named after their domain (e.g. `src/store/swagStore.ts`).
@@ -344,11 +263,12 @@ interface DomainState {
 - `mutateX` returns `boolean` so the component can react (e.g. show a toast) without the store knowing about UI.
 - While a mutation is in-flight, set `redeemingId` (or equivalent) to the item's ID and disable all other action buttons to prevent double-submits.
 - **`src/store/userStore.ts`** — holds `stores: Store[]`, `currentStore: Store | null`, and `currentScore: number | null`. Exposes:
-  - `setStores(stores)` — called by `Header` when `useStoresQuery` resolves; preserves `currentStore` if the selected store is still in the new list, otherwise defaults to `stores[0]`.
+  - `setStores(stores)` — called by `Header` after its `fetchStores(token)` effect resolves; preserves `currentStore` if the selected store is still in the new list, otherwise defaults to `stores[0]`.
   - `setCurrentStore(store)` — called when the owner or manager picks a store from the Header dropdown.
   - `setCurrentScore(score)` — called by `OverviewContent` via `useEffect` when `weeklyStats` resolves; stores the employee's live `current_score`. Sidebar reads `currentScore` from the store and falls back to `user.score` from the session until it is populated.
   - `onStoreChange(callback)` — exported subscription helper; other stores/modules call this to react to store-selection changes. Always call the returned unsubscribe on cleanup.
-- **Note:** `swagStore.ts` has been removed; swag data is now managed by `src/queries/swag.ts` via TanStack Query. `userStore` no longer holds a `user` object or a `setUser` action — auth identity lives in the session, accessible via `useSession()`.
+- **`src/store/swagStore.ts`** — holds `catalog: SwagItem[]`, `loading`, `redeemingId`, `error`. Exposes `fetchCatalog()` (GET, called by `SwagStore.tsx` on mount) and `redeemItem(item)` (optimistic redeem + points deduction on `userStore`, rolls back on failure, returns `boolean`). This is a direct instance of the **Async action pattern** above.
+- **Note:** `userStore` does not hold a `user` object or a `setUser` action — auth identity lives in the session, accessible via `useSession()`.
 
 ## Timers and Async Side Effects
 - **Never call `setTimeout` (or `setInterval`) directly inside a `useCallback`, event handler, or any other non-effect function if the timeout updates component state.** Doing so schedules a state update with no cleanup path — in React 19 concurrent/strict mode this triggers "Can't perform a React state update on a component that hasn't mounted yet" because the callback can fire during a remount before the component commits.

@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { useEmployeesQuery } from '@/queries/employees'
-import { useAssignUnknownIdentity } from '@/queries/unknown-identities'
+import { fetchEmployees } from '@/queries/employees'
+import { assignUnknownIdentity } from '@/queries/unknown-identities'
 import { useToast } from '@/context/ToastContext'
 import type { ApiEmployee } from '@/types/employee'
+import type { ApiMeta } from '@/types/api'
 import type { UnknownIdentity } from '@/types/unknown-identity'
 
 const PAGE_LIMIT = 8
@@ -58,37 +59,48 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  const { data, isLoading, isFetching } = useEmployeesQuery({
-    token: token!,
-    search: debouncedSearch,
-    skip,
-    limit: PAGE_LIMIT,
-  })
+  const [employees, setEmployees] = useState<ApiEmployee[]>([])
+  const [meta, setMeta] = useState<ApiMeta | undefined>(undefined)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isPending, setIsPending] = useState(false)
 
-  const { mutate, isPending } = useAssignUnknownIdentity()
+  useEffect(() => {
+    if (!token) return
+    let cancelled = false
+    setIsLoading(true)
+    fetchEmployees({ token, search: debouncedSearch, skip, limit: PAGE_LIMIT })
+      .then((response) => {
+        if (cancelled) return
+        setEmployees(response.data ?? [])
+        setMeta(response.meta)
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [token, debouncedSearch, skip])
 
-  const employees = data?.data ?? []
-  const meta = data?.meta
   const page = meta ? Math.floor(meta.skip / meta.limit) : 0
   const totalPages = meta ? Math.max(1, Math.ceil(meta.total / meta.limit)) : 1
   const isResolved = identity.status === 'resolved'
 
-  function handleAssign() {
+  async function handleAssign() {
     if (!selectedEmployee || !token || isResolved) return
-    mutate(
-      { token, identityId: identity.id, userId: selectedEmployee.id },
-      {
-        onSuccess: () => {
-          showToast(`Assigned ${employeeName(selectedEmployee)} to this identity`)
-          setSelectedEmployee(null)
-          setSearch('')
-          onAssigned()
-        },
-        onError: () => {
-          showToast('Failed to assign employee. Please try again.')
-        },
-      },
-    )
+    setIsPending(true)
+    try {
+      await assignUnknownIdentity({ token, identityId: identity.id, userId: selectedEmployee.id })
+      showToast(`Assigned ${employeeName(selectedEmployee)} to this identity`)
+      setSelectedEmployee(null)
+      setSearch('')
+      onAssigned()
+    } catch {
+      showToast('Failed to assign employee. Please try again.')
+    } finally {
+      setIsPending(false)
+    }
   }
 
   return (
@@ -164,7 +176,7 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
                 <button
                   type="button"
                   onClick={() => setSkip(Math.max(0, skip - PAGE_LIMIT))}
-                  disabled={page <= 0 || isFetching}
+                  disabled={page <= 0 || isLoading}
                   className="text-[11px] font-medium text-secondary hover:text-primary disabled:opacity-40 disabled:cursor-default cursor-pointer"
                 >
                   ‹ Prev
@@ -175,7 +187,7 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
                 <button
                   type="button"
                   onClick={() => setSkip(skip + PAGE_LIMIT)}
-                  disabled={page + 1 >= totalPages || isFetching}
+                  disabled={page + 1 >= totalPages || isLoading}
                   className="text-[11px] font-medium text-secondary hover:text-primary disabled:opacity-40 disabled:cursor-default cursor-pointer"
                 >
                   Next ›
