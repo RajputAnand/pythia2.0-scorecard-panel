@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import styles from './Header.module.css'
 import { useUserStore } from '@/store/userStore'
-import { useStoresQuery } from '@/queries/stores'
+import { fetchStores } from '@/queries/stores'
 
 interface HeaderProps {
   title: string
@@ -19,11 +19,19 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
   const isManagerOrOwner = role === 'owner' || role === 'manager'
 
   const { stores, currentStore, setStores, setCurrentStore } = useUserStore()
-  const { data: fetchedStores } = useStoresQuery(token)
 
   useEffect(() => {
-    if (fetchedStores) setStores(fetchedStores)
-  }, [fetchedStores, setStores])
+    if (!token) return
+    let cancelled = false
+    fetchStores(token)
+      .then((fetchedStores) => {
+        if (!cancelled) setStores(fetchedStores)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [token, setStores])
 
   // Dropdown open/close
   const [open, setOpen] = useState(false)

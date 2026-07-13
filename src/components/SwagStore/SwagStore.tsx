@@ -1,39 +1,37 @@
 'use client'
 
+import { useEffect } from 'react'
 import Panel from '@/components/shared/Panel/Panel'
 import styles from './SwagStore.module.css'
 import { useToast } from '@/context/ToastContext'
 import type { SwagItem } from '@/types/swagstore'
 import { SWAG_STORE } from '@/lib/swagstore-data'
 import { renderText } from '@/utils/common'
-import { useSwagStoreQuery, useRedeemSwagItem } from '@/queries/swag'
+import { useSwagStore } from '@/store/swagStore'
 import { useUserStore } from '@/store/userStore'
 
 export default function SwagStore() {
   const config = SWAG_STORE
   const { showToast } = useToast()
 
-  const { data, isLoading, isError, isFetching } = useSwagStoreQuery()
+  const { catalog: items, loading: isLoading, error, redeemingId, fetchCatalog, redeemItem } = useSwagStore()
+  const isError = !!error
 
-  // variables holds the SwagItem passed to the current in-flight mutate call.
-  const { mutate, isPending, variables: redeemingItem } = useRedeemSwagItem()
+  useEffect(() => {
+    fetchCatalog()
+  }, [fetchCatalog])
 
   const points = useUserStore((s) => s.points) ?? 0
-  const items = data?.catalog ?? []
-  // Track which item button shows "Redeeming…" — only one at a time.
-  const redeemingId = isPending ? redeemingItem?.id : null
 
-  function handleRedeem(item: SwagItem) {
-    if (!data || points < item.cost || item.redeemed) return
-    mutate(item, {
-      onSuccess: () => {
-        const remaining = useUserStore.getState().points ?? 0
-        showToast(`${item.emoji} ${item.name} redeemed! ${remaining.toLocaleString()} pts remaining`)
-      },
-      onError: () => {
-        showToast(`Failed to redeem "${item.name}". Please try again.`)
-      },
-    })
+  async function handleRedeem(item: SwagItem) {
+    if (points < item.cost || item.redeemed || redeemingId) return
+    const success = await redeemItem(item)
+    if (success) {
+      const remaining = useUserStore.getState().points ?? 0
+      showToast(`${item.emoji} ${item.name} redeemed! ${remaining.toLocaleString()} pts remaining`)
+    } else {
+      showToast(`Failed to redeem "${item.name}". Please try again.`)
+    }
   }
 
   return (
@@ -57,10 +55,6 @@ export default function SwagStore() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Background-refetch indicator — visible only during silent refresh */}
-          {isFetching && !isLoading && (
-            <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10.5px' }}>Syncing…</span>
-          )}
           <div className={`${styles.earnRate} text-[11px]`} style={{ color: 'rgba(255,255,255,0.35)' }}>
             {renderText(config.earnRateText)}
           </div>

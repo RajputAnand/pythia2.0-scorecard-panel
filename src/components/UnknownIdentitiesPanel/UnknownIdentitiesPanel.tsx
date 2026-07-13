@@ -1,10 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { useUnknownIdentitiesQuery } from '@/queries/unknown-identities'
+import { fetchUnknownIdentities } from '@/queries/unknown-identities'
 import UnknownIdentityCarousel from '@/components/UnknownIdentityCarousel/UnknownIdentityCarousel'
 import EmployeeAssignPicker from '@/components/EmployeeAssignPicker/EmployeeAssignPicker'
+import type { ApiResponseV2Paginated } from '@/types/api'
+import type { UnknownIdentity } from '@/types/unknown-identity'
+
+// 50 per page matches the backend's default page size — the list can hold
+// far more than that, so pages are fetched lazily as the carousel advances.
+const PAGE_SIZE = 50
 
 function PanelSkeleton() {
   return (
@@ -47,38 +53,64 @@ function PanelEmpty() {
   )
 }
 
-export default function UnknownIdentitiesPanel() {
+interface UnknownIdentitiesPanelProps {
+  initialData: ApiResponseV2Paginated<UnknownIdentity[]> | null
+}
+
+export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitiesPanelProps) {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
 
-  const {
-    data,
-    isLoading,
-    isError,
-    isFetching,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-    refetch,
-  } = useUnknownIdentitiesQuery(token)
-  const identities = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data])
-  const total = data?.pages[0]?.meta.total ?? identities.length
+  const [identities, setIdentities] = useState<UnknownIdentity[]>(initialData?.data ?? [])
+  const [total, setTotal] = useState(initialData?.meta.total ?? initialData?.data.length ?? 0)
+  const [isLoading, setIsLoading] = useState(!initialData)
+  const [isError, setIsError] = useState(false)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
 
-  // Clamp the active index if the list shrinks (e.g. after an assign invalidates the cache).
+  const loadFirstPage = useCallback(() => {
+    if (!token) return
+    setIsLoading(true)
+    setIsError(false)
+    fetchUnknownIdentities({ token, skip: 0, limit: PAGE_SIZE })
+      .then((response) => {
+        setIdentities(response.data)
+        setTotal(response.meta.total)
+        setActiveIndex(0)
+      })
+      .catch(() => setIsError(true))
+      .finally(() => setIsLoading(false))
+  }, [token])
+
+  // Fall back to a client-side fetch when the server-side prefetch failed or
+  // there was no token yet at request time.
+  useEffect(() => {
+    if (!initialData && token) loadFirstPage()
+  }, [initialData, token, loadFirstPage])
+
+  // Clamp the active index if the list shrinks (e.g. after an assign refetches the first page).
   if (identities.length > 0 && activeIndex >= identities.length) {
     setActiveIndex(identities.length - 1)
   }
 
-  // Prefetch the next page once the carousel gets close to the end of what's
+  // Fetch the next page once the carousel gets close to the end of what's
   // already loaded, so browsing past 50 identities feels seamless.
   useEffect(() => {
-    if (hasNextPage && !isFetchingNextPage && activeIndex >= identities.length - 5) {
-      fetchNextPage()
-    }
-  }, [activeIndex, identities.length, hasNextPage, isFetchingNextPage, fetchNextPage])
+    if (!token || isLoading || isError || isFetchingMore) return
+    if (identities.length >= total) return
+    if (activeIndex < identities.length - 5) return
 
-  if (isError) return <PanelError onRetry={refetch} />
+    setIsFetchingMore(true)
+    fetchUnknownIdentities({ token, skip: identities.length, limit: PAGE_SIZE })
+      .then((response) => {
+        setIdentities((prev) => [...prev, ...response.data])
+        setTotal(response.meta.total)
+      })
+      .catch(() => {})
+      .finally(() => setIsFetchingMore(false))
+  }, [activeIndex, identities.length, total, token, isLoading, isError, isFetchingMore])
+
+  if (isError) return <PanelError onRetry={loadFirstPage} />
   if (isLoading) return <PanelSkeleton />
   if (identities.length === 0) return <PanelEmpty />
 
@@ -86,7 +118,7 @@ export default function UnknownIdentitiesPanel() {
 
   return (
     <div className="flex flex-col gap-3">
-      {(isFetching || isFetchingNextPage) && (
+      {isFetchingMore && (
         <div className="flex items-center justify-end -mb-2">
           <span className="flex items-center gap-1.5 rounded-full bg-accent-light px-3 py-1 text-[11px] font-medium text-accent">
             <span className="inline-block h-1.5 w-1.5 animate-ping rounded-full bg-accent" />
@@ -102,7 +134,7 @@ export default function UnknownIdentitiesPanel() {
           activeIndex={activeIndex}
           onSelectIndex={setActiveIndex}
         />
-        <EmployeeAssignPicker identity={activeIdentity} onAssigned={refetch} />
+        <EmployeeAssignPicker identity={activeIdentity} onAssigned={loadFirstPage} />
       </div>
     </div>
   )

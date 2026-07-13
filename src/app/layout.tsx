@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { DM_Sans, DM_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/context/ToastContext";
-import QueryProvider from "@/providers/QueryProvider";
 import SessionProvider from "@/providers/SessionProvider";
 import { auth } from "@/auth";
 
@@ -32,9 +31,7 @@ export default async function RootLayout({
     <html lang="en" className={`${dmSans.variable} ${dmMono.variable}`}>
       <body className="min-h-screen">
         <SessionProvider session={session}>
-          <QueryProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </QueryProvider>
+          <ToastProvider>{children}</ToastProvider>
         </SessionProvider>
       </body>
     </html>
