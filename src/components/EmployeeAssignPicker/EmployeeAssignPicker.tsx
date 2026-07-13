@@ -221,7 +221,7 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
       {showCreateModal && token && (
         <CreateEmployeeModal
           token={token}
-          sourceImages={identity.images}
+          // sourceImages={identity.images} — disabled with the photo upload/prefill logic, see CreateEmployeeModal
           onClose={() => setShowCreateModal(false)}
           onCreated={handleEmployeeCreated}
         />
