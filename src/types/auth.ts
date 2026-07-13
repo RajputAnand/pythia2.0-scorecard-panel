@@ -16,27 +16,36 @@ export interface ResetPasswordResult {
   message: string
 }
 
-/** Raw response from the Pythia-2 POST /auth/exchange endpoint. Not wrapped in ApiResponseV2 — flat shape. */
-export interface TokenExchangeResponse {
+/** The `user` object embedded in POST /auth/login's response. */
+export interface ApiAuthUser {
+  user_id: string
+  first_name: string | null
+  last_name: string | null
+  email: string
+  phone: string | null
+  role_name: string
+  hierarchy_level: number
+  store_ids: string[]
+  is_active: boolean
+  points: number
+  must_change_password: boolean
+}
+
+/** Raw response from POST /auth/login. Not wrapped in ApiResponseV2 — flat shape. */
+export interface LoginResponse {
   success: boolean
-  pythia1_token: string
-  pythia2_token: string
-  user: {
-    _id: string
-    pythia1_user_id: string
-    email: string
-    firstName: string
-    lastName: string
-    role_name: string
-    hierarchy_level: number
-    is_active: boolean
-    owner_group_id: string
-    phone: string
-    store_ids: string[]
-    permissions: string[]
-    points: number
-    device_id: string | null
-    created_at: string
-    updated_at: string
-  }
+  access_token: string
+  refresh_token: string
+  token_type: string
+  must_change_password: boolean
+  user: ApiAuthUser
+}
+
+/** Raw response from POST /auth/refresh. Same shape as LoginResponse minus must_change_password. */
+export interface RefreshResponse {
+  success: boolean
+  access_token: string
+  refresh_token: string
+  token_type: string
+  user: ApiAuthUser
 }

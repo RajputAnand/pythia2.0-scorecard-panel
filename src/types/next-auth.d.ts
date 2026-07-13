@@ -11,6 +11,7 @@ declare module "next-auth" {
     initials: string
     token?: string
     pythia2Token?: string
+    refreshToken?: string
     score?: number
     jobTitle?: string
     points: number
@@ -23,6 +24,7 @@ declare module "next-auth/jwt" {
     initials: string
     token?: string
     pythia2Token?: string
+    refreshToken?: string
     score?: number
     jobTitle?: string
     points?: number

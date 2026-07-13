@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   // for dev assets, the page never hydrates, and forms fall back to native
   // (unhandled) submission.
   allowedDevOrigins: ['*.ngrok-free.app'],
+  // Default 'bottom-left' position overlaps the app's fixed sidebar (also
+  // bottom-left), covering the Sign out button — move it out of the way.
+  devIndicators: {
+    position: 'bottom-right',
+  },
   async redirects() {
     return [
       {
