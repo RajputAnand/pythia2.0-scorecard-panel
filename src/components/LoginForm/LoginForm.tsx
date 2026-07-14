@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { login } from '@/actions/auth'
-import { loginSchema, type LoginSchema } from '@/schemas/auth'
+import { loginSchema, employeeLoginSchema, type LoginSchema } from '@/schemas/auth'
 import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
 import type { FormField } from '@/types/dynamic-form'
 
@@ -36,6 +36,7 @@ export default function LoginForm({ role }: LoginFormProps) {
   const [isPending, startTransition] = useTransition()
 
   const config = roleConfig[role]
+  const schema = role === 'employee' ? employeeLoginSchema : loginSchema
 
   // Field config for DynamicForm
   const fields: FormField[] = [
@@ -116,7 +117,7 @@ export default function LoginForm({ role }: LoginFormProps) {
         {/* Form — all state lives inside DynamicForm */}
         <DynamicForm
           fields={fields}
-          zodSchema={loginSchema}
+          zodSchema={schema}
           onSubmit={handleSubmit}
           submitLabel={`Sign in as ${role}`}
           loading={isPending}

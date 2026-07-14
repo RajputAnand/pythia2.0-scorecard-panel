@@ -58,6 +58,7 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
   const [isLoading, setIsLoading] = useState(false)
   const [isPending, setIsPending] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     if (!token) return
@@ -76,7 +77,7 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
     return () => {
       cancelled = true
     }
-  }, [token, debouncedSearch, skip])
+  }, [token, debouncedSearch, skip, refreshKey])
 
   const page = meta ? Math.floor(meta.skip / meta.limit) : 0
   const totalPages = meta ? Math.max(1, Math.ceil(meta.total / meta.limit)) : 1
@@ -103,6 +104,8 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
     setShowCreateModal(false)
     setOpen(false)
     setSearch('')
+    setSkip(0)
+    setRefreshKey((k) => k + 1)
   }
 
   return (
