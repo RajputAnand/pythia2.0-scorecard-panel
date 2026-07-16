@@ -1,3 +1,4 @@
+import { unstable_rethrow } from 'next/navigation'
 import Header from '@/components/shared/Header/Header'
 import CoachingMoments from '@/components/CoachingMoments/CoachingMoments'
 import headerStyles from '@/components/shared/Header/Header.module.css'
@@ -15,6 +16,7 @@ export default async function CoachingPage() {
     try {
       coachingMoments = await fetchCoachingMoments(session.user.pythia2Token)
     } catch (err) {
+      unstable_rethrow(err) // let a session-expiry redirect from the client propagate
       console.log(err)
       // non-fatal — CoachingMoments renders an empty list when empty
     }
