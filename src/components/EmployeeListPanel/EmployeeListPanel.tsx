@@ -59,20 +59,28 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
   const token = session?.user?.pythia2Token
   const { showToast } = useToast()
 
+  // Only trust the server-seeded page if it actually came back with rows —
+  // an empty `data` array is indistinguishable from "genuinely no employees"
+  // and "the SSR request raced ahead of some server-side state and came back
+  // empty", so treat an empty seed as unconfirmed and let the client re-fetch
+  // to correct it instead of flashing an incorrect empty state until reload.
+  const trustedInitialData = initialData && initialData.data.length > 0 ? initialData : null
+
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [skip, setSkip] = useState(0)
   const [employees, setEmployees] = useState<ApiEmployee[]>(initialData?.data ?? [])
   const [meta, setMeta] = useState<ApiMeta | undefined>(initialData?.meta)
-  const [isLoading, setIsLoading] = useState(!initialData)
+  const [isLoading, setIsLoading] = useState(!trustedInitialData)
   const [isError, setIsError] = useState(false)
   const [revealingId, setRevealingId] = useState<string | null>(null)
   const [unrevealableIds, setUnrevealableIds] = useState<Set<string>>(new Set())
-  const [revealed, setRevealed] = useState<{ name: string; password: string } | null>(null)
+  const [revealed, setRevealed] = useState<{ name: string; userId: string; password: string } | null>(null)
 
   // Skips exactly the first fetch after mount when the server already seeded
-  // page 1 — every subsequent search/pagination/retry change fetches normally.
-  const skipNextFetch = useRef(!!initialData)
+  // page 1 with real rows — every subsequent search/pagination/retry change
+  // fetches normally, and an empty/untrusted seed always re-fetches.
+  const skipNextFetch = useRef(!!trustedInitialData)
   const [retryToken, setRetryToken] = useState(0)
 
   useEffect(() => {
@@ -122,7 +130,7 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
     setRevealingId(employee.user_id)
     try {
       const credentials = await fetchEmployeeCredentials({ token, userId: employee.user_id })
-      setRevealed({ name: getEmployeeName(employee), password: credentials.temp_password })
+      setRevealed({ name: getEmployeeName(employee), userId: credentials.user_id, password: credentials.temp_password })
     } catch (err) {
       console.error('Reveal credentials failed:', err)
       // Only a 409 (already changed, or nothing recoverable on file) is an
@@ -238,6 +246,7 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
       {revealed && (
         <RevealCredentialsModal
           employeeName={revealed.name}
+          userId={revealed.userId}
           password={revealed.password}
           onClose={() => setRevealed(null)}
         />

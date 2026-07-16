@@ -7,10 +7,7 @@ export const PYTHIA_2_API = {
     resetPassword: '/auth/reset-password',
   },
   dashboard: {
-    today: '/dashboard/today',
-    weekly: '/dashboard/weekly',
-    leaderboard: '/dashboard/leaderboard',
-    progress: '/dashboard/progress',
+    summary: '/dashboard/summary',
   },
   coaching: {
     moments: '/coaching-moments',

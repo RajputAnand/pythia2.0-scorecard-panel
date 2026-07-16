@@ -4,11 +4,12 @@ import CredentialsReveal from '@/components/shared/CredentialsReveal/Credentials
 
 interface RevealCredentialsModalProps {
   employeeName: string
+  userId: string
   password: string
   onClose: () => void
 }
 
-export default function RevealCredentialsModal({ employeeName, password, onClose }: RevealCredentialsModalProps) {
+export default function RevealCredentialsModal({ employeeName, userId, password, onClose }: RevealCredentialsModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={onClose}>
       <div
@@ -16,8 +17,9 @@ export default function RevealCredentialsModal({ employeeName, password, onClose
         onClick={(e) => e.stopPropagation()}
       >
         <CredentialsReveal
-          heading="Temporary password"
-          message={`Share this with ${employeeName} securely — it can only be viewed again until they change it.`}
+          heading="Login credentials"
+          message={`Share this with ${employeeName} securely — the password can only be viewed again until they change it.`}
+          userId={userId}
           password={password}
           actionLabel="Close"
           onAction={onClose}

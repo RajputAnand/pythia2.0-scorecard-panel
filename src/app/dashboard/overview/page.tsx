@@ -1,15 +1,11 @@
-import Header from '@/components/shared/Header/Header'
 import OverviewContent from '@/components/OverviewContent/OverviewContent'
-import headerStyles from '@/components/shared/Header/Header.module.css'
 import { fetchOverview } from '@/queries/overview'
-import { fetchCoachingMoments, fetchProgressOverTime, fetchTeamRanking, fetchTodayShiftSummary, fetchWeeklyStats } from '@/queries/scorecard'
+import { fetchCoachingMoments, fetchDashboardSummary } from '@/queries/scorecard'
 import { auth } from '@/auth'
-import type { CoachingMoment, OverviewPageData, ProgressOverTimeData, TeamRankingData, TodayShiftSummary, WeeklyStats } from '@/types/overview'
-import { getWeekSubtitle } from '@/utils/common'
+import type { CoachingMoment, DashboardSummaryResponse, OverviewPageData } from '@/types/overview'
+import { extractApiErrorMessage } from '@/utils/common'
 
 export default async function OverviewPage() {
-  const currentDate = new Date(2026, 5, 14) // replace with new Date() in production
-
   let overview: OverviewPageData | null = null
   try {
     overview = await fetchOverview()
@@ -19,50 +15,28 @@ export default async function OverviewPage() {
   }
 
   const session = await auth()
-  let weeklyStats: WeeklyStats | null = null
-  let shiftSummary: TodayShiftSummary | null = null
-  let teamRankingData: TeamRankingData | null = null
-  let progressChart: ProgressOverTimeData | null = null
+  let initialSummary: DashboardSummaryResponse | null = null
+  let initialError: string | null = null
   let coachingMoments: CoachingMoment[] = []
 
   if (session?.user?.pythia2Token) {
     const token = session.user.pythia2Token
-    const [weeklyStatsResult, shiftSummaryResult, teamRankingResult, progressChartResult, coachingMomentsResult] =
-      await Promise.allSettled([
-        fetchWeeklyStats(token),
-        fetchTodayShiftSummary(token),
-        fetchTeamRanking(token),
-        fetchProgressOverTime(token),
-        fetchCoachingMoments(token),
-      ])
 
-    // non-fatal — OverviewContent renders an empty state when null/empty
-    if (weeklyStatsResult.status === 'fulfilled') weeklyStats = weeklyStatsResult.value
-    else console.log(weeklyStatsResult.reason)
+    try {
+      initialSummary = await fetchDashboardSummary({ token, weekOffset: 1 })
+    } catch (err) {
+      initialError = extractApiErrorMessage(err, 'Unable to load your dashboard. Please try again.')
+    }
 
-    if (shiftSummaryResult.status === 'fulfilled') shiftSummary = shiftSummaryResult.value
-    else console.log(shiftSummaryResult.reason)
-
-    if (teamRankingResult.status === 'fulfilled') teamRankingData = teamRankingResult.value
-    else console.log(teamRankingResult.reason)
-
-    if (progressChartResult.status === 'fulfilled') progressChart = progressChartResult.value
-    else console.log(progressChartResult.reason)
-
-    if (coachingMomentsResult.status === 'fulfilled') coachingMoments = coachingMomentsResult.value
-    else console.log(coachingMomentsResult.reason)
+    try {
+      coachingMoments = await fetchCoachingMoments(token)
+    } catch (err) {
+      console.log(err)
+      // non-fatal — CoachingMoments renders an empty list when empty
+    }
   }
 
   return (
-    <>
-      <Header title="My Dashboard" subtitle={getWeekSubtitle(currentDate)}>
-        <button className={headerStyles.btnGhost}>View Last Week</button>
-        <button className={headerStyles.btnAccent}>📣 Share My Score</button>
-      </Header>
-
-      <div className="grid px-[30px] py-[24px] gap-5">
-        <OverviewContent overview={overview} weeklyStats={weeklyStats} shiftSummary={shiftSummary} teamRankingData={teamRankingData} progressChart={progressChart} coachingMoments={coachingMoments} />
-      </div>
-    </>
+    <OverviewContent overview={overview} initialSummary={initialSummary} initialError={initialError} coachingMoments={coachingMoments} />
   )
 }

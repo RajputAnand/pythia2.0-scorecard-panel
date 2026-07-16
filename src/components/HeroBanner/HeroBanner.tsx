@@ -29,6 +29,12 @@ function Metric({ label, value, change, valueColor }: MetricProps) {
 
 const RING_CIRCUMFERENCE = 289
 
+function deltaLabel(delta: number, suffix: string): string {
+  if (delta > 0) return `↑ +${delta} ${suffix}`
+  if (delta < 0) return `↓ ${delta} ${suffix}`
+  return `→ same as ${suffix}`
+}
+
 export default function HeroBanner({ data, weeklyStats }: { data: HeroBannerData, weeklyStats: WeeklyStats }) {
   const { data: user } = useSession()
   if (!weeklyStats) return <></>
@@ -71,10 +77,16 @@ export default function HeroBanner({ data, weeklyStats }: { data: HeroBannerData
           {data.scoreSubtitle}
         </div>
         <div className="flex flex-wrap gap-[10px]">
-          <Metric key={"Hospitality"} change='↑ +4 this week' label='Hospitality' value={(weeklyStats.hospitality ?? 0).toString()} valueColor='#78C99A' />
-          <Metric key={"Checkout Spd"} change='→ Coaching active' label='Checkout Spd' value={(weeklyStats.checkout_speed ?? 0).toString()} valueColor='#F5C842' />
-          <Metric key={"Time to Svc"} change='↑ +2 this week' label='Time to Svc' value={(weeklyStats.time_to_service ?? 0).toString()} valueColor='#78C99A' />
-          <Metric key={"Shift Hours"} change='This week' label='Shift Hours' value='36h' />
+          <Metric key={"Hospitality"} change={deltaLabel(weeklyStats.hospitality_delta, 'this week')} label='Hospitality' value={(weeklyStats.hospitality ?? 0).toString()} valueColor='#78C99A' />
+          <Metric
+            key={"Checkout Spd"}
+            change={weeklyStats.checkout_coaching_active ? '→ Coaching active' : 'This week'}
+            label='Checkout Spd'
+            value={(weeklyStats.checkout_speed ?? 0).toString()}
+            valueColor={weeklyStats.checkout_coaching_active ? '#F5C842' : '#FFFFFF'}
+          />
+          <Metric key={"Time to Svc"} change={deltaLabel(weeklyStats.time_to_service_delta, 'this week')} label='Time to Svc' value={(weeklyStats.time_to_service ?? 0).toString()} valueColor='#78C99A' />
+          <Metric key={"Shift Hours"} change='This week' label='Shift Hours' value={`${weeklyStats.shift_hours ?? 0}h`} />
         </div>
       </div>
 
@@ -98,7 +110,7 @@ export default function HeroBanner({ data, weeklyStats }: { data: HeroBannerData
           className="text-center rounded-xl px-[16px] py-[8px]"
           style={{ background: 'rgba(29,92,58,0.35)', border: '1px solid rgba(120,201,154,0.3)' }}
         >
-          <div className="font-mono font-bold leading-none text-[20px]" style={{ color: '#78C99A' }}>{weeklyStats.team_rank}</div>
+          <div className="font-mono font-bold leading-none text-[20px]" style={{ color: '#78C99A' }}>{weeklyStats.team_rank ?? '—'}</div>
           <div
             className="uppercase tracking-[.09em] text-[10px] mt-[2px]"
             style={{ color: 'rgba(255,255,255,0.35)' }}

@@ -8,29 +8,43 @@ export interface WeeklyStats {
   time_to_service: number;
   shift_hours: number;
   points: number;
-  team_rank: string;
+  team_rank: string | null;
   score_change: number;
   streak_weeks: number;
   display_name: string;
   hospitality_delta: number;
   time_to_service_delta: number;
-  team_percentile: number;
+  team_percentile: number | null;
   checkout_coaching_active: boolean;
+}
+
+export interface WeeklySection {
+  week_start: string;
+  week_end: string;
+  data: WeeklyStats;
 }
 
 export interface TodayShiftSummary {
   shift_date: string;
-  shift_status: "complete" | "in_progress" | "stalled";
+  shift_status: "complete" | "in_progress" | "no_data";
   overall_score: number;
   customers_served: number;
-  avg_checkout_seconds: number;
+  avg_checkout_seconds: number | null;
   points_earned: number;
   shift_date_display: string;
   shift_time_range: string;
-  overall_score_delta: number;
-  customers_served_delta: number;
+  overall_score_delta: number | null;
+  customers_served_delta: number | null;
   checkout_target_seconds: number;
   is_best_shift_this_week: boolean;
+}
+
+export interface TodaySection {
+  // Absent (not present on the object) when no shift data exists yet — check
+  // with `'shift_start' in section`, not a falsy check.
+  shift_start?: string;
+  shift_end?: string;
+  data: TodayShiftSummary;
 }
 
 export interface TeamRankingData {
@@ -43,12 +57,18 @@ export interface TeamRankingData {
     points: number;
   }[];
   insight: {
-    type: "leading" | "trailing" | "tied";
+    type: "no_data" | "leading" | "behind_leader_no_rate" | "behind_leader";
     points_behind: number | null;
     improvement_rate: number | null;
     weeks_to_first: number | null;
     message: string;
   } | null;
+}
+
+export interface LeaderboardSection {
+  week_start: string;
+  week_end: string;
+  data: TeamRankingData;
 }
 
 export interface ProgressOverTimeChartData {
@@ -64,11 +84,17 @@ export interface ProgressOverTimeData {
   weeks: ProgressOverTimeChartData[];
 }
 
+export interface DashboardSummaryResponse {
+  success: boolean;
+  weekly: WeeklySection;
+  today: TodaySection;
+  leaderboard: LeaderboardSection;
+  progress: ProgressOverTimeData;
+}
+
 export interface OverviewPageData {
   heroBanner: HeroBannerData;
   shiftSummary: ShiftSummaryData;
-  progressChart: ProgressOverTimeData;
-  leaderboard: TeamRankingData;
 }
 
 export interface CoachingMoment {

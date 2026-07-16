@@ -109,7 +109,7 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
   }
 
   return (
-    <div className="bg-surface border border-border rounded-[14px] p-5 flex flex-col gap-3">
+    <div className="min-w-0 bg-surface border border-border rounded-[14px] p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="text-[13.5px] font-semibold">Assign to Employee</div>
         <button
