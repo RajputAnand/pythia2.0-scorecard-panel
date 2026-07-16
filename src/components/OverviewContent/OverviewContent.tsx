@@ -5,8 +5,8 @@ import { useUserStore } from '@/store/userStore'
 import Header from '@/components/shared/Header/Header'
 import WeekNavButtons from '@/components/shared/WeekNavButtons/WeekNavButtons'
 import HeroBanner from '@/components/HeroBanner/HeroBanner'
-import ShiftSummary from '@/components/ShiftSummary/ShiftSummary'
-import CoachingMoments from '@/components/CoachingMoments/CoachingMoments'
+// import ShiftSummary from '@/components/ShiftSummary/ShiftSummary'
+// import CoachingMoments from '@/components/CoachingMoments/CoachingMoments'
 import ProgressChart from '@/components/ProgressChart/ProgressChart'
 import Leaderboard from '@/components/Leaderboard/Leaderboard'
 import SwagStore from '@/components/SwagStore/SwagStore'
@@ -46,7 +46,7 @@ export default function OverviewContent({
     }
   }, [summary?.weekly.data.overall_score, setCurrentScore])
 
-  const hasCoachingItems = coachingMoments.length > 0
+  // const hasCoachingItems = coachingMoments.length > 0
 
   return (
     <>
@@ -61,7 +61,7 @@ export default function OverviewContent({
           <div className="grid gap-5">
             <HeroBanner data={overview.heroBanner} weeklyStats={summary.weekly.data} />
 
-            <div className="grid grid-cols-2 items-start gap-[18px]">
+            {/* <div className="grid grid-cols-2 items-start gap-[18px]">
               <ShiftSummary data={overview.shiftSummary} shiftSummary={summary.today.data} />
 
               {hasCoachingItems ? (
@@ -73,7 +73,7 @@ export default function OverviewContent({
                   <p className="text-[11.5px] text-muted">Keep up the great work!</p>
                 </div>
               )}
-            </div>
+            </div> */}
 
             <div className="grid grid-cols-2 items-start gap-[18px]">
               {summary.progress.weeks.length > 0 ? (

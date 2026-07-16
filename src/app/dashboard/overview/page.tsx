@@ -1,3 +1,4 @@
+import { unstable_rethrow } from 'next/navigation'
 import OverviewContent from '@/components/OverviewContent/OverviewContent'
 import { fetchOverview } from '@/queries/overview'
 import { fetchCoachingMoments, fetchDashboardSummary } from '@/queries/scorecard'
@@ -25,12 +26,14 @@ export default async function OverviewPage() {
     try {
       initialSummary = await fetchDashboardSummary({ token, weekOffset: 1 })
     } catch (err) {
+      unstable_rethrow(err) // let a session-expiry redirect from the client propagate
       initialError = extractApiErrorMessage(err, 'Unable to load your dashboard. Please try again.')
     }
 
     try {
       coachingMoments = await fetchCoachingMoments(token)
     } catch (err) {
+      unstable_rethrow(err) // let a session-expiry redirect from the client propagate
       console.log(err)
       // non-fatal — CoachingMoments renders an empty list when empty
     }

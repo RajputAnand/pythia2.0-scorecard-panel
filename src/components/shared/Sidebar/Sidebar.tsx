@@ -28,45 +28,45 @@ const EMPLOYEE_NAV: NavSection[] = [
           </svg>
         ),
       },
-      {
-        label: 'My Progress',
-        href: '/dashboard/progress',
-        icon: (
-          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-          </svg>
-        ),
-      },
-      {
-        label: 'Coaching',
-        href: '/dashboard/coaching',
-        badge: 2,
-        icon: (
-          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-        ),
-      },
-      {
-        label: 'Leaderboard',
-        href: '/dashboard/leaderboard',
-        icon: (
-          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-          </svg>
-        ),
-      },
-      {
-        label: 'Swag Store',
-        href: '/dashboard/swag',
-        icon: (
-          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <path d="M16 10a4 4 0 0 1-8 0" />
-          </svg>
-        ),
-      },
+      // {
+      //   label: 'My Progress',
+      //   href: '/dashboard/progress',
+      //   icon: (
+      //     <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      //       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      //     </svg>
+      //   ),
+      // },
+      // {
+      //   label: 'Coaching',
+      //   href: '/dashboard/coaching',
+      //   badge: 2,
+      //   icon: (
+      //     <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      //       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      //     </svg>
+      //   ),
+      // },
+      // {
+      //   label: 'Leaderboard',
+      //   href: '/dashboard/leaderboard',
+      //   icon: (
+      //     <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      //       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      //     </svg>
+      //   ),
+      // },
+      // {
+      //   label: 'Swag Store',
+      //   href: '/dashboard/swag',
+      //   icon: (
+      //     <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      //       <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+      //       <line x1="3" y1="6" x2="21" y2="6" />
+      //       <path d="M16 10a4 4 0 0 1-8 0" />
+      //     </svg>
+      //   ),
+      // },
     ],
   },
 ]

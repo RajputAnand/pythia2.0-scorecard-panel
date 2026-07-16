@@ -1,3 +1,4 @@
+import { unstable_rethrow } from 'next/navigation'
 import ProgressContent from '@/components/ProgressContent/ProgressContent'
 import { fetchDashboardSummary } from '@/queries/scorecard'
 import { auth } from '@/auth'
@@ -13,6 +14,7 @@ export default async function ProgressPage() {
     try {
       initialSummary = await fetchDashboardSummary({ token: session.user.pythia2Token, weekOffset: 1 })
     } catch (err) {
+      unstable_rethrow(err) // let a session-expiry redirect from the client propagate
       initialError = extractApiErrorMessage(err, 'Unable to load your progress. Please try again.')
     }
   }
