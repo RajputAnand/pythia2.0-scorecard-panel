@@ -71,6 +71,14 @@ export function getEmployeeInitials(employee: Pick<ApiEmployee, 'first_name' | '
   return `${first[0] || ''}${last[0] || ''}`.toUpperCase() || 'UR'
 }
 
+/** Formats an API week_start/week_end ISO pair as "Week of MMM D – MMM D, YYYY" */
+export function formatWeekRange(weekStart: string, weekEnd: string): string {
+  const start = new Date(weekStart)
+  const end = new Date(weekEnd)
+  const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return `Week of ${fmt(start)} – ${fmt(end)}, ${end.getFullYear()}`
+}
+
 /** Renders a string with **bold** markers as React nodes */
 export function renderText(text: string): ReactNode[] {
   const parts = text.split(/\*\*(.*?)\*\*/g)

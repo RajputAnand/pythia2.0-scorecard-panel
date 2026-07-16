@@ -53,6 +53,7 @@ export default function CreateEmployeeModal({ token, onClose, onCreated }: Creat
   const [isPending, setIsPending] = useState(false)
   const [serverError, setServerError] = useState<string | undefined>()
   const [tempPassword, setTempPassword] = useState('')
+  const [createdUserId, setCreatedUserId] = useState('')
   const createdEmployeeRef = useRef<ApiEmployee | null>(null)
 
   // const [images, setImages] = useState<File[]>([])
@@ -150,6 +151,7 @@ export default function CreateEmployeeModal({ token, onClose, onCreated }: Creat
         createdEmployeeRef.current = null
       }
       setTempPassword(response.temp_password)
+      setCreatedUserId(response.user_id)
       setStep('credentials')
     } catch (err) {
       setServerError(extractApiErrorMessage(err, 'Failed to create employee. Please try again.'))
@@ -257,7 +259,8 @@ export default function CreateEmployeeModal({ token, onClose, onCreated }: Creat
         ) : (
           <CredentialsReveal
             heading="Employee created"
-            message="Share this temporary password with them securely — it can only be viewed again from the employee list until they change it."
+            message="Share these credentials with them securely — the password can only be viewed again from the employee list until they change it."
+            userId={createdUserId}
             password={tempPassword}
             actionLabel="Done — select for assignment"
             onAction={handleDone}

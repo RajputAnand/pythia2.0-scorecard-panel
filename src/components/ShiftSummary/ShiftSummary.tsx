@@ -52,38 +52,62 @@ export default function ShiftSummary({
   data: ShiftSummaryData;
   shiftSummary: TodayShiftSummary;
 }) {
+  if (shiftSummary.shift_status === "no_data") {
+    return (
+      <Panel title={data.title} subtitle={data.subtitle}>
+        <div className="flex flex-col items-center justify-center gap-2 py-8">
+          <span className="text-[28px]">🕐</span>
+          <p className="text-[12.5px] font-semibold">No shift data yet</p>
+          <p className="text-[11.5px] text-muted">Your shift summary will appear once a shift is logged.</p>
+        </div>
+      </Panel>
+    );
+  }
+
   const scoreDiff = shiftSummary.overall_score_delta;
   const scoreDiffLabel =
-    scoreDiff > 0
-      ? `↑ +${scoreDiff} vs. your avg`
-      : scoreDiff < 0
-        ? `↓ ${scoreDiff} vs. your avg`
-        : `→ same as your avg`;
-  const scoreDiffClass = scoreDiff > 0 ? "up" : scoreDiff < 0 ? "down" : "flat";
+    scoreDiff == null
+      ? "→ No 30-day avg yet"
+      : scoreDiff > 0
+        ? `↑ +${scoreDiff} vs. your avg`
+        : scoreDiff < 0
+          ? `↓ ${scoreDiff} vs. your avg`
+          : `→ same as your avg`;
+  const scoreDiffClass = scoreDiff == null || scoreDiff === 0 ? "flat" : scoreDiff > 0 ? "up" : "down";
 
   const customersDiff = shiftSummary.customers_served_delta;
   const customersDiffLabel =
-    customersDiff > 0
-      ? `↑ +${customersDiff}% vs. avg shift`
-      : customersDiff < 0
-        ? `↓ ${customersDiff}% vs. avg shift`
-        : `→ same as avg shift`;
-  const customersDiffClass = customersDiff > 0 ? "up" : customersDiff < 0 ? "down" : "flat";
+    customersDiff == null
+      ? "→ No avg shift yet"
+      : customersDiff > 0
+        ? `↑ +${customersDiff}% vs. avg shift`
+        : customersDiff < 0
+          ? `↓ ${customersDiff}% vs. avg shift`
+          : `→ same as avg shift`;
+  const customersDiffClass = customersDiff == null || customersDiff === 0 ? "flat" : customersDiff > 0 ? "up" : "down";
 
-  const checkoutDiff = shiftSummary.checkout_target_seconds - shiftSummary.avg_checkout_seconds;
+  const avgCheckoutSeconds = shiftSummary.avg_checkout_seconds;
+  const checkoutDiff = avgCheckoutSeconds == null ? null : shiftSummary.checkout_target_seconds - avgCheckoutSeconds;
   const checkoutDiffLabel =
-    checkoutDiff > 0
-      ? `↓ ${checkoutDiff.toFixed(1)}s under target`
-      : checkoutDiff < 0
-        ? `↑ ${Math.abs(checkoutDiff).toFixed(1)}s over target`
-        : `→ At target`;
-  const checkoutDiffClass = checkoutDiff > 0 ? "up" : checkoutDiff < 0 ? "down" : "flat";
+    checkoutDiff == null
+      ? "→ No checkout data"
+      : checkoutDiff > 0
+        ? `↓ ${checkoutDiff.toFixed(1)}s under target`
+        : checkoutDiff < 0
+          ? `↑ ${Math.abs(checkoutDiff).toFixed(1)}s over target`
+          : `→ At target`;
+  const checkoutDiffClass = checkoutDiff == null || checkoutDiff === 0 ? "flat" : checkoutDiff > 0 ? "up" : "down";
 
-  const badge = data.shiftComplete ? (
-    <span className="bg-accent-light text-accent font-semibold rounded-[20px] text-[11px] px-[9px] py-[3px]">
-      Shift complete
-    </span>
-  ) : null;
+  const badge =
+    shiftSummary.shift_status === "complete" ? (
+      <span className="bg-accent-light text-accent font-semibold rounded-[20px] text-[11px] px-[9px] py-[3px]">
+        Shift complete
+      </span>
+    ) : (
+      <span className="bg-amber-light text-amber font-semibold rounded-[20px] text-[11px] px-[9px] py-[3px]">
+        Shift in progress
+      </span>
+    );
 
   return (
     <Panel title={data.title} subtitle={data.subtitle} badge={badge}>
@@ -107,7 +131,7 @@ export default function ShiftSummary({
         />
         <MetricCard
           label="Avg Checkout"
-          value={`${shiftSummary.avg_checkout_seconds}s`}
+          value={avgCheckoutSeconds == null ? "—" : `${avgCheckoutSeconds}s`}
           change={checkoutDiffLabel}
           valueClass={checkoutDiffClass === "down" ? "ok" : "great"}
           changeClass={checkoutDiffClass}

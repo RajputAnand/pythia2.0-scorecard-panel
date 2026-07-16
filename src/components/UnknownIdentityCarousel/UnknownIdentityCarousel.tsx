@@ -78,7 +78,7 @@ export default function UnknownIdentityCarousel({ identities, total, activeIndex
   }
 
   return (
-    <div className="bg-surface border border-border rounded-[14px] overflow-hidden flex flex-col">
+    <div className="min-w-0 bg-surface border border-border rounded-[14px] overflow-hidden flex flex-col">
       {/* Header — count only; the page Header already carries the section title */}
       <div className="flex items-center justify-between px-5 py-[10px] border-b border-border bg-surface-alt">
         <span className={`rounded-full px-[10px] py-[3px] text-[10px] font-semibold capitalize ${STATUS_STYLES[active.status] ?? 'bg-surface-alt text-secondary'}`}>
@@ -103,7 +103,7 @@ export default function UnknownIdentityCarousel({ identities, total, activeIndex
           </svg>
         </button>
 
-        <div className="flex-1 flex flex-col items-center gap-3">
+        <div className="flex-1 min-w-0 flex flex-col items-center gap-3">
           {/* Main photo */}
           <div className="relative w-full max-w-[320px] aspect-square rounded-[12px] overflow-hidden bg-surface-alt border border-border">
             {photo && !imgFailed ? (
@@ -126,15 +126,15 @@ export default function UnknownIdentityCarousel({ identities, total, activeIndex
             )}
           </div>
 
-          {/* Photo thumbnails */}
+          {/* Photo thumbnails — scrolls horizontally instead of forcing the card wider than its grid column */}
           {active.images.length > 1 && (
-            <div className="flex gap-2">
+            <div className="w-full max-w-[320px] flex gap-2 overflow-x-auto pb-1">
               {active.images.map((img, i) => (
                 <button
                   key={img.embedding_id ?? i}
                   type="button"
                   onClick={() => setPhotoIndex(i)}
-                  className={`w-9 h-9 rounded-[7px] overflow-hidden border-2 cursor-pointer transition-colors duration-150 bg-surface-alt ${
+                  className={`shrink-0 w-9 h-9 rounded-[7px] overflow-hidden border-2 cursor-pointer transition-colors duration-150 bg-surface-alt ${
                     i === photoIndex ? 'border-accent' : 'border-transparent hover:border-border'
                   }`}
                 >
@@ -152,18 +152,18 @@ export default function UnknownIdentityCarousel({ identities, total, activeIndex
 
           {/* Metadata */}
           <div className="w-full max-w-[320px] flex flex-col gap-1 text-[11.5px] text-secondary">
-            <div className="flex justify-between">
-              <span className="text-muted">Device</span>
-              <span className="font-mono">{active.device_id}</span>
+            <div className="flex justify-between gap-2 min-w-0">
+              <span className="text-muted shrink-0">Device</span>
+              <span className="font-mono truncate" title={active.device_id}>{active.device_id}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted">Session</span>
-              <span className="font-mono">{active.session_id}</span>
+            <div className="flex justify-between gap-2 min-w-0">
+              <span className="text-muted shrink-0">Session</span>
+              <span className="font-mono truncate" title={active.session_id}>{active.session_id}</span>
             </div>
             {photo && (
-              <div className="flex justify-between">
-                <span className="text-muted">Captured</span>
-                <span>{new Date(photo.captured_at_utc).toLocaleString()}</span>
+              <div className="flex justify-between gap-2 min-w-0">
+                <span className="text-muted shrink-0">Captured</span>
+                <span className="truncate">{new Date(photo.captured_at_utc).toLocaleString()}</span>
               </div>
             )}
           </div>

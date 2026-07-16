@@ -68,7 +68,10 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
   const [isFetchingMore, setIsFetchingMore] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
 
-  const loadFirstPage = useCallback(() => {
+  // resetIndex=true for the initial load / retry-after-error (start at the
+  // top of the list); false after an assign, so the carousel stays on the
+  // identity the manager was just looking at instead of jumping back to #1.
+  const loadFirstPage = useCallback((resetIndex: boolean = true) => {
     if (!token) return
     setIsLoading(true)
     setIsError(false)
@@ -76,7 +79,7 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
       .then((response) => {
         setIdentities(response.data)
         setTotal(response.meta.total)
-        setActiveIndex(0)
+        if (resetIndex) setActiveIndex(0)
       })
       .catch(() => setIsError(true))
       .finally(() => setIsLoading(false))
@@ -134,7 +137,7 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
           activeIndex={activeIndex}
           onSelectIndex={setActiveIndex}
         />
-        <EmployeeAssignPicker identity={activeIdentity} onAssigned={loadFirstPage} />
+        <EmployeeAssignPicker identity={activeIdentity} onAssigned={() => loadFirstPage(false)} />
       </div>
     </div>
   )
