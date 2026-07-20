@@ -16,6 +16,10 @@ function ProgressEmpty({ message }: { message?: string | null }) {
   )
 }
 
+function ProgressSkeleton() {
+  return <div className="h-72 w-full rounded-xl bg-border animate-pulse" />
+}
+
 export default function ProgressContent({
   initialSummary,
   initialError,
@@ -35,7 +39,9 @@ export default function ProgressContent({
       </Header>
 
       <div className="grid px-[30px] py-[24px] gap-5">
-        {summary && summary.progress.weeks.length > 0 ? (
+        {loading ? (
+          <ProgressSkeleton />
+        ) : summary && summary.progress.weeks.length > 0 ? (
           <ProgressChart data={summary.progress} />
         ) : (
           <ProgressEmpty message={error} />

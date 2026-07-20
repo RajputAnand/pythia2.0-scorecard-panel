@@ -23,6 +23,18 @@ function OverviewEmpty({ message }: { message?: string | null }) {
   )
 }
 
+function OverviewSkeleton() {
+  return (
+    <div className="grid gap-5 animate-pulse">
+      <div className="h-40 w-full rounded-xl bg-border" />
+      <div className="grid grid-cols-2 items-start gap-[18px]">
+        <div className="h-72 rounded-xl bg-border" />
+        <div className="h-72 rounded-xl bg-border" />
+      </div>
+    </div>
+  )
+}
+
 export default function OverviewContent({
   overview,
   initialSummary,
@@ -55,7 +67,9 @@ export default function OverviewContent({
       </Header>
 
       <div className="grid px-[30px] py-[24px] gap-5">
-        {!overview || !summary ? (
+        {loading ? (
+          <OverviewSkeleton />
+        ) : !overview || !summary ? (
           <OverviewEmpty message={error} />
         ) : (
           <div className="grid gap-5">
