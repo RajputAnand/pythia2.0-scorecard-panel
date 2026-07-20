@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { login } from '@/actions/auth'
 import { loginSchema, employeeLoginSchema, type LoginSchema } from '@/schemas/auth'
@@ -31,7 +30,6 @@ const roleConfig = {
 }
 
 export default function LoginForm({ role }: LoginFormProps) {
-  const router = useRouter()
   const [serverError, setServerError] = useState<string | undefined>()
   const [isPending, startTransition] = useTransition()
 
@@ -76,7 +74,12 @@ export default function LoginForm({ role }: LoginFormProps) {
 
 
       if (result === null) {
-        router.push('/')
+        // Hard navigation: a soft router.push() leaves next-auth/react's
+        // SessionProvider serving the previous (stale) session, since the
+        // redirect:false signIn() only updates the cookie, not the client
+        // session cache. A full navigation forces SessionProvider to remount
+        // and read the freshly-set cookie.
+        window.location.href = '/'
       } else if (typeof result === 'string') {
         setServerError(result)
       }
