@@ -12,9 +12,12 @@ export default async function CoachingPage() {
 
   const session = await auth()
   let coachingMoments: CoachingMoment[] = []
+  let coachingGenerationInProgress = false
   if (session?.user?.pythia2Token) {
     try {
-      coachingMoments = await fetchCoachingMoments(session.user.pythia2Token)
+      const coaching = await fetchCoachingMoments(session.user.pythia2Token)
+      coachingMoments = coaching.items
+      coachingGenerationInProgress = coaching.generationInProgress
     } catch (err) {
       unstable_rethrow(err) // let a session-expiry redirect from the client propagate
       console.log(err)
@@ -30,7 +33,7 @@ export default async function CoachingPage() {
       </Header>
 
       <div className="grid px-[30px] py-[24px] gap-5">
-          <CoachingMoments items={coachingMoments} />
+          <CoachingMoments items={coachingMoments} generationInProgress={coachingGenerationInProgress} />
       </div>
     </>
   )

@@ -1,6 +1,6 @@
 import { pythia2Client } from '@/lib/api-client'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
-import type { CoachingMoment, CoachingMomentsResponse, DashboardSummaryResponse } from '@/types/overview'
+import type { CoachingMomentsResponse, CoachingMomentsResult, DashboardSummaryResponse } from '@/types/overview'
 
 // GET /dashboard/summary returns weekly/today/leaderboard/progress in one call —
 // success/weekly/today/leaderboard/progress are top-level siblings, not wrapped
@@ -27,11 +27,15 @@ export async function fetchDashboardSummary({
   return data
 }
 
-export async function fetchCoachingMoments(token: string): Promise<CoachingMoment[]> {
+export async function fetchCoachingMoments(token: string): Promise<CoachingMomentsResult> {
   const { data: response } = await pythia2Client.post<CoachingMomentsResponse>(
     PYTHIA_2_API.coaching.moments,
     undefined,
     { headers: { Authorization: `Bearer ${token}` }, params: { use_cached: true } },
   )
-  return response.coaching_tips
+  return {
+    items: response.coaching_tips,
+    // Only set on the "on_demand" branch — no cache found, generation was just queued.
+    generationInProgress: response.generation_in_progress ?? false,
+  }
 }
