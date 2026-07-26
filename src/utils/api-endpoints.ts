@@ -22,4 +22,8 @@ export const PYTHIA_2_API = {
     list: '/unknown-identities',
     assign: (identityId: string) => `/unknown-identities/${identityId}/assign`,
   },
+  managerCoaching: {
+    signals: '/manager-coaching/signals',
+    signal: (planId: string) => `/manager-coaching/signals/${planId}`,
+  },
 } as const

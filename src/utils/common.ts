@@ -79,6 +79,14 @@ export function formatWeekRange(weekStart: string, weekEnd: string): string {
   return `Week of ${fmt(start)} – ${fmt(end)}, ${end.getFullYear()}`
 }
 
+/** Joins names with an Oxford comma: "A", "A and B", "A, B, and C". */
+export function formatNameList(names: string[]): string {
+  if (names.length === 0) return ''
+  if (names.length === 1) return names[0]
+  if (names.length === 2) return `${names[0]} and ${names[1]}`
+  return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`
+}
+
 /** Renders a string with **bold** markers as React nodes */
 export function renderText(text: string): ReactNode[] {
   const parts = text.split(/\*\*(.*?)\*\*/g)
