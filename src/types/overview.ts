@@ -102,9 +102,12 @@ export interface CoachingMoment {
   record_id: string;
   title: string;
   target_text: string;
-  target_value: number;
+  // Stripped by the backend before an employee ever sees this payload
+  // (app/routers/coaching_moments.py::_sanitize_tips_for_employee) — never
+  // rely on these being present.
+  target_value?: number;
   target_unit: string;
-  current_value: number;
+  current_value?: number;
   target_points: number;
   current_score: number;
   weekly_change: number;
@@ -114,7 +117,11 @@ export interface CoachingMoment {
   callout_text: string;
   category: string;
   resolved: boolean;
-  callout_type: "tip" | "compliment";
+  callout_type: "tip" | "compliment" | "celebration";
+  // "recognition" means the underlying coaching signal just resolved — this is a
+  // praise tip, not a corrective one. Defaults to "corrective" server-side for
+  // older records generated before this was tracked.
+  tip_type: "corrective" | "recognition";
 }
 
 export interface CoachingWeeklySnapshot {
@@ -138,4 +145,12 @@ export interface CoachingMomentsResponse {
   cached: boolean;
   generated_at: string;
   source: string;
+  // Only present on the "on_demand" branch (no cache found yet) — a Celery
+  // job was queued and coaching_tips is empty until the next explicit fetch.
+  generation_in_progress?: boolean;
+}
+
+export interface CoachingMomentsResult {
+  items: CoachingMoment[];
+  generationInProgress: boolean;
 }

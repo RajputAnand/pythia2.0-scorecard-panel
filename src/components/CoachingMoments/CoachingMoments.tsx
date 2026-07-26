@@ -28,7 +28,19 @@ const statusMeta: Record<CoachingMoment['status'], { label: string; className: s
 
 const DEFAULT_STATUS_META = { label: 'In Progress', className: 'bg-amber-light text-amber' }
 
-export default function CoachingMoments({ items }: { items: CoachingMoment[] }) {
+const CALLOUT_ICON: Record<CoachingMoment['callout_type'], string> = {
+  tip: '💡 ',
+  compliment: '✅ ',
+  celebration: '🎉 ',
+}
+
+export default function CoachingMoments({
+  items,
+  generationInProgress = false,
+}: {
+  items: CoachingMoment[]
+  generationInProgress?: boolean
+}) {
 
   const [openIds, setOpenIds] = useState<Set<string>>(
     new Set(items[0] ? [items[0].record_id] : [])
@@ -43,11 +55,31 @@ export default function CoachingMoments({ items }: { items: CoachingMoment[] }) 
   }
 
   const activeCount = items.filter((i) => i.status !== 'resolved').length
-  const badge = (
+  const badge = items.length > 0 && (
     <span className="bg-amber-light text-amber font-semibold rounded-[20px] text-[11px] px-[9px] py-[3px]">
       {activeCount} active
     </span>
   )
+
+  if (items.length === 0) {
+    return (
+      <Panel title="Coaching Moments" subtitle="What to work on this week">
+        {generationInProgress ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-10">
+            <span className="text-[28px]">⏳</span>
+            <p className="text-[12.5px] font-semibold">Generating your coaching tips…</p>
+            <p className="text-[11.5px] text-muted">Check back shortly — this only takes a moment.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-2 py-10">
+            <span className="text-[28px]">🎉</span>
+            <p className="text-[12.5px] font-semibold">No coaching moments this week</p>
+            <p className="text-[11.5px] text-muted">Keep up the great work!</p>
+          </div>
+        )}
+      </Panel>
+    )
+  }
 
   return (
     <Panel title="Coaching Moments" subtitle="What to work on this week" badge={badge}>
@@ -64,6 +96,11 @@ export default function CoachingMoments({ items }: { items: CoachingMoment[] }) 
                 <span className={`font-bold uppercase tracking-[.06em] rounded-[5px] whitespace-nowrap shrink-0 text-[9.5px] px-[8px] py-[2px] mt-[2px] ${categoryClass(item.category)}`}>
                   {item.category}
                 </span>
+                {item.tip_type === 'recognition' && (
+                  <span className="font-bold uppercase tracking-[.06em] rounded-[5px] whitespace-nowrap shrink-0 text-[9.5px] px-[8px] py-[2px] mt-[2px] bg-accent-light text-accent">
+                    🎉 Praise
+                  </span>
+                )}
                 <span className="font-semibold flex-1 leading-snug text-[12.5px]">{item.title}</span>
                 <span className={`font-semibold rounded-[20px] whitespace-nowrap shrink-0 text-[10.5px] px-[8px] py-[2px] ${status.className}`}>
                   {status.label}
@@ -81,7 +118,7 @@ export default function CoachingMoments({ items }: { items: CoachingMoment[] }) 
                     {renderText(item.description)}
                   </p>
                   <div className={`${styles.tip} bg-surface-alt rounded-lg text-secondary leading-relaxed text-[12px] px-[12px] py-[9px]`}>
-                    {item.callout_type === 'compliment' ? '✅ ' : '💡 '}
+                    {CALLOUT_ICON[item.callout_type] ?? CALLOUT_ICON.tip}
                     {renderText(item.callout_text)}
                   </div>
                 </div>

@@ -19,6 +19,7 @@ export default async function OverviewPage() {
   let initialSummary: DashboardSummaryResponse | null = null
   let initialError: string | null = null
   let coachingMoments: CoachingMoment[] = []
+  let coachingGenerationInProgress = false
 
   if (session?.user?.pythia2Token) {
     const token = session.user.pythia2Token
@@ -31,7 +32,9 @@ export default async function OverviewPage() {
     }
 
     try {
-      coachingMoments = await fetchCoachingMoments(token)
+      const coaching = await fetchCoachingMoments(token)
+      coachingMoments = coaching.items
+      coachingGenerationInProgress = coaching.generationInProgress
     } catch (err) {
       unstable_rethrow(err) // let a session-expiry redirect from the client propagate
       console.log(err)
@@ -40,6 +43,12 @@ export default async function OverviewPage() {
   }
 
   return (
-    <OverviewContent overview={overview} initialSummary={initialSummary} initialError={initialError} coachingMoments={coachingMoments} />
+    <OverviewContent
+      overview={overview}
+      initialSummary={initialSummary}
+      initialError={initialError}
+      coachingMoments={coachingMoments}
+      coachingGenerationInProgress={coachingGenerationInProgress}
+    />
   )
 }
