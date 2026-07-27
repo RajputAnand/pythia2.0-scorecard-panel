@@ -10,6 +10,7 @@ import { extractApiErrorMessage, formatWeekRange, getWeekSubtitle } from '@/util
 interface UseDashboardSummaryArgs {
   initialSummary: DashboardSummaryResponse | null
   initialError: string | null
+  initialWeekOffset?: number
 }
 
 interface UseDashboardSummaryResult {
@@ -23,24 +24,29 @@ interface UseDashboardSummaryResult {
 }
 
 // Shared by every dashboard route that renders week-scoped data (overview,
-// leaderboard, progress). Week 1 (last week) is seeded server-side (see each
-// page.tsx) to avoid a loading flash on first paint — the current week
-// (offset 0) has no data yet mid-week, so last week is the default view.
-// Navigation is capped to just these two weeks (offset 0 and 1); every
-// weekOffset change fetches client-side, aborting any still-in-flight request
-// first.
-export function useDashboardSummary({ initialSummary, initialError }: UseDashboardSummaryArgs): UseDashboardSummaryResult {
+// leaderboard, progress). `initialWeekOffset` must match whatever weekOffset
+// the caller's page.tsx used for its server-seeded fetch (avoids a loading
+// flash on first paint) — leaderboard/progress default to 1 (last week),
+// since the current week has no data yet mid-week for most employees;
+// overview defaults to 0 (current week) instead. Navigation is capped to
+// just these two weeks (offset 0 and 1); every weekOffset change fetches
+// client-side, aborting any still-in-flight request first.
+export function useDashboardSummary({
+  initialSummary,
+  initialError,
+  initialWeekOffset = 1,
+}: UseDashboardSummaryArgs): UseDashboardSummaryResult {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
 
-  const [weekOffset, setWeekOffset] = useState(1)
+  const [weekOffset, setWeekOffset] = useState(initialWeekOffset)
   const [summary, setSummary] = useState<DashboardSummaryResponse | null>(initialSummary)
   const [error, setError] = useState<string | null>(initialError)
   const [loading, setLoading] = useState(false)
   const isFirstRun = useRef(true)
 
   useEffect(() => {
-    // week_offset 1 (last week) on mount was already fetched server-side.
+    // initialWeekOffset was already fetched server-side on mount.
     if (isFirstRun.current) {
       isFirstRun.current = false
       return
