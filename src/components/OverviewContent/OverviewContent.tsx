@@ -51,6 +51,7 @@ export default function OverviewContent({
   const { summary, error, loading, weekOffset, weekLabel, goToPreviousWeek, goToNextWeek } = useDashboardSummary({
     initialSummary,
     initialError,
+    initialWeekOffset: 0,
   })
   const setCurrentScore = useUserStore((s) => s.setCurrentScore)
 
@@ -76,11 +77,11 @@ export default function OverviewContent({
             <HeroBanner data={overview.heroBanner} weeklyStats={summary.weekly.data} />
 
             {/* <ShiftSummary data={overview.shiftSummary} shiftSummary={summary.today.data} /> */}
-
-            <CoachingMoments items={coachingMoments} generationInProgress={coachingGenerationInProgress} />
-
             <div className="grid grid-cols-2 items-start gap-[18px]">
-              {summary.progress.weeks.length > 0 ? (
+              <CoachingMoments items={coachingMoments} generationInProgress={coachingGenerationInProgress} />  
+              <Leaderboard data={summary.leaderboard.data} />
+            </div>
+            {summary.progress.weeks.length > 0 ? (
                 <ProgressChart data={summary.progress} />
               ) : (
                 <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-10">
@@ -88,9 +89,7 @@ export default function OverviewContent({
                   <p className="text-[12.5px] font-semibold">No progress data yet</p>
                 </div>
               )}
-              <Leaderboard data={summary.leaderboard.data} />
-            </div>
-
+            
             <SwagStore />
           </div>
         )}

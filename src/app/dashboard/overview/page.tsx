@@ -25,7 +25,7 @@ export default async function OverviewPage() {
     const token = session.user.pythia2Token
 
     try {
-      initialSummary = await fetchDashboardSummary({ token, weekOffset: 1 })
+      initialSummary = await fetchDashboardSummary({ token, weekOffset: 0 })
     } catch (err) {
       unstable_rethrow(err) // let a session-expiry redirect from the client propagate
       initialError = extractApiErrorMessage(err, 'Unable to load your dashboard. Please try again.')
