@@ -20,6 +20,14 @@ export async function fetchUnknownIdentities({ token, skip = 0, limit = 50 }: Fe
   return response
 }
 
+export async function fetchUnknownIdentitiesCount({ token }: { token: string }): Promise<number> {
+  const { data } = await pythia2Client.get<{ success: boolean; total: number }>(
+    PYTHIA_2_API.unknownIdentities.count,
+    { headers: { Authorization: `Bearer ${token}` } },
+  )
+  return data.total
+}
+
 export interface AssignUnknownIdentityParams {
   token: string
   identityId: string

@@ -145,7 +145,7 @@ const MANAGER_NAV: NavSection[] = [
     items: [
       {
         label: 'Dashboard',
-        href: '#manager-dashboard',
+        href: '/manager/dashboard',
         icon: (
           <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <rect x="3" y="3" width="7" height="7" rx="1" />
