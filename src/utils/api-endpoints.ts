@@ -20,6 +20,7 @@ export const PYTHIA_2_API = {
   },
   unknownIdentities: {
     list: '/unknown-identities',
+    count: '/unknown-identities/count',
     assign: (identityId: string) => `/unknown-identities/${identityId}/assign`,
   },
   managerCoaching: {
@@ -29,5 +30,10 @@ export const PYTHIA_2_API = {
     effectiveness: '/manager-coaching/effectiveness',
     employees: '/manager-coaching/employees',
     employeeDetail: (userId: string) => `/manager-coaching/employees/${userId}`,
+  },
+  managerDashboard: {
+    summary: '/manager-dashboard/summary',
+    leaderboard: '/manager-dashboard/leaderboard',
+    trend: '/manager-dashboard/trend',
   },
 } as const
