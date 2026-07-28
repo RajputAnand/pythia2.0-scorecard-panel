@@ -17,18 +17,10 @@ export default function UnknownIdentitiesAlertCard({ count }: Props) {
     )
   }
 
+  // All captures identified — nothing to alert on, so show nothing at all
+  // rather than a "you're all caught up" banner taking up space.
   if (count === 0) {
-    return (
-      <div className="bg-surface border border-border rounded-[13px] px-5 py-4 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-[9px] bg-accent-light flex items-center justify-center text-[16px] shrink-0">
-          ✅
-        </div>
-        <div className="text-[12.5px] text-secondary">
-          <strong className="font-semibold text-primary">All captures identified.</strong> No unassigned faces
-          pending review.
-        </div>
-      </div>
-    )
+    return null
   }
 
   return (
