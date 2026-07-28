@@ -1,6 +1,15 @@
 import { pythia2Client } from '@/lib/api-client'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
-import type { ManagerActionRequestBody, ManagerCoachingPlan, ManagerPlanStatus } from '@/types/coaching-plan'
+import type {
+  CoachingEffectivenessRow,
+  CoachingEmployeeChip,
+  CoachingEmployeeDetail,
+  CoachingSummary,
+  CoachingView,
+  ManagerActionRequestBody,
+  ManagerCoachingPlan,
+  ManagerPlanStatus,
+} from '@/types/coaching-plan'
 
 // Raw response shapes from app/routers/manager_coaching.py — not the
 // ApiResponseV2<T> envelope (no top-level `message`/`data`, just `signals`/`signal`).
@@ -52,4 +61,75 @@ export async function applyManagerPlanAction({
     headers: { Authorization: `Bearer ${token}` },
   })
   return data.signal
+}
+
+// Raw response shapes for the Coaching Effectiveness Tracker endpoints —
+// same non-enveloped `{success, ...}` shape as above, not ApiResponseV2<T>.
+interface SummaryResponse extends CoachingSummary {
+  success: boolean
+}
+
+interface EffectivenessResponse {
+  success: boolean
+  count: number
+  categories: CoachingEffectivenessRow[]
+}
+
+interface EmployeesResponse {
+  success: boolean
+  count: number
+  employees: CoachingEmployeeChip[]
+}
+
+interface EmployeeDetailResponse extends CoachingEmployeeDetail {
+  success: boolean
+}
+
+export interface FetchCoachingViewParams {
+  token: string
+  view?: CoachingView
+}
+
+export async function fetchCoachingSummary({ token, view = 'week' }: FetchCoachingViewParams): Promise<CoachingSummary> {
+  const { data } = await pythia2Client.get<SummaryResponse>(PYTHIA_2_API.managerCoaching.summary, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { view },
+  })
+  return data
+}
+
+export async function fetchCoachingEffectiveness({
+  token,
+  view = 'week',
+}: FetchCoachingViewParams): Promise<CoachingEffectivenessRow[]> {
+  const { data } = await pythia2Client.get<EffectivenessResponse>(PYTHIA_2_API.managerCoaching.effectiveness, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { view },
+  })
+  return data.categories
+}
+
+export async function fetchCoachingEmployees({ token }: { token: string }): Promise<CoachingEmployeeChip[]> {
+  const { data } = await pythia2Client.get<EmployeesResponse>(PYTHIA_2_API.managerCoaching.employees, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return data.employees
+}
+
+export interface FetchEmployeeCoachingDetailParams {
+  token: string
+  userId: string
+  days?: number
+}
+
+export async function fetchEmployeeCoachingDetail({
+  token,
+  userId,
+  days,
+}: FetchEmployeeCoachingDetailParams): Promise<CoachingEmployeeDetail> {
+  const { data } = await pythia2Client.get<EmployeeDetailResponse>(PYTHIA_2_API.managerCoaching.employeeDetail(userId), {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { days: days ?? undefined },
+  })
+  return data
 }
