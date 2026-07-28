@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { fetchUnknownIdentities } from '@/queries/unknown-identities'
+import { fetchTrashedIdentities, fetchUnknownIdentities } from '@/queries/unknown-identities'
 import UnknownIdentityCarousel from '@/components/UnknownIdentityCarousel/UnknownIdentityCarousel'
 import EmployeeAssignPicker from '@/components/EmployeeAssignPicker/EmployeeAssignPicker'
+import RestoreIdentityPanel from '@/components/RestoreIdentityPanel/RestoreIdentityPanel'
 import type { ApiResponseV2Paginated } from '@/types/api'
 import type { UnknownIdentity } from '@/types/unknown-identity'
 
@@ -43,12 +44,16 @@ function PanelError({ onRetry }: { onRetry: () => void }) {
   )
 }
 
-function PanelEmpty() {
+function PanelEmpty({ view }: { view: 'active' | 'trashed' }) {
   return (
     <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-16">
-      <span className="text-[32px]">🎉</span>
-      <p className="font-semibold text-[13px]">No unknown identities</p>
-      <p className="text-[11.5px] text-muted">Every detection has been matched to a known employee.</p>
+      <span className="text-[32px]">{view === 'trashed' ? '🗑️' : '🎉'}</span>
+      <p className="font-semibold text-[13px]">{view === 'trashed' ? 'No trashed identities' : 'No unknown identities'}</p>
+      <p className="text-[11.5px] text-muted">
+        {view === 'trashed'
+          ? 'Identities you trash will show up here and can be restored.'
+          : 'Every detection has been matched to a known employee.'}
+      </p>
     </div>
   )
 }
@@ -61,12 +66,20 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
 
+  const [view, setView] = useState<'active' | 'trashed'>('active')
+
   const [identities, setIdentities] = useState<UnknownIdentity[]>(initialData?.data ?? [])
   const [total, setTotal] = useState(initialData?.meta.total ?? initialData?.data.length ?? 0)
   const [isLoading, setIsLoading] = useState(!initialData)
   const [isError, setIsError] = useState(false)
   const [isFetchingMore, setIsFetchingMore] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
+
+  const [trashedIdentities, setTrashedIdentities] = useState<UnknownIdentity[]>([])
+  const [trashedTotal, setTrashedTotal] = useState(0)
+  const [isLoadingTrashed, setIsLoadingTrashed] = useState(false)
+  const [isErrorTrashed, setIsErrorTrashed] = useState(false)
+  const [trashedActiveIndex, setTrashedActiveIndex] = useState(0)
 
   // resetIndex=true for the initial load / retry-after-error (start at the
   // top of the list); false after an assign, so the carousel stays on the
@@ -91,6 +104,30 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
     if (!initialData && token) loadFirstPage()
   }, [initialData, token, loadFirstPage])
 
+  const loadTrashed = useCallback((resetIndex: boolean = true) => {
+    if (!token) return
+    setIsLoadingTrashed(true)
+    setIsErrorTrashed(false)
+    fetchTrashedIdentities({ token, skip: 0, limit: PAGE_SIZE })
+      .then((response) => {
+        setTrashedIdentities(response.data)
+        setTrashedTotal(response.meta.total)
+        if (resetIndex) setTrashedActiveIndex(0)
+      })
+      .catch(() => setIsErrorTrashed(true))
+      .finally(() => setIsLoadingTrashed(false))
+  }, [token])
+
+  // Fetch trashed identities lazily, the first time the manager switches to that tab.
+  useEffect(() => {
+    if (view === 'trashed' && token) loadTrashed()
+  }, [view, token, loadTrashed])
+
+  // Clamp the trashed active index if the list shrinks (e.g. after a restore refetches it).
+  if (trashedIdentities.length > 0 && trashedActiveIndex >= trashedIdentities.length) {
+    setTrashedActiveIndex(trashedIdentities.length - 1)
+  }
+
   // Clamp the active index if the list shrinks (e.g. after an assign refetches the first page).
   if (identities.length > 0 && activeIndex >= identities.length) {
     setActiveIndex(identities.length - 1)
@@ -113,32 +150,83 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
       .finally(() => setIsFetchingMore(false))
   }, [activeIndex, identities.length, total, token, isLoading, isError, isFetchingMore])
 
-  if (isError) return <PanelError onRetry={loadFirstPage} />
-  if (isLoading) return <PanelSkeleton />
-  if (identities.length === 0) return <PanelEmpty />
+  function renderActive() {
+    if (isError) return <PanelError onRetry={loadFirstPage} />
+    if (isLoading) return <PanelSkeleton />
+    if (identities.length === 0) return <PanelEmpty view="active" />
 
-  const activeIdentity = identities[activeIndex]
+    const activeIdentity = identities[activeIndex]
+
+    return (
+      <div className="flex flex-col gap-3">
+        {isFetchingMore && (
+          <div className="flex items-center justify-end -mb-2">
+            <span className="flex items-center gap-1.5 rounded-full bg-accent-light px-3 py-1 text-[11px] font-medium text-accent">
+              <span className="inline-block h-1.5 w-1.5 animate-ping rounded-full bg-accent" />
+              Syncing
+            </span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 items-start gap-[18px]">
+          <UnknownIdentityCarousel
+            identities={identities}
+            total={total}
+            activeIndex={activeIndex}
+            onSelectIndex={setActiveIndex}
+            showTrashAction
+            onTrashed={() => loadFirstPage(false)}
+          />
+          <EmployeeAssignPicker identity={activeIdentity} onAssigned={() => loadFirstPage(false)} />
+        </div>
+      </div>
+    )
+  }
+
+  function renderTrashed() {
+    if (isErrorTrashed) return <PanelError onRetry={loadTrashed} />
+    if (isLoadingTrashed) return <PanelSkeleton />
+    if (trashedIdentities.length === 0) return <PanelEmpty view="trashed" />
+
+    const activeTrashedIdentity = trashedIdentities[trashedActiveIndex]
+
+    return (
+      <div className="grid grid-cols-2 items-start gap-[18px]">
+        <UnknownIdentityCarousel
+          identities={trashedIdentities}
+          total={trashedTotal}
+          activeIndex={trashedActiveIndex}
+          onSelectIndex={setTrashedActiveIndex}
+        />
+        <RestoreIdentityPanel identity={activeTrashedIdentity} onRestored={() => loadTrashed(false)} />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-3">
-      {isFetchingMore && (
-        <div className="flex items-center justify-end -mb-2">
-          <span className="flex items-center gap-1.5 rounded-full bg-accent-light px-3 py-1 text-[11px] font-medium text-accent">
-            <span className="inline-block h-1.5 w-1.5 animate-ping rounded-full bg-accent" />
-            Syncing
-          </span>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 items-start gap-[18px]">
-        <UnknownIdentityCarousel
-          identities={identities}
-          total={total}
-          activeIndex={activeIndex}
-          onSelectIndex={setActiveIndex}
-        />
-        <EmployeeAssignPicker identity={activeIdentity} onAssigned={() => loadFirstPage(false)} />
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setView('active')}
+          className={`rounded-full px-[14px] py-[6px] text-[12px] font-semibold transition-colors duration-150 cursor-pointer ${
+            view === 'active' ? 'bg-accent text-white' : 'bg-surface border border-border text-secondary hover:text-primary'
+          }`}
+        >
+          Unresolved
+        </button>
+        <button
+          type="button"
+          onClick={() => setView('trashed')}
+          className={`rounded-full px-[14px] py-[6px] text-[12px] font-semibold transition-colors duration-150 cursor-pointer ${
+            view === 'trashed' ? 'bg-accent text-white' : 'bg-surface border border-border text-secondary hover:text-primary'
+          }`}
+        >
+          Trashed
+        </button>
       </div>
+
+      {view === 'active' ? renderActive() : renderTrashed()}
     </div>
   )
 }
