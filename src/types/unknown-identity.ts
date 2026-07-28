@@ -1,4 +1,4 @@
-export type UnknownIdentityStatus = 'unresolved' | 'resolved'
+export type UnknownIdentityStatus = 'unresolved' | 'resolved' | 'trashed'
 
 export interface UnknownIdentityImage {
   s3_bucket: string
@@ -28,4 +28,5 @@ export interface UnknownIdentity {
   user_id: string | null
   images: UnknownIdentityImage[]
   embeddings: UnknownIdentityEmbedding[]
+  trashed_at_utc?: string | null
 }

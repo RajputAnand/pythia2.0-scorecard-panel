@@ -1,6 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
+import { trashUnknownIdentity } from '@/queries/unknown-identities'
+import { useToast } from '@/context/ToastContext'
 import type { UnknownIdentity } from '@/types/unknown-identity'
 import { getS3AssetUrl } from '@/utils/common'
 
@@ -10,11 +13,16 @@ interface UnknownIdentityCarouselProps {
   total?: number
   activeIndex: number
   onSelectIndex: (index: number) => void
+  /** Show the trash-can action in the header — off for the trashed-identities view (nothing left to trash there). */
+  showTrashAction?: boolean
+  /** Called after a successful trash, so the parent can refetch/advance past the now-removed identity. */
+  onTrashed?: () => void
 }
 
 const STATUS_STYLES: Record<string, string> = {
   unresolved: 'bg-danger-light text-danger',
   resolved: 'bg-accent-light text-accent',
+  trashed: 'bg-border text-muted',
 }
 
 // Beyond this count, showing one dot per identity overflows/wraps badly —
@@ -38,12 +46,37 @@ function visibleDotIndices(total: number, activeIndex: number): (number | 'ellip
   return indices
 }
 
-export default function UnknownIdentityCarousel({ identities, total, activeIndex, onSelectIndex }: UnknownIdentityCarouselProps) {
+export default function UnknownIdentityCarousel({
+  identities,
+  total,
+  activeIndex,
+  onSelectIndex,
+  showTrashAction = false,
+  onTrashed,
+}: UnknownIdentityCarouselProps) {
   const active = identities[activeIndex]
   const [renderedIndex, setRenderedIndex] = useState(activeIndex)
   const [photoIndex, setPhotoIndex] = useState(0)
   const [renderedPhotoKey, setRenderedPhotoKey] = useState(`${activeIndex}-0`)
   const [imgFailed, setImgFailed] = useState(false)
+  const [isTrashing, setIsTrashing] = useState(false)
+  const { data: session } = useSession()
+  const token = session?.user?.pythia2Token
+  const { showToast } = useToast()
+
+  async function handleTrash() {
+    if (!active || !token || isTrashing) return
+    setIsTrashing(true)
+    try {
+      await trashUnknownIdentity({ token, identityId: active.id })
+      showToast('Identity moved to trash')
+      onTrashed?.()
+    } catch {
+      showToast('Failed to trash this identity. Please try again.')
+    } finally {
+      setIsTrashing(false)
+    }
+  }
 
   // Reset the photo carousel whenever the active identity changes.
   if (activeIndex !== renderedIndex) {
@@ -84,9 +117,30 @@ export default function UnknownIdentityCarousel({ identities, total, activeIndex
         <span className={`rounded-full px-[10px] py-[3px] text-[10px] font-semibold capitalize ${STATUS_STYLES[active.status] ?? 'bg-surface-alt text-secondary'}`}>
           {active.status}
         </span>
-        <span className="font-mono text-[11px] text-muted whitespace-nowrap">
-          Identity {activeIndex + 1} of {totalCount}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[11px] text-muted whitespace-nowrap">
+            Identity {activeIndex + 1} of {totalCount}
+          </span>
+          {showTrashAction && (
+            <div className="relative group">
+              <button
+                type="button"
+                onClick={handleTrash}
+                disabled={isTrashing}
+                aria-label="Trash Id"
+                className="shrink-0 flex items-center justify-center w-7 h-7 rounded-full border border-border bg-surface text-secondary hover:text-danger hover:border-danger transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-default"
+              >
+                <svg className="w-[13px] h-[13px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+              <span className="pointer-events-none absolute top-full right-0 mt-1.5 whitespace-nowrap rounded-md bg-primary px-2 py-1 text-[10.5px] font-medium text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 z-10">
+                Trash Id
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Slide */}

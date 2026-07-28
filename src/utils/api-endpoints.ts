@@ -21,7 +21,10 @@ export const PYTHIA_2_API = {
   unknownIdentities: {
     list: '/unknown-identities',
     count: '/unknown-identities/count',
+    trashed: '/unknown-identities/trashed',
     assign: (identityId: string) => `/unknown-identities/${identityId}/assign`,
+    trash: (identityId: string) => `/unknown-identities/${identityId}/trash`,
+    restore: (identityId: string) => `/unknown-identities/${identityId}/restore`,
   },
   managerCoaching: {
     signals: '/manager-coaching/signals',

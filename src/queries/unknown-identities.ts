@@ -28,6 +28,17 @@ export async function fetchUnknownIdentitiesCount({ token }: { token: string }):
   return data.total
 }
 
+export async function fetchTrashedIdentities({ token, skip = 0, limit = 50 }: FetchUnknownIdentitiesParams) {
+  const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<UnknownIdentity[]>>(
+    PYTHIA_2_API.unknownIdentities.trashed,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { skip, limit },
+    },
+  )
+  return response
+}
+
 export interface AssignUnknownIdentityParams {
   token: string
   identityId: string
@@ -42,6 +53,29 @@ export async function assignUnknownIdentity({ token, identityId, userId }: Assig
       headers: { Authorization: `Bearer ${token}` },
       params: { user_id: userId },
     },
+  )
+  return response.data
+}
+
+export interface TrashUnknownIdentityParams {
+  token: string
+  identityId: string
+}
+
+export async function trashUnknownIdentity({ token, identityId }: TrashUnknownIdentityParams) {
+  const { data: response } = await pythia2Client.post<ApiResponseV2<UnknownIdentity>>(
+    PYTHIA_2_API.unknownIdentities.trash(identityId),
+    undefined,
+    { headers: { Authorization: `Bearer ${token}` } },
+  )
+  return response.data
+}
+
+export async function restoreUnknownIdentity({ token, identityId }: TrashUnknownIdentityParams) {
+  const { data: response } = await pythia2Client.post<ApiResponseV2<UnknownIdentity>>(
+    PYTHIA_2_API.unknownIdentities.restore(identityId),
+    undefined,
+    { headers: { Authorization: `Bearer ${token}` } },
   )
   return response.data
 }
