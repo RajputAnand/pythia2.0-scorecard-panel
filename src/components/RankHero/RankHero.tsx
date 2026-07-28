@@ -1,15 +1,15 @@
 const rankHistory = [
-  { month: 'Nov', width: '42%', color: '#E4DFD8', rank: '#10', accent: false },
-  { month: 'Dec', width: '54%', color: '#B0CFC0', rank: '#8', accent: false },
-  { month: 'Jan', width: '67%', color: '#78B898', rank: '#7', accent: false },
-  { month: 'Feb', width: '76%', color: '#1D5C3A', rank: '#6 ↑', accent: true },
+  { month: 'Nov', width: '0%', color: '#E4DFD8', rank: 'N/A', accent: false },
+  { month: 'Dec', width: '0%', color: '#B0CFC0', rank: 'N/A', accent: false },
+  { month: 'Jan', width: '0%', color: '#78B898', rank: 'N/A', accent: false },
+  { month: 'Feb', width: '0%', color: '#1D5C3A', rank: 'N/A', accent: true },
 ]
 
 const metrics = [
-  { label: 'Hospitality', val: 84, rank: '#4 of 24', color: 'text-accent' },
-  { label: 'Checkout Spd', val: 74, rank: '#11 of 24', color: 'text-amber' },
-  { label: 'Time to Svc', val: 82, rank: '#6 of 24', color: 'text-accent' },
-  { label: 'Overall Score', val: 82, rank: '#6 of 24', color: 'text-accent' },
+  { label: 'Hospitality', val: 0, rank: 'N/A', color: 'text-accent' },
+  { label: 'Checkout Spd', val: 0, rank: 'N/A', color: 'text-amber' },
+  { label: 'Time to Svc', val: 0, rank: 'N/A', color: 'text-accent' },
+  { label: 'Overall Score', val: 0, rank: 'N/A', color: 'text-accent' },
 ]
 
 export default function RankHero() {
@@ -22,14 +22,13 @@ export default function RankHero() {
         style={{ background: 'linear-gradient(160deg, #1A1714 0%, #2C2820 100%)' }}
       >
         <div className="text-[10px] font-semibold uppercase tracking-[.12em] text-white/35">Your Rank</div>
-        <div className="font-mono text-[72px] font-medium text-white leading-none tracking-[-0.04em]">#6</div>
-        <div className="font-mono text-[13px] text-white/35">of 24 stores</div>
+        <div className="font-mono text-[72px] font-medium text-white leading-none tracking-[-0.04em]">N/A</div>
+        <div className="font-mono text-[13px] text-white/35">N/A</div>
         <div
           className="flex items-center gap-[6px] rounded-full px-3 py-1"
-          style={{ background: 'rgba(29,92,58,0.4)' }}
+          style={{ background: 'rgba(255,255,255,0.1)' }}
         >
-          <span className="text-[13px] text-[#78C99A]">↑</span>
-          <span className="font-mono text-[12px] font-semibold text-[#78C99A]">+4 since Nov</span>
+          <span className="font-mono text-[12px] font-semibold text-white/50">N/A</span>
         </div>
       </div>
 
@@ -40,9 +39,9 @@ export default function RankHero() {
           <div className="h-7 bg-surface-alt rounded-lg overflow-hidden">
             <div
               className="h-full rounded-lg flex items-center pl-3"
-              style={{ width: '76%', background: 'linear-gradient(90deg, #C8E6D6 0%, #1D5C3A 100%)' }}
+              style={{ width: '0%', background: 'linear-gradient(90deg, #C8E6D6 0%, #1D5C3A 100%)' }}
             >
-              <span className="font-mono text-[12px] font-bold text-white whitespace-nowrap">Top 25% · 76th percentile</span>
+              <span className="font-mono text-[12px] font-bold text-white whitespace-nowrap">N/A</span>
             </div>
           </div>
           <div className="flex justify-between mt-[5px]">

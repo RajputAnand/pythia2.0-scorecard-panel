@@ -16,43 +16,43 @@ interface Segment {
 const segments: Segment[] = [
   {
     icon: '🚀',
-    variant: 'growing',
+    variant: 'stable',
     name: 'Young Professionals (25–34)',
-    detail: 'Weekday lunch + after-work peaks · Instagram-driven',
-    visitGrowth: '+31%',
-    visitColor: 'text-accent',
-    avgBasket: '$9.80',
-    basketColor: 'text-accent',
+    detail: 'Weekday lunch + after-work peaks',
+    visitGrowth: 'N/A',
+    visitColor: 'text-secondary',
+    avgBasket: '$0',
+    basketColor: 'text-secondary',
   },
   {
     icon: '📱',
-    variant: 'growing',
+    variant: 'stable',
     name: 'Gen Z (18–24)',
-    detail: 'Evening visits · High frequency, lower basket',
-    visitGrowth: '+22%',
-    visitColor: 'text-accent',
-    avgBasket: '$6.40',
+    detail: 'Evening visits',
+    visitGrowth: 'N/A',
+    visitColor: 'text-secondary',
+    avgBasket: '$0',
     basketColor: 'text-secondary',
   },
   {
     icon: '➡️',
     variant: 'stable',
     name: 'Families (35–44)',
-    detail: 'Weekend morning peaks · Stable but not growing',
-    visitGrowth: '−1%',
+    detail: 'Weekend morning peaks',
+    visitGrowth: 'N/A',
     visitColor: 'text-secondary',
-    avgBasket: '$12.20',
-    basketColor: 'text-accent',
+    avgBasket: '$0',
+    basketColor: 'text-secondary',
   },
   {
     icon: '📉',
-    variant: 'shrinking',
+    variant: 'stable',
     name: 'Older Adults (45+)',
-    detail: 'Morning visits · Highest basket, but declining',
-    visitGrowth: '−18%',
-    visitColor: 'text-danger',
-    avgBasket: '$14.60',
-    basketColor: 'text-accent',
+    detail: 'Morning visits',
+    visitGrowth: 'N/A',
+    visitColor: 'text-secondary',
+    avgBasket: '$0',
+    basketColor: 'text-secondary',
   },
 ]
 
@@ -103,7 +103,7 @@ export default function CustomerSegmentShifts() {
         ))}
 
         <div className="mt-[2px] bg-surface-alt rounded-[9px] px-[13px] py-[10px] text-[12px] text-secondary leading-[1.5]">
-          <strong className="font-semibold text-primary">Opportunity:</strong> The 45+ segment has your highest avg basket ($14.60) but is declining fastest (−18%). A signage or direct mail campaign targeted at this group could recover high-value visits — they're not going to Instagram.
+          <strong className="font-semibold text-primary">Opportunity:</strong> Segment growth data is not yet available for this period.
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@ import type { ScoreVsTransactionsData } from '@/types/score-vs-transactions'
 export const SCORE_VS_TRANSACTIONS_DATA: ScoreVsTransactionsData = {
   title: 'Team Score vs. Monthly Transactions',
   subtitle: 'Monthly · Node 1 + Node 2 combined',
-  badge: 'r = 0.94 correlation',
+  badge: 'N/A correlation',
   legend: [
     { label: 'Team score', color: '#1D5C3A' },
     { label: 'Transactions/mo', color: '#1E4D7A' },
@@ -12,10 +12,10 @@ export const SCORE_VS_TRANSACTIONS_DATA: ScoreVsTransactionsData = {
   viewBox: '0 0 460 140',
   gridLines: [{ y: 20 }, { y: 50 }, { y: 80 }, { y: 110 }],
   yLabels: [
-    { x: 0, y: 24, value: '100' },
-    { x: 0, y: 54, value: '85' },
-    { x: 0, y: 84, value: '70' },
-    { x: 0, y: 114, value: '55' },
+    { x: 0, y: 24, value: '0' },
+    { x: 0, y: 54, value: '0' },
+    { x: 0, y: 84, value: '0' },
+    { x: 0, y: 114, value: '0' },
   ],
   series: [
     {
@@ -30,11 +30,11 @@ export const SCORE_VS_TRANSACTIONS_DATA: ScoreVsTransactionsData = {
         { cx: 440, cy: 48, r: 4, fill: 'white', stroke: '#1D5C3A', strokeWidth: 2 },
       ],
       labels: [
-        { x: 15, y: 100, value: '76' },
-        { x: 130, y: 90, value: '78' },
-        { x: 245, y: 75, value: '80' },
-        { x: 340, y: 57, value: '82' },
-        { x: 435, y: 43, value: '85', opacity: 0.6 },
+        { x: 15, y: 100, value: '0' },
+        { x: 130, y: 90, value: '0' },
+        { x: 245, y: 75, value: '0' },
+        { x: 340, y: 57, value: '0' },
+        { x: 435, y: 43, value: '0', opacity: 0.6 },
       ],
       extension: { path: 'M 345 62 L 440 48', strokeWidth: 2, strokeDasharray: '5,4' },
     },
@@ -50,11 +50,11 @@ export const SCORE_VS_TRANSACTIONS_DATA: ScoreVsTransactionsData = {
         { cx: 440, cy: 50, r: 4, fill: 'white', stroke: '#1E4D7A', strokeWidth: 2 },
       ],
       labels: [
-        { x: 15, y: 130, value: '2,840' },
-        { x: 118, y: 130, value: '2,910' },
-        { x: 232, y: 130, value: '3,040' },
-        { x: 327, y: 130, value: '3,180' },
-        { x: 420, y: 130, value: '3,320', opacity: 0.6 },
+        { x: 15, y: 130, value: '0' },
+        { x: 118, y: 130, value: '0' },
+        { x: 232, y: 130, value: '0' },
+        { x: 327, y: 130, value: '0' },
+        { x: 420, y: 130, value: '0', opacity: 0.6 },
       ],
       extension: { path: 'M 345 66 L 440 50', strokeWidth: 2, strokeDasharray: '5,4' },
     },
@@ -68,5 +68,5 @@ export const SCORE_VS_TRANSACTIONS_DATA: ScoreVsTransactionsData = {
     { label: 'Mar \u203a', color: '#1E4D7A', opacity: 0.6 },
   ],
   insightEmoji: '\u{1F4C8}',
-  insightText: 'Every **1-point increase in team score** correlates to approximately **+47 monthly transactions.** Feb\'s score of 82 produced 3,180 transactions vs. 2,840 when the score was 76 in November.',
+  insightText: 'Correlation between **team score** and **monthly transactions** is not yet available. Score and transaction figures will populate once live data is connected.',
 }

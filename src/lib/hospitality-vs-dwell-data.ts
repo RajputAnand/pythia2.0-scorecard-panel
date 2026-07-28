@@ -3,7 +3,7 @@ import type { HospitalityVsDwellData } from '@/types/hospitality-vs-dwell'
 export const HOSPITALITY_VS_DWELL_DATA: HospitalityVsDwellData = {
   title: 'Hospitality Score vs. Avg Dwell Time',
   subtitle: 'Monthly · Node 2 customer tracking',
-  badge: 'r = 0.87 correlation',
+  badge: 'N/A correlation',
   legend: [
     { label: 'Hospitality score', color: '#1D5C3A' },
     { label: 'Avg dwell (min)', color: '#5C3A8C' },
@@ -25,10 +25,10 @@ export const HOSPITALITY_VS_DWELL_DATA: HospitalityVsDwellData = {
         { cx: 440, cy: 50, r: 4, fill: 'white', stroke: '#1D5C3A', strokeWidth: 2 },
       ],
       labels: [
-        { x: 15, y: 103, value: '71' },
-        { x: 130, y: 95, value: '74' },
-        { x: 245, y: 77, value: '79' },
-        { x: 340, y: 60, value: '84' },
+        { x: 15, y: 103, value: '0' },
+        { x: 130, y: 95, value: '0' },
+        { x: 245, y: 77, value: '0' },
+        { x: 340, y: 60, value: '0' },
       ],
       extension: { path: 'M 345 65 L 440 50', strokeWidth: 2, strokeDasharray: '5,4' },
     },
@@ -44,11 +44,11 @@ export const HOSPITALITY_VS_DWELL_DATA: HospitalityVsDwellData = {
         { cx: 440, cy: 54, r: 4, fill: 'white', stroke: '#5C3A8C', strokeWidth: 2 },
       ],
       labels: [
-        { x: 9, y: 128, value: '3:42' },
-        { x: 122, y: 128, value: '3:58' },
-        { x: 237, y: 128, value: '4:11' },
-        { x: 330, y: 128, value: '4:28' },
-        { x: 422, y: 128, value: '4:45', opacity: 0.6 },
+        { x: 9, y: 128, value: 'N/A' },
+        { x: 122, y: 128, value: 'N/A' },
+        { x: 237, y: 128, value: 'N/A' },
+        { x: 330, y: 128, value: 'N/A' },
+        { x: 422, y: 128, value: 'N/A', opacity: 0.6 },
       ],
       extension: { path: 'M 345 70 L 440 54', strokeWidth: 2, strokeDasharray: '5,4' },
     },
@@ -62,5 +62,5 @@ export const HOSPITALITY_VS_DWELL_DATA: HospitalityVsDwellData = {
     { label: 'Mar \u203a', color: '#1E4D7A', opacity: 0.6 },
   ],
   insightEmoji: '\u{1F550}',
-  insightText: 'Each **5-point hospitality improvement** adds approximately **18 seconds of dwell time.** Longer dwell correlates to +2.3% basket size — customers who stay longer buy more.',
+  insightText: 'Correlation between **hospitality score** and **dwell time** is not yet available. This will populate once live data is connected.',
 }
