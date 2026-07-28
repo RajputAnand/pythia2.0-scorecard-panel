@@ -87,6 +87,25 @@ export function formatNameList(names: string[]): string {
   return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`
 }
 
+/** Initials from an already-formatted display name (e.g. "Marcus R." → "MR"). */
+export function getInitialsFromDisplayName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+}
+
+const AVATAR_PALETTE = ['#1E4D7A', '#1D5C3A', '#B8622A', '#7A6A55', '#555555', '#6B4E9E', '#B52B1E', '#2A6F6F']
+
+/** Deterministically assigns one of a fixed palette of colors from a stable id — purely a UI styling choice, not derived data. */
+export function getAvatarColor(seed: string): string {
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
+  }
+  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length]
+}
+
 /** Renders a string with **bold** markers as React nodes */
 export function renderText(text: string): ReactNode[] {
   const parts = text.split(/\*\*(.*?)\*\*/g)

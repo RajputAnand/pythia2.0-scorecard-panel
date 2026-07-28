@@ -25,5 +25,9 @@ export const PYTHIA_2_API = {
   managerCoaching: {
     signals: '/manager-coaching/signals',
     signal: (planId: string) => `/manager-coaching/signals/${planId}`,
+    summary: '/manager-coaching/summary',
+    effectiveness: '/manager-coaching/effectiveness',
+    employees: '/manager-coaching/employees',
+    employeeDetail: (userId: string) => `/manager-coaching/employees/${userId}`,
   },
 } as const

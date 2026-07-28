@@ -2,13 +2,31 @@ import Header from '@/components/shared/Header/Header'
 import headerStyles from '@/components/shared/Header/Header.module.css'
 import CoachingWinStrip from '@/components/CoachingWinStrip/CoachingWinStrip'
 import CoachingTrackerPanel from '@/components/CoachingTrackerPanel/CoachingTrackerPanel'
+import { fetchCoachingSummary, fetchCoachingEmployees } from '@/queries/manager-coaching'
+import { auth } from '@/auth'
+import type { CoachingSummary, CoachingEmployeeChip } from '@/types/coaching-plan'
 
 export const metadata = {
   title: 'Pythia — Coaching Effectiveness Tracker',
   description: 'Track coaching effectiveness, issue resolution rates, and employee progress.',
 }
 
-export default function CoachingTrackerPage() {
+export default async function CoachingTrackerPage() {
+  const session = await auth()
+  const token = session?.user?.pythia2Token
+
+  let summary: CoachingSummary | null = null
+  let employees: CoachingEmployeeChip[] = []
+
+  if (token) {
+    const [summaryResult, employeesResult] = await Promise.allSettled([
+      fetchCoachingSummary({ token, view: 'week' }),
+      fetchCoachingEmployees({ token }),
+    ])
+    if (summaryResult.status === 'fulfilled') summary = summaryResult.value
+    if (employeesResult.status === 'fulfilled') employees = employeesResult.value
+  }
+
   return (
     <>
       <Header title="Coaching Effectiveness Tracker" subtitle="Week of Feb 17–23, 2026">
@@ -17,8 +35,8 @@ export default function CoachingTrackerPage() {
       </Header>
 
       <div className="px-[30px] py-[26px] flex flex-col gap-5">
-        <CoachingWinStrip />
-        <CoachingTrackerPanel />
+        <CoachingWinStrip summary={summary} />
+        <CoachingTrackerPanel initialEmployees={employees} />
       </div>
     </>
   )

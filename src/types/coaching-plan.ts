@@ -47,3 +47,83 @@ export interface ManagerActionRequestBody {
   note?: string
   edits?: PlanEditFields
 }
+
+export type CoachingView = 'week' | 'all'
+
+// Mirrors get_coaching_summary in app/services/manager_coaching_service.py —
+// the 4-card summary returned by GET /manager-coaching/summary (and embedded
+// under `summary` in GET /manager-coaching/employees/{user_id}).
+export interface CoachingSummary {
+  team_win_rate: {
+    pct: number
+    resolved: number
+    total: number
+    label: string
+    target_label: string | null
+  }
+  avg_time_to_resolve: {
+    weeks: number | null
+    target_weeks: number
+    target_label: string
+  }
+  ai_stalled: {
+    count: number
+    flag_label: string
+    action_label: string
+  }
+  in_progress: {
+    count: number
+    employees_affected: number
+    label: string
+  }
+  view: CoachingView
+  week_start: string | null
+}
+
+// Mirrors one row of get_coaching_effectiveness — GET /manager-coaching/effectiveness,
+// and the `categories` array under GET /manager-coaching/employees/{user_id}.
+export interface CoachingEffectivenessRow {
+  category: string
+  total: number
+  resolved: number
+  in_progress: number
+  stalled: number
+  resolved_pct: number
+  avg_weeks_to_resolve: number | null
+}
+
+// Mirrors get_employee_coaching_list — GET /manager-coaching/employees.
+export interface CoachingEmployeeChip {
+  user_id: string
+  name: string
+  role_title: string
+  health: 'red' | 'amber' | 'green'
+  total_issues: number
+}
+
+export type CoachingIssueStatus = 'resolved' | 'in_progress' | 'stalled'
+
+// Mirrors one entry of the `signals` array in get_employee_coaching_detail —
+// GET /manager-coaching/employees/{user_id}.
+export interface CoachingEmployeeIssue {
+  signal_id: string
+  category: string
+  issue_title: string
+  coach_quote: string | null
+  status: CoachingIssueStatus
+  first_score: number | null
+  current_score: number | null
+  score_delta: number | null
+  weeks_tracked: number | null
+  first_flagged_at: string | null
+  resolved_at: string | null
+}
+
+// Mirrors get_employee_coaching_detail — GET /manager-coaching/employees/{user_id}.
+export interface CoachingEmployeeDetail {
+  user_id: string
+  days: number
+  summary: CoachingSummary
+  signals: CoachingEmployeeIssue[]
+  categories: CoachingEffectivenessRow[]
+}
