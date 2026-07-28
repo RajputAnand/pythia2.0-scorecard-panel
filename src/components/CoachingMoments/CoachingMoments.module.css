@@ -1,0 +1,10 @@
+@reference "../../app/globals.css";
+
+/* Descendant selectors for strong tags inside dynamic JSX content */
+.what strong {
+  @apply font-semibold text-primary;
+}
+
+.tip strong {
+  @apply font-semibold text-primary;
+}

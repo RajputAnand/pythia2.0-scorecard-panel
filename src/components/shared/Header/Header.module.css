@@ -1,0 +1,28 @@
+@reference "../../../app/globals.css";
+
+/* Shared button styles — consumers apply these classes via headerStyles import */
+.btnGhost {
+  @apply cursor-pointer font-sans font-medium text-secondary border border-border bg-transparent rounded-lg transition-all duration-150 hover:bg-surface-alt;
+  font-size: 12.5px;
+  padding: 7px 15px;
+}
+
+.btnAccent {
+  @apply cursor-pointer font-sans font-medium text-white bg-accent border-0 rounded-lg transition-all duration-150;
+  font-size: 12.5px;
+  padding: 7px 15px;
+}
+
+.btnAccent:hover {
+  opacity: 0.85;
+}
+
+.btnPrimary {
+  @apply cursor-pointer font-sans font-medium text-white bg-primary border-0 rounded-lg transition-all duration-150;
+  font-size: 12.5px;
+  padding: 7px 15px;
+}
+
+.btnPrimary:hover {
+  opacity: 0.82;
+}

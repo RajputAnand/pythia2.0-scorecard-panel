@@ -1,0 +1,6 @@
+@reference "../../app/globals.css";
+
+/* Descendant selector for strong tags inside dynamic JSX content */
+.eventText strong {
+  @apply font-semibold text-primary;
+}

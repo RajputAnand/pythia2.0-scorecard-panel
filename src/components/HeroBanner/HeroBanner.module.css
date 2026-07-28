@@ -1,0 +1,22 @@
+/* Pseudo-elements for banner decorative circles */
+.bannerPseudo::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.bannerPseudo::after {
+  content: '';
+  position: absolute;
+  bottom: -40px;
+  left: 40%;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: rgba(29, 92, 58, 0.2);
+}

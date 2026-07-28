@@ -1,0 +1,16 @@
+@reference "../../app/globals.css";
+
+/* nth-child selectors — can't be expressed inline */
+.item:nth-child(3n) {
+  @apply border-r-0;
+}
+
+.item:nth-last-child(-n+3) {
+  @apply border-b-0;
+}
+
+/* Descendant selector for strong inside dynamic text */
+.earnRate strong {
+  color: rgba(255, 255, 255, 0.6);
+}
+

@@ -1,0 +1,33 @@
+@reference "../../app/globals.css";
+
+/* Table — complex descendant/nth selectors can't be expressed inline */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  @apply text-muted font-semibold uppercase border-b border-border text-left;
+  font-size: 10px;
+  letter-spacing: .09em;
+  padding: 0 14px 10px;
+}
+
+.table th:last-child {
+  text-align: right;
+}
+
+.table td {
+  @apply border-b border-border;
+  font-size: 13px;
+  padding: 13px 14px;
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table td:last-child {
+  text-align: right;
+}
