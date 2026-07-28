@@ -16,6 +16,9 @@ export default function ManagerDashboardLoading() {
           </div>
         </div>
 
+        {/* EmployeeSpotlightCard skeleton */}
+        <div className="rounded-2xl bg-border h-[168px]" />
+
         {/* ManagerDashboardKpiStrip skeleton — 4 cards */}
         <div className="grid grid-cols-4 gap-[14px]">
           {Array.from({ length: 4 }).map((_, i) => (
