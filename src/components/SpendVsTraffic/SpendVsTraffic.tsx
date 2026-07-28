@@ -7,8 +7,8 @@ export default function SpendVsTraffic() {
           <div className="text-[11.5px] text-muted mt-[2px]">Monthly · All channels combined · Node 2 foot traffic vs. spend log</div>
         </div>
         <div className="flex gap-[6px] shrink-0">
-          <div className="text-[10.5px] px-[10px] py-1 rounded-full bg-accent-light text-accent font-semibold">Social 3.4× ROAS</div>
-          <div className="text-[10.5px] px-[10px] py-1 rounded-full bg-amber-light text-amber font-semibold">Signage 1.8× ROAS</div>
+          <div className="text-[10.5px] px-[10px] py-1 rounded-full bg-accent-light text-accent font-semibold">Social N/A ROAS</div>
+          <div className="text-[10.5px] px-[10px] py-1 rounded-full bg-amber-light text-amber font-semibold">Signage N/A ROAS</div>
         </div>
       </div>
 
@@ -71,10 +71,10 @@ export default function SpendVsTraffic() {
             <circle cx="500" cy="90"  r="4" fill="#1A1714"/>
             <circle cx="700" cy="65"  r="4" fill="#1A1714"/>
             {/* Traffic labels */}
-            <text x="90"  y="125" fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">Base</text>
-            <text x="285" y="110" fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">+8%</text>
-            <text x="485" y="85"  fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">+14%</text>
-            <text x="685" y="60"  fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">+18%</text>
+            <text x="90"  y="125" fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">N/A</text>
+            <text x="285" y="110" fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">N/A</text>
+            <text x="485" y="85"  fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">N/A</text>
+            <text x="685" y="60"  fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">N/A</text>
             {/* Y labels */}
             <text x="0" y="34"  fontSize="9" fill="#B0A89E" fontFamily="DM Mono">High</text>
             <text x="0" y="74"  fontSize="9" fill="#B0A89E" fontFamily="DM Mono">Med</text>
@@ -91,7 +91,7 @@ export default function SpendVsTraffic() {
 
         {/* Callout */}
         <div className="mt-[13px] bg-accent-light rounded-[9px] px-[13px] py-[10px] text-[12px] text-accent leading-[1.5]">
-          <strong className="font-semibold">Paid social is your highest-leverage channel</strong> — each $100 in social spend produces ~$340 in incremental revenue (3.4× ROAS). In-store promos are the second-best driver of foot traffic during launch weeks. Email/SMS shows the weakest traffic lift but lowest cost-per-send.
+          <strong className="font-semibold">Channel performance data is not yet available.</strong> ROAS and traffic lift figures will populate once live data is connected.
         </div>
       </div>
     </div>
