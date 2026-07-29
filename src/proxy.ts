@@ -23,7 +23,7 @@ export const proxy = auth((req) => {
   const session = req.auth
 
   // Unauthenticated: allow /login, redirect everything else
-  if (!session) {
+  if (!session?.user) {
     if (
       pathname === '/login/employee' ||
       pathname === '/login/manager' ||
