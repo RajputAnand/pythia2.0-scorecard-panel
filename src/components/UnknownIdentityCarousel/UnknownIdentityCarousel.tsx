@@ -144,96 +144,100 @@ export default function UnknownIdentityCarousel({
       </div>
 
       {/* Slide */}
-      <div className="flex items-center gap-3 px-5 py-5">
-        <button
-          type="button"
-          onClick={() => goTo(activeIndex - 1)}
-          disabled={loaded <= 1}
-          aria-label="Previous identity"
-          className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-border bg-surface text-secondary hover:text-primary hover:border-accent transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-default"
-        >
-          <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
+      <div className="flex flex-col items-center gap-3 px-5 py-5">
+        {/* Photo row — arrows are centered against the photo only, so they don't shift when
+            the thumbnail strip below is absent (single-image identities). */}
+        <div className="w-full flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => goTo(activeIndex - 1)}
+            disabled={loaded <= 1}
+            aria-label="Previous identity"
+            className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-border bg-surface text-secondary hover:text-primary hover:border-accent transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-default"
+          >
+            <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
 
-        <div className="flex-1 min-w-0 flex flex-col items-center gap-3">
           {/* Main photo */}
-          <div className="relative w-full max-w-[320px] aspect-square rounded-[12px] overflow-hidden bg-surface-alt border border-border">
-            {photo && !imgFailed ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={getS3AssetUrl(photo.s3_key)}
-                alt={`${active.name} — photo ${photoIndex + 1}`}
-                onError={() => setImgFailed(true)}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <circle cx="9" cy="9" r="2" />
-                  <path d="M21 15l-5-5L5 21" />
-                </svg>
-                <span className="text-[11px]">{photo ? 'Photo unavailable' : 'No photo'}</span>
-              </div>
-            )}
+          <div className="flex-1 min-w-0 flex justify-center">
+            <div className="relative w-full max-w-[320px] aspect-square rounded-[12px] overflow-hidden bg-surface-alt border border-border">
+              {photo && !imgFailed ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={getS3AssetUrl(photo.s3_key)}
+                  alt={`${active.name} — photo ${photoIndex + 1}`}
+                  onError={() => setImgFailed(true)}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="9" cy="9" r="2" />
+                    <path d="M21 15l-5-5L5 21" />
+                  </svg>
+                  <span className="text-[11px]">{photo ? 'Photo unavailable' : 'No photo'}</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Photo thumbnails — scrolls horizontally instead of forcing the card wider than its grid column */}
-          {active.images.length > 1 && (
-            <div className="w-full max-w-[320px] flex gap-2 overflow-x-auto pb-1">
-              {active.images.map((img, i) => (
-                <button
-                  key={img.embedding_id ?? i}
-                  type="button"
-                  onClick={() => setPhotoIndex(i)}
-                  className={`shrink-0 w-9 h-9 rounded-[7px] overflow-hidden border-2 cursor-pointer transition-colors duration-150 bg-surface-alt ${
-                    i === photoIndex ? 'border-accent' : 'border-transparent hover:border-border'
-                  }`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={getS3AssetUrl(img.s3_key)}
-                    alt=""
-                    onError={(e) => { e.currentTarget.style.visibility = 'hidden' }}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Metadata */}
-          <div className="w-full max-w-[320px] flex flex-col gap-1 text-[11.5px] text-secondary">
-            <div className="flex justify-between gap-2 min-w-0">
-              <span className="text-muted shrink-0">Device</span>
-              <span className="font-mono truncate" title={active.device_id}>{active.device_id}</span>
-            </div>
-            <div className="flex justify-between gap-2 min-w-0">
-              <span className="text-muted shrink-0">Session</span>
-              <span className="font-mono truncate" title={active.session_id}>{active.session_id}</span>
-            </div>
-            {photo && (
-              <div className="flex justify-between gap-2 min-w-0">
-                <span className="text-muted shrink-0">Captured</span>
-                <span className="truncate">{new Date(photo.captured_at_utc).toLocaleString()}</span>
-              </div>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={() => goTo(activeIndex + 1)}
+            disabled={loaded <= 1 || (atLastLoaded && hasMoreToLoad)}
+            aria-label="Next identity"
+            className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-border bg-surface text-secondary hover:text-primary hover:border-accent transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-default"
+          >
+            <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => goTo(activeIndex + 1)}
-          disabled={loaded <= 1 || (atLastLoaded && hasMoreToLoad)}
-          aria-label="Next identity"
-          className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-border bg-surface text-secondary hover:text-primary hover:border-accent transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-default"
-        >
-          <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
+        {/* Photo thumbnails — scrolls horizontally instead of forcing the card wider than its grid column */}
+        {active.images.length > 1 && (
+          <div className="w-full max-w-[320px] flex gap-2 overflow-x-auto pb-1">
+            {active.images.map((img, i) => (
+              <button
+                key={img.embedding_id ?? i}
+                type="button"
+                onClick={() => setPhotoIndex(i)}
+                className={`shrink-0 w-9 h-9 rounded-[7px] overflow-hidden border-2 cursor-pointer transition-colors duration-150 bg-surface-alt ${
+                  i === photoIndex ? 'border-accent' : 'border-transparent hover:border-border'
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={getS3AssetUrl(img.s3_key)}
+                  alt=""
+                  onError={(e) => { e.currentTarget.style.visibility = 'hidden' }}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Metadata */}
+        <div className="w-full max-w-[320px] flex flex-col gap-1 text-[11.5px] text-secondary">
+          <div className="flex justify-between gap-2 min-w-0">
+            <span className="text-muted shrink-0">Device</span>
+            <span className="font-mono truncate" title={active.device_id}>{active.device_id}</span>
+          </div>
+          <div className="flex justify-between gap-2 min-w-0">
+            <span className="text-muted shrink-0">Session</span>
+            <span className="font-mono truncate" title={active.session_id}>{active.session_id}</span>
+          </div>
+          {photo && (
+            <div className="flex justify-between gap-2 min-w-0">
+              <span className="text-muted shrink-0">Captured</span>
+              <span className="truncate">{new Date(photo.captured_at_utc).toLocaleString()}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Dot indicators — windowed (first…current±2…last) once the list gets large, so it never wraps/overflows */}
