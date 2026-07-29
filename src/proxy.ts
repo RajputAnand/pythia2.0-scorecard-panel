@@ -1,12 +1,7 @@
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import type { UserRole } from "@/types/user"
-
-const ROLE_DEFAULT_ROUTES: Record<UserRole, string> = {
-  employee: '/dashboard/overview',
-  owner: '/owner/roi-attribution',
-  manager: '/manager/coaching-tracker',
-}
+import { ROLE_DEFAULT_ROUTES } from "@/utils/routes"
 
 /**
  * Allowed route prefixes per role.
