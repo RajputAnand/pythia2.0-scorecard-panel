@@ -3,6 +3,10 @@ import Credentials from "next-auth/providers/credentials"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
+  // Required on any host that isn't Vercel/Cloudflare Pages (e.g. AWS Amplify) —
+  // without it, auth.js throws UntrustedHost on every request in production
+  // because it won't trust the incoming Host header by default.
+  trustHost: true,
   providers: [
     Credentials({
       credentials: {
