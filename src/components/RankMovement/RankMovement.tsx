@@ -12,68 +12,68 @@ const tracks: StoreTrack[] = [
   {
     label: '#14',
     months: [
-      { rank: '#1', flex: 0.9, color: '#B8860B' },
-      { rank: '#1', flex: 0.9, color: '#B8860B' },
-      { rank: '#1', flex: 0.9, color: '#B8860B' },
-      { rank: '#1', flex: 0.9, color: '#B8860B' },
+      { rank: 'N/A', flex: 0.9, color: '#B8860B' },
+      { rank: 'N/A', flex: 0.9, color: '#B8860B' },
+      { rank: 'N/A', flex: 0.9, color: '#B8860B' },
+      { rank: 'N/A', flex: 0.9, color: '#B8860B' },
     ],
-    currentRank: '#1',
+    currentRank: 'N/A',
     currentColor: '#B8860B',
-    delta: '±0',
+    delta: 'N/A',
     deltaVariant: 'flat',
   },
   {
     label: '#7',
     months: [
-      { rank: '#2', flex: 0.85, color: '#5A7A9A' },
-      { rank: '#2', flex: 0.85, color: '#5A7A9A' },
-      { rank: '#3', flex: 0.85, color: '#5A7A9A' },
-      { rank: '#2', flex: 0.85, color: '#5A7A9A' },
+      { rank: 'N/A', flex: 0.85, color: '#5A7A9A' },
+      { rank: 'N/A', flex: 0.85, color: '#5A7A9A' },
+      { rank: 'N/A', flex: 0.85, color: '#5A7A9A' },
+      { rank: 'N/A', flex: 0.85, color: '#5A7A9A' },
     ],
-    currentRank: '#2',
+    currentRank: 'N/A',
     currentColor: '#5A7A9A',
-    delta: '±0',
+    delta: 'N/A',
     deltaVariant: 'flat',
   },
   {
     label: '#18',
     months: [
-      { rank: '#4', flex: 0.7, color: '#4A8A6A' },
-      { rank: '#5', flex: 0.68, color: '#4A8A6A' },
-      { rank: '#6', flex: 0.66, color: '#4A8A6A' },
-      { rank: '#5', flex: 0.72, color: '#4A8A6A' },
+      { rank: 'N/A', flex: 0.7, color: '#4A8A6A' },
+      { rank: 'N/A', flex: 0.68, color: '#4A8A6A' },
+      { rank: 'N/A', flex: 0.66, color: '#4A8A6A' },
+      { rank: 'N/A', flex: 0.72, color: '#4A8A6A' },
     ],
-    currentRank: '#5',
+    currentRank: 'N/A',
     currentColor: '#4A8A6A',
-    delta: '↑ +1',
-    deltaVariant: 'up',
+    delta: 'N/A',
+    deltaVariant: 'flat',
   },
   {
     label: 'You',
     isYours: true,
     months: [
-      { rank: '#10', flex: 0.56, color: '#1D5C3A' },
-      { rank: '#8', flex: 0.60, color: '#1D5C3A' },
-      { rank: '#7', flex: 0.63, color: '#1D5C3A' },
-      { rank: '#6', flex: 0.68, color: '#1D5C3A' },
+      { rank: 'N/A', flex: 0.56, color: '#1D5C3A' },
+      { rank: 'N/A', flex: 0.60, color: '#1D5C3A' },
+      { rank: 'N/A', flex: 0.63, color: '#1D5C3A' },
+      { rank: 'N/A', flex: 0.68, color: '#1D5C3A' },
     ],
-    currentRank: '#6',
+    currentRank: 'N/A',
     currentColor: '#1D5C3A',
-    delta: '↑ +4',
-    deltaVariant: 'up',
+    delta: 'N/A',
+    deltaVariant: 'flat',
   },
   {
     label: '#9',
     months: [
-      { rank: '#8', flex: 0.60, color: '#888' },
-      { rank: '#7', flex: 0.60, color: '#888' },
-      { rank: '#5', flex: 0.60, color: '#888' },
-      { rank: '#7', flex: 0.58, color: '#888' },
+      { rank: 'N/A', flex: 0.60, color: '#888' },
+      { rank: 'N/A', flex: 0.60, color: '#888' },
+      { rank: 'N/A', flex: 0.60, color: '#888' },
+      { rank: 'N/A', flex: 0.58, color: '#888' },
     ],
-    currentRank: '#7',
+    currentRank: 'N/A',
     currentColor: '#888',
-    delta: '↓ −2',
-    deltaVariant: 'down',
+    delta: 'N/A',
+    deltaVariant: 'flat',
   },
 ]
 
@@ -88,7 +88,7 @@ export default function RankMovement() {
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
       <div className="px-[22px] py-4 border-b border-border">
         <div className="text-[13.5px] font-semibold">Month-over-Month Rank Movement</div>
-        <div className="text-[11.5px] text-muted mt-[2px]">Your store vs. top 5 and nearest competitor · Nov 2025 – Feb 2026</div>
+        <div className="text-[11.5px] text-muted mt-[2px]">Your store vs. top 5 and nearest competitor</div>
       </div>
 
       <div className="flex flex-col gap-[14px] px-[22px] py-5">
@@ -116,7 +116,7 @@ export default function RankMovement() {
         ))}
 
         <div className="pt-3 border-t border-border text-[11.5px] text-muted leading-[1.6]">
-          <strong className="font-semibold text-secondary">Key takeaway:</strong> Your store has climbed faster than any other in the top 10 over 4 months (+4 positions). Store #9 — your nearest competitor — is declining. At the current trajectory, you reach top 5 by April if checkout speed improves as projected.
+          <strong className="font-semibold text-secondary">Key takeaway:</strong> Rank movement data is not yet available for this period.
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import Header from '@/components/shared/Header/Header'
 import ManagerDashboardKpiStrip from '@/components/ManagerDashboardKpiStrip/ManagerDashboardKpiStrip'
+import EmployeeSpotlightCard from '@/components/EmployeeSpotlightCard/EmployeeSpotlightCard'
 import ManagerDashboardLeaderboard from '@/components/ManagerDashboardLeaderboard/ManagerDashboardLeaderboard'
 import ManagerDashboardTrendChart from '@/components/ManagerDashboardTrendChart/ManagerDashboardTrendChart'
 import UnknownIdentitiesAlertCard from '@/components/UnknownIdentitiesAlertCard/UnknownIdentitiesAlertCard'
@@ -50,6 +51,7 @@ export default async function ManagerDashboardPage() {
 
       <div className="px-[30px] py-[26px] flex flex-col gap-5">
         <UnknownIdentitiesAlertCard count={unknownIdentitiesCount} />
+        <EmployeeSpotlightCard topEmployee={employees[0] ?? null} view="all" />
         <ManagerDashboardKpiStrip summary={summary} />
         <ManagerDashboardLeaderboard initialEmployees={employees} initialView="all" />
         <div className="grid grid-cols-2 gap-5 items-start">

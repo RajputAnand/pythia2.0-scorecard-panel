@@ -49,7 +49,7 @@ export default function StoreComparison() {
       <div className="flex flex-col px-[22px] py-[18px] gap-1 border-b border-border bg-accent-light">
         <div className="text-[10px] font-semibold uppercase tracking-[.1em] text-accent">Your Store</div>
         <div className="text-[15px] font-bold">Main St. Store</div>
-        <div className="font-mono text-[11.5px] text-muted">#6 of 24 · 76th percentile</div>
+        <div className="font-mono text-[11.5px] text-muted">N/A</div>
       </div>
       <div className="flex items-center justify-center border-b border-border border-l border-r bg-surface-alt">
         <span className="text-[9px] font-semibold text-muted uppercase tracking-[.07em] [writing-mode:vertical-rl] rotate-180">vs.</span>
@@ -57,35 +57,35 @@ export default function StoreComparison() {
       <div className="flex flex-col px-[22px] py-[18px] gap-1 border-b border-border bg-gold-light">
         <div className="text-[10px] font-semibold uppercase tracking-[.1em] text-gold">Top Performer</div>
         <div className="text-[15px] font-bold">Store #14</div>
-        <div className="font-mono text-[11.5px] text-muted">#1 of 24 · 99th percentile</div>
+        <div className="font-mono text-[11.5px] text-muted">N/A</div>
       </div>
 
       {/* Metric rows */}
       <MetricRow
         label="Overall Score" shortLabel="Overall"
-        yoursScore={82} yoursColor="#C47F18" gap="−12 pts" gapVariant="behind"
-        theirsScore={94}
+        yoursScore={0} yoursColor="#C47F18" gap="N/A" gapVariant="behind"
+        theirsScore={0}
       />
       <MetricRow
         label="Hospitality" shortLabel="Hosp"
-        yoursScore={84} yoursColor="#1D5C3A" gap="−12 pts" gapVariant="ahead"
-        theirsScore={96}
+        yoursScore={0} yoursColor="#1D5C3A" gap="N/A" gapVariant="ahead"
+        theirsScore={0}
       />
       <MetricRow
         label="Checkout Speed" shortLabel="Checkout"
-        yoursScore={74} yoursColor="#C47F18" gap="−17 pts" gapVariant="behind"
-        theirsScore={91}
+        yoursScore={0} yoursColor="#C47F18" gap="N/A" gapVariant="behind"
+        theirsScore={0}
       />
       <MetricRow
         label="Time to Service" shortLabel="Time to Svc"
-        yoursScore={82} yoursColor="#1D5C3A" gap="−11 pts" gapVariant="behind"
-        theirsScore={93}
+        yoursScore={0} yoursColor="#1D5C3A" gap="N/A" gapVariant="behind"
+        theirsScore={0}
         isLast
       />
 
       {/* Insight row */}
       <div className="col-span-full px-[22px] py-3 text-[12px] text-secondary leading-[1.5] bg-surface-alt border-t border-border">
-        <strong className="font-semibold text-primary">Biggest gap: Checkout Speed (−17 pts).</strong> This is where Store #14 separates from the field — and where your team has the most room to gain. Closing half this gap would move you from #6 to an estimated #4 overall. Hospitality is actually your strongest metric relative to the top performer, only 12 points back.
+        <strong className="font-semibold text-primary">Biggest gap: N/A.</strong> Comparison data is not yet available for this period.
       </div>
 
     </div>

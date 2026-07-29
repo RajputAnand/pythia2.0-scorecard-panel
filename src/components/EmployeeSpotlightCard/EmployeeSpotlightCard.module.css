@@ -1,0 +1,24 @@
+/* Pseudo-elements for spotlight decorative circles — same technique as
+   HeroBanner.module.css, gold-toned instead of green to read as "spotlight"
+   rather than the employee-facing score banner. */
+.spotlightPseudo::before {
+  content: '';
+  position: absolute;
+  top: -70px;
+  right: -70px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.spotlightPseudo::after {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  left: 30%;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(184, 134, 11, 0.18);
+}

@@ -14,21 +14,21 @@ interface DemoRow {
 }
 
 const AGE_ROWS: DemoRow[] = [
-  { label: '18–24', novPct: 18, febPct: 22, febColor: '#1D5C3A', change: '+4%', changeVariant: 'up' },
-  { label: '25–34', novPct: 21, febPct: 28, febColor: '#1D5C3A', change: '+7%', changeVariant: 'up' },
-  { label: '35–44', novPct: 24, febPct: 23, febColor: '#B0A89E', change: '−1%', changeVariant: 'flat' },
-  { label: '45–54', novPct: 22, febPct: 17, febColor: '#B52B1E', change: '−5%', changeVariant: 'down' },
-  { label: '55+',   novPct: 15, febPct: 10, febColor: '#B52B1E', change: '−5%', changeVariant: 'down' },
+  { label: '18–24', novPct: 0, febPct: 0, febColor: '#B0A89E', change: 'N/A', changeVariant: 'flat' },
+  { label: '25–34', novPct: 0, febPct: 0, febColor: '#B0A89E', change: 'N/A', changeVariant: 'flat' },
+  { label: '35–44', novPct: 0, febPct: 0, febColor: '#B0A89E', change: 'N/A', changeVariant: 'flat' },
+  { label: '45–54', novPct: 0, febPct: 0, febColor: '#B0A89E', change: 'N/A', changeVariant: 'flat' },
+  { label: '55+',   novPct: 0, febPct: 0, febColor: '#B0A89E', change: 'N/A', changeVariant: 'flat' },
 ]
 
 const GENDER_ROWS: DemoRow[] = [
-  { label: 'Male',   novPct: 54, febPct: 51, febColor: '#1E4D7A', change: '−3%', changeVariant: 'down' },
-  { label: 'Female', novPct: 40, febPct: 44, febColor: '#9C3060', change: '+4%', changeVariant: 'up' },
-  { label: 'Other',  novPct: 6,  febPct: 5,  febColor: '#B0A89E', change: '−1%', changeVariant: 'flat' },
+  { label: 'Male',   novPct: 0, febPct: 0, febColor: '#B0A89E', change: 'N/A', changeVariant: 'flat' },
+  { label: 'Female', novPct: 0, febPct: 0, febColor: '#B0A89E', change: 'N/A', changeVariant: 'flat' },
+  { label: 'Other',  novPct: 0, febPct: 0, febColor: '#B0A89E', change: 'N/A', changeVariant: 'flat' },
 ]
 
-const AGE_INSIGHT = <><strong className="font-semibold text-primary">Your customer base is getting younger.</strong> The 25–34 bracket grew +7% in 4 months — likely driven by your Instagram campaign. Meanwhile 45+ is shrinking. If this is intentional, your social targeting is working. If not, consider in-store promotions or signage aimed at older segments.</>
-const GENDER_INSIGHT = <><strong className="font-semibold text-primary">Female visitors up +4% over 4 months.</strong> This aligns with your Instagram campaign targeting. Consider whether product mix and in-store experience are optimized for this growing segment — small changes in endcap displays can have outsized impact.</>
+const AGE_INSIGHT = <><strong className="font-semibold text-primary">Demographic shift data is not yet available.</strong> Age breakdown figures will populate once live data is connected.</>
+const GENDER_INSIGHT = <><strong className="font-semibold text-primary">Demographic shift data is not yet available.</strong> Gender split figures will populate once live data is connected.</>
 
 const pillClass: Record<PillVariant, string> = {
   up: 'bg-accent-light text-accent',
