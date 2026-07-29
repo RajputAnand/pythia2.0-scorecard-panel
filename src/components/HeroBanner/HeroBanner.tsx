@@ -103,7 +103,7 @@ export default function HeroBanner({ data, weeklyStats }: { data: HeroBannerData
             className="uppercase tracking-[.09em] text-[10px] mt-[3px]"
             style={{ color: 'rgba(255,255,255,0.4)' }}
           >
-            Points
+            Points This Week
           </div>
         </div>
         <div
