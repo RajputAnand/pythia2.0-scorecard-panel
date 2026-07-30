@@ -1,8 +1,34 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios'
 import { redirect } from 'next/navigation'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
+import { ROLE_LOGIN_ROUTES } from '@/utils/routes'
+import type { UserRole } from '@/types/user'
 
-const LOGIN_ROUTE = '/login/employee'
+// Fallback when the role can't be resolved (e.g. no session at all) — mirrors
+// proxy.ts's own fallback for unauthenticated requests to unknown routes.
+const DEFAULT_LOGIN_ROUTE = ROLE_LOGIN_ROUTES.employee
+
+// Resolves which of the three role-specific login pages (/login/employee,
+// /login/manager, /login/owner) to send an expired session to. Reads the
+// session fresh rather than threading role through refreshAccessToken's
+// result, since this also has to cover the "already retried, still 401"
+// path where refreshAccessToken isn't called at all.
+async function resolveLoginRoute(): Promise<string> {
+  try {
+    if (typeof window !== 'undefined') {
+      const { getSession } = await import('next-auth/react')
+      const session = await getSession()
+      const role = session?.user?.role as UserRole | undefined
+      return role ? ROLE_LOGIN_ROUTES[role] : DEFAULT_LOGIN_ROUTE
+    }
+    const { auth } = await import('@/auth')
+    const session = await auth()
+    const role = session?.user?.role as UserRole | undefined
+    return role ? ROLE_LOGIN_ROUTES[role] : DEFAULT_LOGIN_ROUTE
+  } catch {
+    return DEFAULT_LOGIN_ROUTE
+  }
+}
 
 // Bare instance with no interceptors — used only to call /auth/refresh, so a
 // failed refresh (e.g. expired/reused refresh token) can't recursively
@@ -97,10 +123,11 @@ function createClient(baseURL: string | undefined): AxiosInstance {
             }
           }
 
+          const loginRoute = await resolveLoginRoute()
           if (typeof window !== 'undefined') {
-            window.location.href = LOGIN_ROUTE
+            window.location.href = loginRoute
           } else {
-            redirect(LOGIN_ROUTE)
+            redirect(loginRoute)
           }
         }
       }
