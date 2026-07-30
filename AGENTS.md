@@ -29,7 +29,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Authentication
 - Auth is handled by **next-auth v5** (Auth.js). Config lives in `src/auth.ts` — exports `{ handlers, signIn, signOut, auth }`.
-- Demo credentials are defined in `src/lib/demo-user.ts` as `DEMO_USERS` — one entry per role with `email` and `password` only (no store data — that comes from the API).
+- Demo credentials are defined in `src/lib/demo-user.ts` as `DEMO_USERS` — one entry per role with `email` and `password` only (no store data — store selection is hardcoded, see **Store data flow** under **Role-Based Sidebar**).
 - Demo accounts:
   | Role     | Email                | Password   |
   |----------|----------------------|------------|
@@ -37,7 +37,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
   | manager  | manager@demo.com     | demo1234   |
   | owner    | owner@demo.com       | demo1234   |
 - The JWT callback stores auth-only fields in the token; the session callback surfaces them on `session.user`.
-- **Session shape** — only these fields are stored in the JWT/session: `role`, `initials`, `token` (API bearer token), `score`, `jobTitle`. Store data (`storeName`, `storeLoc`, `nodesOnline`, `stores`) is **not** in the session — it is fetched client-side by `Header` via `fetchStores(token)` (`src/queries/stores.ts`).
+- **Session shape** — only these fields are stored in the JWT/session: `role`, `initials`, `token` (API bearer token, aliased as `pythia2Token`), `refreshToken`, `score`, `jobTitle`, `points`. Store data is **not** in the session — `userStore` seeds it from a hardcoded constant, not the API (see **Store data flow** under **Role-Based Sidebar**). `refreshToken` is what `api-client.ts`'s response interceptor sends to `POST /auth/refresh` on a 401 — see **HTTP Client — Axios** below.
 - next-auth type augmentations live in `src/types/next-auth.d.ts` — extends `Session`, `User`, and `JWT` with the auth-only fields above.
 - `NEXTAUTH_SECRET` must be set in `.env.local`.
 - **`SessionProvider`** is mounted in the root layout (`src/providers/SessionProvider.tsx`) so that `useSession()` works in all client components.
@@ -47,7 +47,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - They are the required bridge between `'use client'` components and server-side logic. A file cannot mix `'use client'` and `'use server'` — so any client component that needs to call `signIn`, `signOut`, or mutate server state must import a server action.
 - Client components wire actions via `useActionState(action, initialState)` — the action receives `(prevState, formData)` and returns the next state (e.g. an error string, or `undefined` on success).
 - **Example:** `LoginForm.tsx` is `'use client'` and cannot call `signIn` directly. It imports `login` from `src/actions/auth.ts` and passes it to `useActionState`.
-- **Login action is auth-only.** `src/actions/auth.ts → login()` only POSTs credentials and calls `signIn` with the auth fields (`id`, `email`, `name`, `role`, `token`, `initials`, `score`, `jobTitle`). It does **not** fetch stores — that happens client-side after login via `Header`'s `fetchStores(token)` effect.
+- **Login action is auth-only.** `src/actions/auth.ts → login()` only POSTs credentials and calls `signIn` with the auth fields (`id`, `email`, `name`, `role`, `token`, `initials`, `score`, `jobTitle`). It does not touch stores — store data isn't fetched at all, see **Store data flow** under **Role-Based Sidebar**.
 
 ## Role-Based Sidebar + User Identity
 - User identity comes from the **session**, not a static constant.
@@ -57,10 +57,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - `manager` → "Manager Tools" nav + store pill (no view toggle)
   - `owner` → "Owner Tools" nav + owner/manager view toggle + store pill; toggling navigates to the default route for that view and swaps nav sections
 - The store pill (`storeName`, `location`) in the Sidebar comes from **`useUserStore(s => s.currentStore)`** (Zustand), not from the session. Do not read store display data from `user` props.
-- The employee score in the Sidebar bottom widget uses **`useUserStore(s => s.currentScore)`** with a fallback to `user.score` from the session (`currentScore ?? user.score`). `currentScore` is populated by `OverviewContent` when weekly stats load; before that, the session score is shown.
+- The employee score in the Sidebar bottom widget uses **`useUserStore(s => s.currentScore)`** with a fallback to `user.score` from the session (`currentScore ?? user.score`). `currentScore` is populated by `OverviewContent` when the dashboard summary loads; before that, the session score is shown.
 - `Header.tsx` does **not** accept a `user` prop. It calls `useSession()` directly to read the token and role. Pages must not pass `user` to `<Header>`.
 - **Header store selector** — renders for both `owner` and `manager` roles (not employee). Condition: `(role === 'owner' || role === 'manager') && stores.length > 0`. Do not restrict it to `owner` only.
-- Store data flow: `Header` calls `fetchStores(token)` in a `useEffect` on mount/token-change → on success calls `useUserStore.setStores()` → Sidebar and other components read `currentStore` from Zustand.
+- **Store data flow (currently hardcoded)** — the legacy stores endpoint no longer accepts a token from the unified auth backend, so `userStore`'s `stores` list is seeded directly from the static `STORES` constant in `src/lib/store-data.ts` (currently a single demo store) rather than fetched. `Header` reads `stores`/`currentStore` straight off `useUserStore()` — it does not fetch anything. `setStores(stores)` still exists on the store for when a real endpoint returns, but nothing calls it today.
+- **Swag points** — `userStore` also holds `points: number | null`. `Sidebar` seeds it from the session (`user.points`) via a `useEffect` on mount; `swagStore.redeemItem()` optimistically decrements it (rolling back on failure) via `useUserStore.getState().setPoints(...)`.
 
 ## Role-Based Routing
 - `src/proxy.ts` (Next.js 16 "Proxy" — replaces the deprecated `middleware.ts`) enforces auth and role-based access on every request.
@@ -76,53 +77,52 @@ This version has breaking changes — APIs, conventions, and file structure may 
   | `owner`    | `/owner`, `/manager`      | `/owner/roi-attribution`          |
   | `manager`  | `/manager`                | `/manager/coaching-tracker`       |
 - Owners can access `/manager/*` routes (they oversee managers); managers cannot access `/owner/*`.
+- `src/utils/routes.ts` also exports `ROLE_LOGIN_ROUTES` (`employee` → `/login/employee`, `owner` → `/login/owner`, `manager` → `/login/manager`) alongside `ROLE_DEFAULT_ROUTES`. Used by `api-client.ts`'s 401 handler to send an expired session back to the correct role's login page instead of a generic one.
 
 ## HTTP Client — Axios
 
-All real API calls go through one of two named axios instances exported from `src/lib/api-client.ts`. Never use `fetch` directly in server actions or query functions.
+All real API calls go through the `pythia2Client` axios instance exported from `src/lib/api-client.ts`. Never use `fetch` directly in server actions or query functions.
 
 ```ts
-import { pythia1Client, pythia2Client } from '@/lib/api-client'
+import { pythia2Client } from '@/lib/api-client'
 ```
 
-| Client | Env var | Purpose |
-|---|---|---|
-| `pythia1Client` | `NEXT_PUBLIC_PYTHIA_1_API_URL` | Auth, stores, and all Pythia-1 backend endpoints |
-| `pythia2Client` | `NEXT_PUBLIC_PYTHIA_2_API_URL` | Pythia-2 data service endpoints |
-
-- Both instances share the same `createClient()` factory which attaches `Content-Type: application/json` and has stubbed request/response interceptors.
-- **Request interceptor** — inject `Authorization: Bearer <token>` here when session-based auth is wired centrally. For now, pass the token per-call: `{ headers: { Authorization: \`Bearer ${token}\` } }`.
-- **Response interceptor** — add 401 redirect / global error normalisation here.
+`pythia2Client` is built by `createClient()`, which attaches `Content-Type: application/json` plus:
+- **Request interceptor** — currently a no-op. Session-based auth injection isn't wired centrally yet: pass the token per-call, `{ headers: { Authorization: \`Bearer ${token}\` } }`.
+- **Response interceptor** — handles 401s from requests that carried a bearer token (a 401 from login/forgot-password/reset-password, which never send one, is passed through as-is — it's a normal wrong-credentials response, not session expiry):
+  1. Client-side only, calls `POST /auth/refresh` with the session's `refreshToken` (concurrent 401s across widgets are coalesced into one in-flight refresh via a shared promise).
+  2. On success, re-`signIn('credentials', { redirect: false })` with the refreshed token pair so the next-auth session cookie updates, then retries the original request once with the new access token.
+  3. If there's no refresh token, the refresh call fails, or the retried request 401s again, it redirects to the expired user's role-specific login page (`ROLE_LOGIN_ROUTES[role]`, resolved via `getSession()` client-side / `auth()` server-side; falls back to `/login/employee` if the role can't be resolved at all). Server-side 401s (no refresh attempt possible mid-render) redirect immediately the same way.
 - Axios throws on 4xx/5xx. Catch with `axios.isAxiosError(err)` to extract `err.response?.data?.message` before falling back to a generic message.
 
 ## API Endpoints
 
-Endpoint paths (no base URL) live in `src/utils/api-endpoints.ts`, split by backend:
+Endpoint paths (no base URL) live in `src/utils/api-endpoints.ts` as a single `PYTHIA_2_API` const — the app now talks to one unified backend, there is no `PYTHIA_1_API` anymore:
 
 ```ts
-import { PYTHIA_1_API, PYTHIA_2_API } from '@/utils/api-endpoints'
+import { PYTHIA_2_API } from '@/utils/api-endpoints'
 ```
 
-- `PYTHIA_1_API` — auth (`/auth/login`, `/auth/forgot-password`, `/auth/reset-password`) and stores (`/stores/all/mine`).
-- `PYTHIA_2_API` — Pythia-2 data endpoints: `scorecard.weekly` (`/scorecard/weekly-stats`). Add new endpoints here as they are defined.
-- Always use the matching client + endpoint constant together. `pythia1Client` + `PYTHIA_1_API`, `pythia2Client` + `PYTHIA_2_API`.
+- Grouped by domain: `auth` (`login`, `refresh`, `forgotPassword`, `resetPassword`), `dashboard` (`summary`), `coaching` (`moments`), `employees` (`list`/`create`/`detail(userId)`/`credentials(userId)`), `unknownIdentities` (`list`/`count`/`trashed`/`assign(identityId)`/`trash(identityId)`/`restore(identityId)`), `managerCoaching` (`signals`/`signal(planId)`/`summary`/`effectiveness`/`employees`/`employeeDetail(userId)`), `managerDashboard` (`summary`/`leaderboard`/`trend`). Add new endpoints here as they are defined.
+- There is no stores endpoint on the unified backend — store selection is hardcoded (see **Store data flow** under **Role-Based Sidebar** above).
+- Always pair `PYTHIA_2_API` with `pythia2Client` (the only axios client — see **HTTP Client — Axios**).
 
 ## API Response Types
 
 Canonical response envelopes live in `src/types/api.ts`:
 
 ```ts
-// Pythia-1 backend
-interface ApiResponseV1<T> { statusCode: number; message: string; data: T }
-
-// Pythia-2 backend
 interface ApiResponseV2<T> { success: boolean; message?: string; data: T }
+
+// Paginated list endpoints (e.g. /employees, /unknown-identities)
+interface ApiMeta { total: number; skip: number; limit: number }
+interface ApiResponseV2Paginated<T> { success: boolean; message?: string; meta: ApiMeta; data: T }
 ```
 
-Pass the type to the axios generic: `pythia1Client.get<ApiResponseV1<Store[]>>(...)`. Then check `response.data.statusCode === 200` (V1) or `response.data.success` (V2) for application-level success.
+Pass the type to the axios generic, e.g. `pythia2Client.get<ApiResponseV2Paginated<ApiEmployee[]>>(...)`, then check `response.data.success` for application-level success.
 
-Raw API shapes (as returned by the backend before any mapping) live in domain type files under `src/types/`:
-- `src/types/store.ts` — `ApiStore` (Pythia-1 `/stores/all/mine` response item: `_id`, `name`, `storeNo`, `location`, `district`, `createdBy`, `updatedBy`, timestamps, `__v`).
+Raw API shapes (as returned by the backend before any mapping) live in domain type files under `src/types/` — e.g. `src/types/employee.ts` → `ApiEmployee`, `src/types/unknown-identity.ts` → `UnknownIdentity`.
+- **`src/types/store.ts`** — `Store` is the raw stores-endpoint shape (`_id`, `name`, `storeNo`, `location`, `district`, `createdBy`, `updatedBy`, timestamps, `__v`) and is what `userStore` actually uses. There is a second, unrelated `Store` interface in `src/types/user.ts` (`id`/`name`/`location`/`nodesOnline`) that nothing imports — it's dead. Always import `Store` from `@/types/store`, not `@/types/user`.
 
 ## Shared Utilities
 - Common, reusable functions with no coupling to a specific component go in `src/utils/common.ts` as named exports on the `Utils` class or as standalone exports.
@@ -130,9 +130,15 @@ Raw API shapes (as returned by the backend before any mapping) live in domain ty
 - If shared logic relies on React APIs (e.g. `useState`, `useEffect`), first evaluate whether a Context is the right fit: a Context makes sense when the state/logic is genuinely shared across many components in the tree and doesn't belong to one owner. If the logic is only incidentally duplicated or the coupling would be forced, keep it local or extract a plain utility instead. When Context is the right call, add it under `src/context/`.
   - **Example:** `src/context/ToastContext.tsx` — manages toast visibility and message via `useState`; any component calls `useToast()` to trigger a toast without prop-drilling or duplicating the state.
 - **Existing utilities in `src/utils/common.ts`:**
+  - `extractApiErrorMessage(err, fallback)` — pulls a user-facing message out of a FastAPI error response (`detail` as a string for 401/400s, as a field-error array for 422s), falling back to `fallback` and logging otherwise. The standard `catch` handler for `pythia2Client` calls.
   - `renderText(text)` — splits a string on `**bold**` markers and returns React nodes.
-  - `getWeekSubtitle(date)` — returns `"Week of MMM D – MMM D, YYYY"` for the Mon–Sun week containing `date`. Used by all dashboard `page.tsx` files for the Header subtitle.
+  - `getWeekSubtitle(date)` / `formatWeekRange(weekStart, weekEnd)` — both return `"Week of MMM D – MMM D, YYYY"`; the first for the Mon–Sun week containing a `Date` (used by dashboard `page.tsx` files for the Header subtitle), the second for an API `week_start`/`week_end` ISO pair.
   - `getGreeting(date?)` — returns `"Good morning"`, `"Good afternoon"`, or `"Good evening"` based on the hour of `date` (defaults to `new Date()`). Used by `HeroBanner`.
+  - `getS3AssetUrl(key)` — builds a URL under `NEXT_PUBLIC_S3_ASSET_BASE_URL` for an S3-backed asset key.
+  - `getEmployeeName(employee)` / `getEmployeeInitials(employee)` — resolve display name/initials from `ApiEmployee`, tolerating both snake_case (`first_name`/`last_name`, from `POST /employees`) and camelCase (`firstName`/`lastName`, migrated from Pythia-1) field shapes.
+  - `getInitialsFromDisplayName(name)` — initials from an already-formatted name (e.g. `"Marcus R."` → `"MR"`).
+  - `formatNameList(names)` — Oxford-comma join: `"A"`, `"A and B"`, `"A, B, and C"`.
+  - `getAvatarColor(seed)` — deterministically picks a color from a fixed palette for a stable id; pure UI styling, not derived data.
 
 ## Dashboard Page Date Convention
 - All dashboard `page.tsx` files hold a `currentDate` variable that drives date-dependent display (week subtitle, greetings, etc.).
@@ -151,10 +157,12 @@ Raw API shapes (as returned by the backend before any mapping) live in domain ty
 **No TanStack Query / React Query in this project — do not reintroduce it.** All server-fetched data is handled with plain `async`/`await` and React state; there is no client-side cache library.
 
 **Server-fetched data — props drilling (the only pattern for page-level fetches):**
-- `page.tsx` is an `async` Server Component that `await`s the API call (via `pythia1Client`/`pythia2Client` in a `src/queries/<domain>.ts` file, or a fake helper from `src/mock/<domain>APIs.ts` for still-mocked domains) and passes the result down as props.
-- Wrap each fetch in `try { } catch { /* non-fatal */ }` — the receiving component renders an empty/skeleton state when the prop is `null`, it never throws.
-- Now that both Pythia backends are served over HTTPS, server-side fetching is purely an optimization (no loading flash, one round trip during SSR) — not a workaround for anything. Client components are free to call `pythia1Client`/`pythia2Client` directly too.
-- **Example:** `dashboard/overview/page.tsx` fetches `overview`, `weeklyStats`, `shiftSummary`, `teamRankingData`, `progressChart`, and `coachingMoments` server-side (via `Promise.allSettled` for the real endpoints) and passes them all as props into `OverviewContent`.
+- `page.tsx` is an `async` Server Component that `await`s the API call (via `pythia2Client` in a `src/queries/<domain>.ts` file, or a fake helper from `src/mock/<domain>APIs.ts` for still-mocked domains) and passes the result down as props.
+- Now that the backend is served over HTTPS, server-side fetching is purely an optimization (no loading flash, one round trip during SSR) — not a workaround for anything. Client components are free to call `pythia2Client` directly too.
+- Two fetch-orchestration patterns are both in use — pick per page:
+  - **Sequential `try { } catch { }`** (dashboard pages: `overview`, `progress`, `coaching`, `leaderboard`) — each fetch is awaited individually, non-fatal errors are swallowed so the receiving component can render an empty/skeleton state from a `null` prop. **Must call `unstable_rethrow(err)` from `next/navigation` as the first line of the `catch`** before doing anything else with the error — `pythia2Client`'s response interceptor calls Next's `redirect()` server-side on an expired session, which throws a special `NEXT_REDIRECT` error, and an ordinary `catch` would swallow it as if it were a normal fetch failure, silently breaking the redirect. See `dashboard/overview/page.tsx` for the pattern.
+  - **`Promise.allSettled`** (manager/owner pages) — several independent fetches run in parallel, each checked via `if (result.status === 'fulfilled') ...`. Note `Promise.allSettled` never rejects, so a `NEXT_REDIRECT` thrown mid-fetch here just resolves as `'rejected'` and is currently discarded along with genuine errors — this path does not yet propagate a session-expiry redirect the way the `try/catch` pattern does.
+- **Example:** `dashboard/overview/page.tsx` fetches `overview` (still mocked, via `fetchOverview`), `initialSummary` (`fetchDashboardSummary`), and `coachingMoments` (`fetchCoachingMoments`) server-side and passes them as props into `OverviewContent`.
 
 **Client-fetched data — plain `useState` + `useEffect` (for interactive/paginated data):**
 - Components that need to fetch after mount (search-as-you-type, infinite scroll, background refresh) call the domain's plain async function directly from a `useEffect`, track `loading`/`error` with local `useState`, and guard against stale responses with a `cancelled` flag.
@@ -185,18 +193,18 @@ Raw API shapes (as returned by the backend before any mapping) live in domain ty
 
 ## Server State — Plain Fetch (no query library)
 
-There is **no client-side data-fetching/cache library** in this project (TanStack Query was removed once both Pythia backends moved to HTTPS). Server-fetched data lives in plain component/store state — `useState` for local, per-component data; a Zustand store's async action pattern (see below) when the data needs to be shared or mutated from multiple places.
+There is **no client-side data-fetching/cache library** in this project (TanStack Query was removed once the backend moved to HTTPS). Server-fetched data lives in plain component/store state — `useState` for local, per-component data; a Zustand store's async action pattern (see below) when the data needs to be shared or mutated from multiple places.
 
 ### Query files
 One file per domain in `src/queries/<domain>.ts`. Each file exports **plain async functions only** — no hooks, no query keys, no cache:
-- GET functions call `pythia1Client` / `pythia2Client` directly (never raw `fetch`) and return the parsed response body.
+- GET functions call `pythia2Client` directly (never raw `fetch`) and return the parsed response body.
 - Mutation functions (POST/PATCH) do the same and return the mutated resource or `void`.
-- **Example:** `src/queries/unknown-identities.ts` exports `fetchUnknownIdentities({ token, skip, limit })` and `assignUnknownIdentity({ token, identityId, userId })`; `src/queries/employees.ts` exports `fetchEmployees({ token, search, skip, limit })`; `src/queries/stores.ts` exports `fetchStores(token)`; `src/queries/scorecard.ts` exports `fetchWeeklyStats`, `fetchTodayShiftSummary`, `fetchTeamRanking`, `fetchProgressOverTime`, `fetchCoachingMoments`.
+- **Current files:** `unknown-identities.ts` (`fetchUnknownIdentities`, `fetchUnknownIdentitiesCount`, `fetchTrashedIdentities`, `assignUnknownIdentity`, `trashUnknownIdentity`, `restoreUnknownIdentity`); `employees.ts` (`fetchEmployees`, `createEmployee`, `fetchEmployee`, `fetchEmployeeCredentials`); `scorecard.ts` (`fetchDashboardSummary`, `fetchCoachingMoments`); `manager-coaching.ts` (`fetchManagerCoachingPlans`, `applyManagerPlanAction`, `fetchCoachingSummary`, `fetchCoachingEffectiveness`, `fetchCoachingEmployees`, `fetchEmployeeCoachingDetail`); `manager-dashboard.ts` (`fetchManagerDashboardSummary`, `fetchManagerDashboardLeaderboard`, `fetchManagerDashboardTrend`); `overview.ts` (`fetchOverview`, still a passthrough to the `overviewAPIs` mock — no real endpoint yet). There is no `stores.ts` — store data is hardcoded, see **Store data flow** under **Role-Based Sidebar**.
 
 ### Calling pattern
-- **From a Server Component** (`page.tsx`): `await` the function directly, wrap in `try/catch`, pass the result as a prop. See **Server Component Data Fetching** above.
+- **From a Server Component** (`page.tsx`): `await` the function directly, wrapped per the two patterns in **Server Component Data Fetching** above (sequential `try/catch` + `unstable_rethrow`, or `Promise.allSettled`), and pass the result as a prop.
 - **From a Client Component**: call the function inside a `useEffect`, track `loading`/`error` with local `useState`, guard against stale responses with a `cancelled` flag in the effect cleanup. See **Server Component Data Fetching** above for the `initialData`-seeded variant used for paginated/infinite lists.
-- Both Pythia backends are now served over HTTPS, so client components may call `pythia1Client`/`pythia2Client` directly — there is no mixed-content restriction and no need for a same-origin proxy route under `src/app/api/`. (A previous version of this app proxied `/api/employees` and `/api/unknown-identities` through Next.js route handlers to work around a plain-HTTP backend; those routes have been removed now that the workaround is no longer needed.)
+- The backend is served over HTTPS, so client components may call `pythia2Client` directly — there is no mixed-content restriction and no need for a same-origin proxy route under `src/app/api/`. (A previous version of this app proxied `/api/employees` and `/api/unknown-identities` through Next.js route handlers to work around a plain-HTTP backend; those routes have been removed now that the workaround is no longer needed.)
 
 ### Optimistic updates (Zustand async action pattern)
 For data that needs an optimistic update with rollback (e.g. swag redemption), use the **Async action pattern** documented under **State Management — Zustand** below rather than a mutation hook:
@@ -262,10 +270,11 @@ interface DomainState {
 - Fake API helpers (`fakeGet` / `fakePost`) live in `src/mock/<domain>APIs.ts` — never inline them in the store. Swap them for real `fetch` calls when the backend is ready.
 - `mutateX` returns `boolean` so the component can react (e.g. show a toast) without the store knowing about UI.
 - While a mutation is in-flight, set `redeemingId` (or equivalent) to the item's ID and disable all other action buttons to prevent double-submits.
-- **`src/store/userStore.ts`** — holds `stores: Store[]`, `currentStore: Store | null`, and `currentScore: number | null`. Exposes:
-  - `setStores(stores)` — called by `Header` after its `fetchStores(token)` effect resolves; preserves `currentStore` if the selected store is still in the new list, otherwise defaults to `stores[0]`.
+- **`src/store/userStore.ts`** — holds `stores: Store[]` (initialized from the hardcoded `STORES` constant, see **Store data flow** under **Role-Based Sidebar**), `currentStore: Store | null`, `currentScore: number | null`, and `points: number | null`. Exposes:
+  - `setStores(stores)` — fully replaces the stores list, preserving `currentStore` if it's still present, otherwise defaulting to `stores[0]`. Exists for when a real stores endpoint returns; nothing calls it today.
   - `setCurrentStore(store)` — called when the owner or manager picks a store from the Header dropdown.
-  - `setCurrentScore(score)` — called by `OverviewContent` via `useEffect` when `weeklyStats` resolves; stores the employee's live `current_score`. Sidebar reads `currentScore` from the store and falls back to `user.score` from the session until it is populated.
+  - `setCurrentScore(score)` — called by `OverviewContent` via `useEffect` when the dashboard summary resolves; stores the employee's live `current_score`. Sidebar reads `currentScore` from the store and falls back to `user.score` from the session until it is populated.
+  - `setPoints(points)` — seeded from `user.points` by `Sidebar` on mount; decremented (with rollback) by `swagStore.redeemItem()`.
   - `onStoreChange(callback)` — exported subscription helper; other stores/modules call this to react to store-selection changes. Always call the returned unsubscribe on cleanup.
 - **`src/store/swagStore.ts`** — holds `catalog: SwagItem[]`, `loading`, `redeemingId`, `error`. Exposes `fetchCatalog()` (GET, called by `SwagStore.tsx` on mount) and `redeemItem(item)` (optimistic redeem + points deduction on `userStore`, rolls back on failure, returns `boolean`). This is a direct instance of the **Async action pattern** above.
 - **Note:** `userStore` does not hold a `user` object or a `setUser` action — auth identity lives in the session, accessible via `useSession()`.
@@ -310,7 +319,9 @@ interface DomainState {
 - Pages are organized by role under three route groups:
   - `src/app/dashboard/` — employee pages: `overview`, `progress`, `coaching`, `leaderboard`, `swag`
   - `src/app/owner/` — owner pages: `roi-attribution`, `benchmarking`, `marketing-loop`
-  - `src/app/manager/` — manager pages: `coaching-tracker`, `staffing-intelligence`
-- Each group has its own `layout.tsx` — an `async` Server Component that calls `await auth()` and renders `<Sidebar user={...} />`.
+  - `src/app/manager/` — manager pages: `coaching-tracker`, `dashboard`, `employees`, `staffing-intelligence`, `unknown-identities`
+  - `src/app/(auth)/` — public pages, not gated by the proxy's role check: `login/employee`, `login/manager`, `login/owner`, `forgot-password`, `reset-password`
+- Each of the three role groups has its own `layout.tsx` — an `async` Server Component that calls `await auth()` and renders `<Sidebar user={...} />`.
 - The employee overview page is at `/dashboard/overview` — not at `/`.
+- Every route with a `page.tsx` has a co-located `loading.tsx` (see **Loading Skeletons** above) — this holds for all current routes.
 <!-- END:project-conventions -->
