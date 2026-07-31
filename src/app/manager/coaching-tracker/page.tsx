@@ -36,7 +36,7 @@ export default async function CoachingTrackerPage() {
 
   return (
     <>
-      <Header title="Coaching Effectiveness Tracker" subtitle="Week of Feb 17–23, 2026">
+      <Header title="Coaching Effectiveness Tracker">
         <button className={headerStyles.btnGhost}>Export</button>
         <button className={headerStyles.btnPrimary}>All Time View</button>
       </Header>

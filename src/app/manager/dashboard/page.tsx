@@ -10,7 +10,6 @@ import { fetchManagerDashboardSummary, fetchManagerDashboardLeaderboard, fetchMa
 import { fetchUnknownIdentitiesCount } from '@/queries/unknown-identities'
 import { fetchCoachingSummary } from '@/queries/manager-coaching'
 import { auth } from '@/auth'
-import { getWeekSubtitle } from '@/utils/common'
 import type { ManagerDashboardEmployeeRow, ManagerDashboardSummary, ManagerDashboardTrendWeek } from '@/types/manager-dashboard'
 import type { CoachingSummary } from '@/types/coaching-plan'
 
@@ -18,8 +17,6 @@ export const metadata = {
   title: 'Pythia — Manager Dashboard',
   description: 'Employee recognition insights: thank-yous, value proposition, and greeted-on-time rates.',
 }
-
-const currentDate = new Date(2026, 5, 14)
 
 export default async function ManagerDashboardPage() {
   const session = await auth()
@@ -55,7 +52,7 @@ export default async function ManagerDashboardPage() {
 
   return (
     <>
-      <Header title="Manager Dashboard" subtitle={getWeekSubtitle(currentDate)} />
+      <Header title="Manager Dashboard" />
 
       <div className="px-[30px] py-[26px] flex flex-col gap-5">
         <UnknownIdentitiesAlertCard count={unknownIdentitiesCount} />
