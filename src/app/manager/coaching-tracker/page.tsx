@@ -1,3 +1,4 @@
+import { unstable_rethrow } from 'next/navigation'
 import Header from '@/components/shared/Header/Header'
 import headerStyles from '@/components/shared/Header/Header.module.css'
 import CoachingWinStrip from '@/components/CoachingWinStrip/CoachingWinStrip'
@@ -23,6 +24,12 @@ export default async function CoachingTrackerPage() {
       fetchCoachingSummary({ token, view: 'week' }),
       fetchCoachingEmployees({ token }),
     ])
+    // Promise.allSettled swallows thrown errors as 'rejected' results, including
+    // the NEXT_REDIRECT next/navigation throws server-side on a 401 (session
+    // expiry) — rethrow it so the redirect actually happens instead of silently
+    // rendering an empty page. See api-client.ts's response interceptor.
+    if (summaryResult.status === 'rejected') unstable_rethrow(summaryResult.reason)
+    if (employeesResult.status === 'rejected') unstable_rethrow(employeesResult.reason)
     if (summaryResult.status === 'fulfilled') summary = summaryResult.value
     if (employeesResult.status === 'fulfilled') employees = employeesResult.value
   }

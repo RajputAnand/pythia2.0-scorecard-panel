@@ -5,9 +5,9 @@ export type ManagerDashboardView = 'week' | 'all'
 export interface ManagerDashboardCard {
   count: number
   rate: number
-  // False for "validated" until the scoring pipeline has a raw_metrics field
-  // for it (see calculator.build_coaching_steps) — rate is always 0 then,
-  // and the frontend should render "not yet tracked" rather than a real 0%.
+  // False when the scoring pipeline has no raw_metrics field backing this
+  // step yet (see calculator.build_coaching_steps) — the frontend should
+  // render "not yet tracked" rather than a real 0% in that case.
   tracked: boolean
 }
 
