@@ -11,7 +11,7 @@ export const metadata = {
 export default function StaffingIntelligencePage() {
   return (
     <>
-      <Header title="Staffing Intelligence" subtitle="Week of Feb 23 – Mar 1, 2026">
+      <Header title="Staffing Intelligence">
         <button className={headerStyles.btnGhost}>← Prev Week</button>
         <button className={headerStyles.btnGhost}>Next Week →</button>
         <button className={headerStyles.btnAccent}>Publish Schedule</button>
