@@ -43,7 +43,8 @@
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(list\\(d.get\\('paths',{}\\).keys\\(\\)\\)[:60]\\)\")",
       "Bash(curl -s http://localhost:9222/json/version --max-time 2)",
       "Bash(pkill -f \"next dev\" -f \"3001\")",
-      "Bash(xargs -I{} sh -c 'echo \"== {} ==\"; grep -B3 \"catch \\(err\\)\" {}')"
+      "Bash(xargs -I{} sh -c 'echo \"== {} ==\"; grep -B3 \"catch \\(err\\)\" {}')",
+      "Bash(npx tsc *)"
     ]
   }
 }

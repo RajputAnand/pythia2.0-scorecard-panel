@@ -1,3 +1,4 @@
+import { unstable_rethrow } from 'next/navigation'
 import Header from '@/components/shared/Header/Header'
 import ManagerDashboardKpiStrip from '@/components/ManagerDashboardKpiStrip/ManagerDashboardKpiStrip'
 import EmployeeSpotlightCard from '@/components/EmployeeSpotlightCard/EmployeeSpotlightCard'
@@ -38,6 +39,13 @@ export default async function ManagerDashboardPage() {
       fetchUnknownIdentitiesCount({ token }),
       fetchCoachingSummary({ token, view: 'week' }),
     ])
+    // Promise.allSettled swallows thrown errors as 'rejected' results, including
+    // the NEXT_REDIRECT next/navigation throws server-side on a 401 (session
+    // expiry) — rethrow it so the redirect actually happens instead of silently
+    // rendering an empty page. See api-client.ts's response interceptor.
+    for (const result of [summaryResult, employeesResult, trendResult, unknownResult, coachingResult]) {
+      if (result.status === 'rejected') unstable_rethrow(result.reason)
+    }
     if (summaryResult.status === 'fulfilled') summary = summaryResult.value
     if (employeesResult.status === 'fulfilled') employees = employeesResult.value
     if (trendResult.status === 'fulfilled') trendWeeks = trendResult.value
