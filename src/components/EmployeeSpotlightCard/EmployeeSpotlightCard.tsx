@@ -1,9 +1,14 @@
+'use client'
+
 import styles from './EmployeeSpotlightCard.module.css'
 import type { ManagerDashboardEmployeeRow, ManagerDashboardView } from '@/types/manager-dashboard'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 interface Props {
   topEmployee: ManagerDashboardEmployeeRow | null
   view: ManagerDashboardView
+  previewMode?: boolean
 }
 
 interface ChipProps {
@@ -28,8 +33,11 @@ function Chip({ label, value, valueColor }: ChipProps) {
   )
 }
 
-export default function EmployeeSpotlightCard({ topEmployee, view }: Props) {
+export default function EmployeeSpotlightCard({ topEmployee, view, previewMode }: Props) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.managerEmployeeSpotlight] ?? true)
   const periodLabel = view === 'week' ? 'this week' : 'all-time'
+
+  if (!previewMode && !visible) return null
 
   if (!topEmployee || topEmployee.thanked_count === 0) {
     return (
