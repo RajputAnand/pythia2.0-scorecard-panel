@@ -6,6 +6,7 @@ import { User } from "@/types/user"
 import { pythia2Client } from "@/lib/api-client"
 import { PYTHIA_2_API } from "@/utils/api-endpoints"
 import { extractApiErrorMessage } from "@/utils/common"
+import { DEMO_USERS } from "@/lib/demo-user"
 import type { ForgotPasswordResult, ResetPasswordResult, LoginResponse } from "@/types/auth"
 
 // Returns null on success, error string on failure.
@@ -20,6 +21,33 @@ export async function login(_prev: string | null | undefined, formData: FormData
 
     if (!requiredRole) {
       return 'Invalid role.'
+    }
+
+    // superadmin has no backend account — it's a local demo-only role, so it
+    // never hits the real /auth/login endpoint. Every other role continues
+    // below and is validated against the real backend as usual.
+    if (requiredRole === 'superadmin') {
+      const demo = DEMO_USERS.find(
+        (u) => u.role === 'superadmin' && u.email === identifier && u.password === password
+      )
+      if (!demo) return 'Invalid email or password.'
+
+      await signIn('credentials', {
+        email: identifier,
+        password,
+        userData: JSON.stringify({
+          id: demo.email,
+          email: demo.email,
+          name: demo.name,
+          role: demo.role,
+          initials: demo.initials,
+          score: demo.score,
+          jobTitle: demo.jobTitle,
+          points: 0,
+        }),
+        redirect: false,
+      })
+      return null
     }
 
     let result: LoginResponse
@@ -76,6 +104,8 @@ export async function logout(user: User) {
     loginPage = '/login/owner'
   } else if (user.role === 'manager') {
     loginPage = '/login/manager'
+  } else if (user.role === 'superadmin') {
+    loginPage = '/login/superadmin'
   }
   await signOut({ redirectTo: loginPage })
 }

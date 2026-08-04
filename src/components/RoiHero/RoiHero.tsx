@@ -4,6 +4,18 @@ import { useState } from 'react'
 import styles from './RoiHero.module.css'
 import { RoiStat } from '@/types/roi'
 import { ROI_STATS } from '@/lib/roi-data'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
+
+// Illustrative numbers for the Super Admin hover preview — the real
+// ROI_STATS stay at their live $0/N/A placeholders until the backend is
+// connected; this is preview-only and never shown on the real page.
+const PREVIEW_STATS: RoiStat[] = [
+  { label: 'Est. Revenue Impact', value: '$18,400', valueVariant: 'green', pill: '+12%', pillVariant: 'up', sub: 'vs. prior period' },
+  { label: 'Team Score Avg', value: '76 → 84', valueVariant: 'green', pill: '+8 pts', pillVariant: 'up', sub: 'this period' },
+  { label: 'Pythia Platform Cost', value: '$1,200', valueVariant: 'amber', pill: 'flat', pillVariant: 'neutral', sub: 'monthly subscription' },
+  { label: 'Net ROI', value: '$17,200', valueVariant: 'green', pill: '14.3x', pillVariant: 'up', sub: 'after platform cost' },
+]
 
 const valueColorClass: Record<string, string> = {
   green: 'text-[#78C99A]',
@@ -16,8 +28,12 @@ const pillVariantStyle: Record<string, React.CSSProperties> = {
   neutral: { background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' },
 }
 
-export default function RoiHero() {
-  const [stats] = useState<RoiStat[]>(ROI_STATS)
+export default function RoiHero({ previewMode }: { previewMode?: boolean } = {}) {
+  const [allStats] = useState<RoiStat[]>(ROI_STATS)
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiHero] ?? true)
+  if (!previewMode && !visible) return null
+
+  const stats = previewMode ? PREVIEW_STATS : allStats
 
   return (
     <div
@@ -25,14 +41,14 @@ export default function RoiHero() {
       style={{
         background: 'linear-gradient(135deg, #1A1714 0%, #2A2218 60%, #1D3828 100%)',
         padding: '28px 32px',
-        gridTemplateColumns: '1fr 1fr 1fr 1fr',
+        gridTemplateColumns: `repeat(${stats.length}, 1fr)`,
       }}
     >
       {stats.map((stat, i) => (
         <div
           key={stat.label}
           className="flex flex-col gap-[6px] pr-[28px] mr-[28px]"
-          style={i === 3 ? { paddingRight: 0, marginRight: 0, borderRight: 'none' } : { borderRight: '1px solid rgba(255,255,255,0.08)' }}
+          style={i === stats.length - 1 ? { paddingRight: 0, marginRight: 0, borderRight: 'none' } : { borderRight: '1px solid rgba(255,255,255,0.08)' }}
         >
           <div
             className="font-medium uppercase text-[10px]"

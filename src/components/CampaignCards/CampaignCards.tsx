@@ -1,4 +1,8 @@
+'use client'
+
 import type React from 'react'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 type KpiVariant = 'good' | 'ok' | 'bad' | 'neutral'
 type ChangeVariant = 'up' | 'down' | 'flat'
@@ -162,7 +166,121 @@ const campaigns: Campaign[] = [
   },
 ]
 
-export default function CampaignCards() {
+const previewCampaigns: Campaign[] = [
+  {
+    channelBarStyle: 'linear-gradient(90deg,#1E4D7A,#5A8ABF)',
+    name: 'Winter Rush — Instagram + Facebook',
+    dates: 'Dec 1 – Feb 28',
+    channelPillText: '📱 Social',
+    channelPillBg: '#E6EEF7',
+    channelPillColor: '#1E4D7A',
+    statusDotColor: '#1D5C3A',
+    statusText: 'Active',
+    statusTextColor: '#1D5C3A',
+    statusPulse: true,
+    kpis: [
+      { label: 'Spend', value: '$2,400', valueVariant: 'neutral', change: '', changeVariant: 'flat' },
+      { label: 'Traffic Lift', value: '+18%', valueVariant: 'good', change: '↑ 4%', changeVariant: 'up' },
+      { label: 'New Visitors', value: '640', valueVariant: 'good', change: '↑ 12%', changeVariant: 'up' },
+      { label: 'ROAS', value: '4.1x', valueVariant: 'good', change: '↑ 0.3x', changeVariant: 'up' },
+    ],
+    trafficFillColor: '#1E4D7A',
+    trafficFillWidth: '68%',
+    trafficVal: '+18%',
+    trafficValColor: '#1E4D7A',
+    insight: <><strong className="font-semibold text-primary">Best-performing campaign this quarter</strong> — 4.1x ROAS and climbing.</>,
+    roasLeftTop: 'Est. revenue generated',
+    roasLeftSub: 'vs. $2,400 spend',
+    roasVal: '$9,840',
+    roasVariant: 'great',
+  },
+  {
+    channelBarStyle: 'linear-gradient(90deg,#1D5C3A,#4DAA7A)',
+    name: 'Hot Drinks Endcap Promo',
+    dates: 'Jan 6 – Feb 3',
+    channelPillText: '🏪 In-Store',
+    channelPillBg: '#E6F2EC',
+    channelPillColor: '#1D5C3A',
+    statusDotColor: '#B0A89E',
+    statusText: 'Ended · Results final',
+    statusTextColor: '#B0A89E',
+    kpis: [
+      { label: 'Spend', value: '$800', valueVariant: 'neutral', change: '', changeVariant: 'flat' },
+      { label: 'Traffic Lift', value: '+9%', valueVariant: 'good', change: '', changeVariant: 'flat' },
+      { label: 'Basket Lift', value: '$3.10', valueVariant: 'good', change: '', changeVariant: 'flat' },
+      { label: 'ROAS', value: '2.6x', valueVariant: 'ok', change: '', changeVariant: 'flat' },
+    ],
+    trafficFillColor: '#1D5C3A',
+    trafficFillWidth: '48%',
+    trafficVal: '+9%',
+    trafficValColor: '#1D5C3A',
+    insight: <>Solid seasonal lift — <strong className="font-semibold text-primary">basket size up $3.10</strong> per transaction during the promo window.</>,
+    roasLeftTop: 'Est. revenue generated',
+    roasLeftSub: 'vs. $800 spend',
+    roasVal: '$2,080',
+    roasVariant: 'ok',
+  },
+  {
+    channelBarStyle: 'linear-gradient(90deg,#5C3A8C,#9B72CF)',
+    name: 'Loyalty SMS — Sunday Morning Drop',
+    dates: 'Nov 3 – ongoing',
+    channelPillText: '✉️ Email/SMS',
+    channelPillBg: '#F0EBF8',
+    channelPillColor: '#5C3A8C',
+    statusDotColor: '#1D5C3A',
+    statusText: 'Active',
+    statusTextColor: '#1D5C3A',
+    statusPulse: true,
+    kpis: [
+      { label: 'Spend', value: '$150', valueVariant: 'neutral', change: '', changeVariant: 'flat' },
+      { label: 'Traffic Lift', value: '+6%', valueVariant: 'good', change: '↑ 1%', changeVariant: 'up' },
+      { label: 'Open Rate', value: '38%', valueVariant: 'good', change: '↑ 3%', changeVariant: 'up' },
+      { label: 'ROAS', value: '5.8x', valueVariant: 'good', change: '', changeVariant: 'flat' },
+    ],
+    trafficFillColor: '#5C3A8C',
+    trafficFillWidth: '32%',
+    trafficVal: '+6%',
+    trafficValColor: '#5C3A8C',
+    insight: <>Cheapest channel by far — <strong className="font-semibold text-primary">5.8x ROAS</strong> on a $150 monthly spend.</>,
+    roasLeftTop: 'Est. revenue generated',
+    roasLeftSub: 'vs. $150 spend',
+    roasVal: '$870',
+    roasVariant: 'great',
+  },
+  {
+    channelBarStyle: 'linear-gradient(90deg,#C47F18,#E8A832)',
+    name: 'Window Signage — New Spring Items',
+    dates: 'Feb 10 – Mar 10',
+    channelPillText: '🪟 Signage',
+    channelPillBg: '#FDF5E4',
+    channelPillColor: '#C47F18',
+    statusDotColor: '#1E4D7A',
+    statusText: 'Scheduled',
+    statusTextColor: '#1E4D7A',
+    kpis: [
+      { label: 'Spend', value: '$400', valueVariant: 'neutral', change: '', changeVariant: 'flat' },
+      { label: 'Traffic Lift', value: 'TBD', valueVariant: 'neutral', change: '', changeVariant: 'flat' },
+      { label: 'Dwell Lift', value: 'TBD', valueVariant: 'neutral', change: '', changeVariant: 'flat' },
+      { label: 'ROAS (est)', value: '1.8x', valueVariant: 'ok', change: '', changeVariant: 'flat' },
+    ],
+    trafficFillColor: '#C47F18',
+    trafficFillWidth: '18%',
+    trafficVal: 'TBD',
+    trafficValColor: '#C47F18',
+    insight: <>Starts next week — projected <strong className="font-semibold text-primary">1.8x ROAS</strong> based on last spring&apos;s similar campaign.</>,
+    roasLeftTop: 'Est. revenue generated',
+    roasLeftSub: 'vs. $400 spend',
+    roasVal: '$720',
+    roasVariant: 'ok',
+  },
+]
+
+export default function CampaignCards({ previewMode }: { previewMode?: boolean } = {}) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.marketingCampaignCards] ?? true)
+  if (!previewMode && !visible) return null
+
+  const shownCampaigns = previewMode ? previewCampaigns.slice(0, 2) : campaigns
+
   return (
     <div>
       <div className="flex items-start justify-between mb-[14px]">
@@ -173,7 +291,7 @@ export default function CampaignCards() {
       </div>
 
       <div className="grid grid-cols-[1fr_1fr] gap-[14px]">
-        {campaigns.map((c) => (
+        {shownCampaigns.map((c) => (
           <div key={c.name} className="bg-surface border border-border rounded-[14px] overflow-hidden flex flex-col transition-shadow duration-200 hover:shadow-[0_4px_18px_rgba(0,0,0,0.07)]">
 
             {/* Card top */}

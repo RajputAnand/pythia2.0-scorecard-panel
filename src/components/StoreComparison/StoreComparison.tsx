@@ -1,3 +1,8 @@
+'use client'
+
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
+
 interface MetricRowProps {
   label: string
   shortLabel: string
@@ -41,7 +46,10 @@ function MetricRow({ label, shortLabel, yoursScore, yoursColor, gap, gapVariant,
   )
 }
 
-export default function StoreComparison() {
+export default function StoreComparison({ previewMode }: { previewMode?: boolean } = {}) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingStoreComparison] ?? true)
+  if (!previewMode && !visible) return null
+
   return (
     <div className="grid grid-cols-[1fr_60px_1fr] bg-surface border border-border rounded-[14px] overflow-hidden">
 
@@ -49,7 +57,7 @@ export default function StoreComparison() {
       <div className="flex flex-col px-[22px] py-[18px] gap-1 border-b border-border bg-accent-light">
         <div className="text-[10px] font-semibold uppercase tracking-[.1em] text-accent">Your Store</div>
         <div className="text-[15px] font-bold">Main St. Store</div>
-        <div className="font-mono text-[11.5px] text-muted">N/A</div>
+        <div className="font-mono text-[11.5px] text-muted">{previewMode ? 'Rank #3' : 'N/A'}</div>
       </div>
       <div className="flex items-center justify-center border-b border-border border-l border-r bg-surface-alt">
         <span className="text-[9px] font-semibold text-muted uppercase tracking-[.07em] [writing-mode:vertical-rl] rotate-180">vs.</span>
@@ -57,35 +65,39 @@ export default function StoreComparison() {
       <div className="flex flex-col px-[22px] py-[18px] gap-1 border-b border-border bg-gold-light">
         <div className="text-[10px] font-semibold uppercase tracking-[.1em] text-gold">Top Performer</div>
         <div className="text-[15px] font-bold">Store #14</div>
-        <div className="font-mono text-[11.5px] text-muted">N/A</div>
+        <div className="font-mono text-[11.5px] text-muted">{previewMode ? 'Rank #1' : 'N/A'}</div>
       </div>
 
       {/* Metric rows */}
       <MetricRow
         label="Overall Score" shortLabel="Overall"
-        yoursScore={0} yoursColor="#C47F18" gap="N/A" gapVariant="behind"
-        theirsScore={0}
+        yoursScore={previewMode ? 84 : 0} yoursColor="#C47F18" gap={previewMode ? '10 behind' : 'N/A'} gapVariant="behind"
+        theirsScore={previewMode ? 94 : 0}
       />
       <MetricRow
         label="Hospitality" shortLabel="Hosp"
-        yoursScore={0} yoursColor="#1D5C3A" gap="N/A" gapVariant="ahead"
-        theirsScore={0}
+        yoursScore={previewMode ? 86 : 0} yoursColor="#1D5C3A" gap={previewMode ? '4 ahead' : 'N/A'} gapVariant="ahead"
+        theirsScore={previewMode ? 82 : 0}
       />
       <MetricRow
         label="Checkout Speed" shortLabel="Checkout"
-        yoursScore={0} yoursColor="#C47F18" gap="N/A" gapVariant="behind"
-        theirsScore={0}
+        yoursScore={previewMode ? 79 : 0} yoursColor="#C47F18" gap={previewMode ? '17 behind' : 'N/A'} gapVariant="behind"
+        theirsScore={previewMode ? 96 : 0}
       />
       <MetricRow
         label="Time to Service" shortLabel="Time to Svc"
-        yoursScore={0} yoursColor="#1D5C3A" gap="N/A" gapVariant="behind"
-        theirsScore={0}
+        yoursScore={previewMode ? 82 : 0} yoursColor="#1D5C3A" gap={previewMode ? '11 behind' : 'N/A'} gapVariant="behind"
+        theirsScore={previewMode ? 93 : 0}
         isLast
       />
 
       {/* Insight row */}
       <div className="col-span-full px-[22px] py-3 text-[12px] text-secondary leading-[1.5] bg-surface-alt border-t border-border">
-        <strong className="font-semibold text-primary">Biggest gap: N/A.</strong> Comparison data is not yet available for this period.
+        {previewMode ? (
+          <><strong className="font-semibold text-primary">Biggest gap: Checkout Speed (17 pts).</strong> Closing this gap would move you into the top 5 network-wide.</>
+        ) : (
+          <><strong className="font-semibold text-primary">Biggest gap: N/A.</strong> Comparison data is not yet available for this period.</>
+        )}
       </div>
 
     </div>

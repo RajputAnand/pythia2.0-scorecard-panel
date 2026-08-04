@@ -9,21 +9,45 @@ import { SWAG_STORE } from '@/lib/swagstore-data'
 import { renderText } from '@/utils/common'
 import { useSwagStore } from '@/store/swagStore'
 import { useUserStore } from '@/store/userStore'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
-export default function SwagStore() {
+// Illustrative points balance + catalog states for the Super Admin hover
+// preview — the real catalog (SWAG_STORE) already has realistic pricing, so
+// this only needs to fake a points balance and a couple of redeemed items to
+// show all four card states at a glance.
+const PREVIEW_POINTS = 1450
+const PREVIEW_CATALOG: SwagItem[] = SWAG_STORE.catalog.map((item, i) => ({
+  ...item,
+  redeemed: i === 0,
+}))
+
+interface SwagStoreProps {
+  previewMode?: boolean
+}
+
+export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
   const config = SWAG_STORE
   const { showToast } = useToast()
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.employeeSwagStore] ?? true)
 
-  const { catalog: items, loading: isLoading, error, redeemingId, fetchCatalog, redeemItem } = useSwagStore()
+  const { catalog: storeItems, loading: storeLoading, error, redeemingId, fetchCatalog, redeemItem } = useSwagStore()
   const isError = !!error
 
   useEffect(() => {
-    fetchCatalog()
-  }, [fetchCatalog])
+    if (!previewMode) fetchCatalog()
+  }, [fetchCatalog, previewMode])
 
-  const points = useUserStore((s) => s.points) ?? 0
+  const storePoints = useUserStore((s) => s.points) ?? 0
+
+  if (!previewMode && !visible) return null
+
+  const items = previewMode ? PREVIEW_CATALOG : storeItems
+  const isLoading = previewMode ? false : storeLoading
+  const points = previewMode ? PREVIEW_POINTS : storePoints
 
   async function handleRedeem(item: SwagItem) {
+    if (previewMode) return
     if (points < item.cost || item.redeemed || redeemingId) return
     const success = await redeemItem(item)
     if (success) {

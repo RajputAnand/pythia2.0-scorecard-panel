@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 type PillVariant = 'up' | 'down' | 'flat'
 
@@ -27,8 +29,24 @@ const GENDER_ROWS: DemoRow[] = [
   { label: 'Other',  novPct: 0, febPct: 0, febColor: '#B0A89E', change: 'N/A', changeVariant: 'flat' },
 ]
 
+const PREVIEW_AGE_ROWS: DemoRow[] = [
+  { label: '18–24', novPct: 22, febPct: 28, febColor: '#1D5C3A', change: '↑ 6', changeVariant: 'up' },
+  { label: '25–34', novPct: 34, febPct: 37, febColor: '#1D5C3A', change: '↑ 3', changeVariant: 'up' },
+  { label: '35–44', novPct: 24, febPct: 21, febColor: '#B52B1E', change: '↓ 3', changeVariant: 'down' },
+  { label: '45–54', novPct: 13, febPct: 10, febColor: '#B52B1E', change: '↓ 3', changeVariant: 'down' },
+  { label: '55+', novPct: 7, febPct: 4, febColor: '#B0A89E', change: '↓ 3', changeVariant: 'flat' },
+]
+
+const PREVIEW_GENDER_ROWS: DemoRow[] = [
+  { label: 'Male', novPct: 46, febPct: 44, febColor: '#B0A89E', change: '↓ 2', changeVariant: 'flat' },
+  { label: 'Female', novPct: 51, febPct: 53, febColor: '#1D5C3A', change: '↑ 2', changeVariant: 'up' },
+  { label: 'Other', novPct: 3, febPct: 3, febColor: '#B0A89E', change: '→', changeVariant: 'flat' },
+]
+
 const AGE_INSIGHT = <><strong className="font-semibold text-primary">Demographic shift data is not yet available.</strong> Age breakdown figures will populate once live data is connected.</>
 const GENDER_INSIGHT = <><strong className="font-semibold text-primary">Demographic shift data is not yet available.</strong> Gender split figures will populate once live data is connected.</>
+const PREVIEW_AGE_INSIGHT = <><strong className="font-semibold text-primary">Gen Z and young professionals</strong> are your fastest-growing segments — up 6 and 3 points since November.</>
+const PREVIEW_GENDER_INSIGHT = <><strong className="font-semibold text-primary">Female customers</strong> now make up the majority of visits, growing 2 points since November.</>
 
 const pillClass: Record<PillVariant, string> = {
   up: 'bg-accent-light text-accent',
@@ -74,8 +92,11 @@ function DemoBarRows({ rows, insight }: { rows: DemoRow[]; insight: React.ReactN
 
 import type React from 'react'
 
-export default function DemographicShifts() {
+export default function DemographicShifts({ previewMode }: { previewMode?: boolean } = {}) {
   const [tab, setTab] = useState<'age' | 'gender'>('age')
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.marketingDemographicShifts] ?? true)
+
+  if (!previewMode && !visible) return null
 
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
@@ -104,8 +125,8 @@ export default function DemographicShifts() {
       </div>
 
       {tab === 'age'
-        ? <DemoBarRows rows={AGE_ROWS} insight={AGE_INSIGHT} />
-        : <DemoBarRows rows={GENDER_ROWS} insight={GENDER_INSIGHT} />
+        ? <DemoBarRows rows={previewMode ? PREVIEW_AGE_ROWS.slice(0, 2) : AGE_ROWS} insight={previewMode ? PREVIEW_AGE_INSIGHT : AGE_INSIGHT} />
+        : <DemoBarRows rows={previewMode ? PREVIEW_GENDER_ROWS.slice(0, 2) : GENDER_ROWS} insight={previewMode ? PREVIEW_GENDER_INSIGHT : GENDER_INSIGHT} />
       }
     </div>
   )
