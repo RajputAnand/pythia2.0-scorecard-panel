@@ -5,9 +5,52 @@ import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import { renderText } from '@/utils/common'
 import { SCORE_VS_TRANSACTIONS_DATA } from '@/lib/score-vs-transactions-data'
 import type { ScoreVsTransactionsData } from '@/types/score-vs-transactions'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
-export default function ScoreVsTransactions() {
-  const [data] = useState<ScoreVsTransactionsData>(SCORE_VS_TRANSACTIONS_DATA)
+// Same chart geometry as SCORE_VS_TRANSACTIONS_DATA — just realistic labels
+// instead of the live "0"/"N/A" placeholders, for the Super Admin preview only.
+const PREVIEW_DATA: ScoreVsTransactionsData = {
+  ...SCORE_VS_TRANSACTIONS_DATA,
+  badge: '0.82 correlation',
+  yLabels: [
+    { x: 0, y: 24, value: '100' },
+    { x: 0, y: 54, value: '75' },
+    { x: 0, y: 84, value: '50' },
+    { x: 0, y: 114, value: '25' },
+  ],
+  series: [
+    {
+      ...SCORE_VS_TRANSACTIONS_DATA.series[0],
+      labels: [
+        { x: 15, y: 100, value: '68' },
+        { x: 130, y: 90, value: '74' },
+        { x: 245, y: 75, value: '79' },
+        { x: 340, y: 57, value: '84' },
+        { x: 435, y: 43, value: '88', opacity: 0.6 },
+      ],
+    },
+    {
+      ...SCORE_VS_TRANSACTIONS_DATA.series[1],
+      labels: [
+        { x: 15, y: 130, value: '1.4k' },
+        { x: 118, y: 130, value: '1.6k' },
+        { x: 232, y: 130, value: '1.8k' },
+        { x: 327, y: 130, value: '2.0k' },
+        { x: 420, y: 130, value: '2.2k', opacity: 0.6 },
+      ],
+    },
+  ],
+  insightEmoji: '📈',
+  insightText: 'Team score and monthly transactions are **strongly correlated (0.82)** — as coaching lifts hospitality and speed, transaction volume follows.',
+}
+
+export default function ScoreVsTransactions({ previewMode }: { previewMode?: boolean } = {}) {
+  const [realData] = useState<ScoreVsTransactionsData>(SCORE_VS_TRANSACTIONS_DATA)
+  const data = previewMode ? PREVIEW_DATA : realData
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiScoreVsTransactions] ?? true)
+
+  if (!previewMode && !visible) return null
 
   return (
     <div className="bg-surface border border-border rounded-2xl overflow-hidden">

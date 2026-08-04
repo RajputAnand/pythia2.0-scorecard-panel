@@ -1,9 +1,14 @@
+'use client'
+
 import Link from 'next/link'
 import Panel from '@/components/shared/Panel/Panel'
 import type { CoachingSummary } from '@/types/coaching-plan'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 interface Props {
   summary: CoachingSummary | null
+  previewMode?: boolean
 }
 
 function Skeleton() {
@@ -25,7 +30,9 @@ function Skeleton() {
   )
 }
 
-export default function CoachingHealthSnapshot({ summary }: Props) {
+export default function CoachingHealthSnapshot({ summary, previewMode }: Props) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.managerCoachingHealth] ?? true)
+  if (!previewMode && !visible) return null
   if (!summary) return <Skeleton />
 
   const { team_win_rate, ai_stalled, in_progress } = summary

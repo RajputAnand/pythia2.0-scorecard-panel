@@ -7,6 +7,8 @@ import styles from './Sidebar.module.css'
 import type { ReactNode } from 'react'
 import type { User, UserRole } from '@/types/user'
 import { useUserStore } from '@/store/userStore'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { PAGE_ID_BY_HREF } from '@/lib/admin-config-data'
 import { logout } from '@/actions/auth'
 
 type NavItem = { label: string; href: string; badge?: number | null; icon: ReactNode }
@@ -206,16 +208,36 @@ const MANAGER_NAV: NavSection[] = [
   },
 ]
 
+const SUPERADMIN_NAV: NavSection[] = [
+  {
+    section: 'Super Admin',
+    items: [
+      {
+        label: 'KPI Visibility',
+        href: '/super-admin/kpi-visibility',
+        icon: (
+          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        ),
+      },
+    ],
+  },
+]
+
 const NAV_BY_ROLE: Record<string, NavSection[]> = {
   employee: EMPLOYEE_NAV,
   owner: OWNER_NAV,
   manager: MANAGER_NAV,
+  superadmin: SUPERADMIN_NAV,
 }
 
 const VIEW_DEFAULT_ROUTES: Record<UserRole, string> = {
   owner: '/owner/roi-attribution',
   manager: '/manager/coaching-tracker',
   employee: '/dashboard/overview',
+  superadmin: '/super-admin/kpi-visibility',
 }
 
 export default function Sidebar({ user }: { user: User }) {
@@ -227,16 +249,34 @@ export default function Sidebar({ user }: { user: User }) {
   })
   const [isPending, startTransition] = useTransition()
 
-  const navSections = NAV_BY_ROLE[activeView]
   const currentScore = useUserStore((s) => s.currentScore)
   const storePoints = useUserStore((s) => s.points)
   const setPoints = useUserStore((s) => s.setPoints)
   const currentStore = useUserStore((s) => s.currentStore)
   const points = storePoints ?? (user.points ?? 0)
 
+  const pageVisibility = useAdminConfigStore((s) => s.visibility)
+  const fetchPageVisibility = useAdminConfigStore((s) => s.fetchVisibility)
+
   useEffect(() => {
     if (user.points != null) setPoints(user.points)
   }, [user.points, setPoints])
+
+  useEffect(() => {
+    fetchPageVisibility()
+  }, [fetchPageVisibility])
+
+  // Drop nav items whose page has been turned off by the Super Admin, and
+  // drop any section left with no items as a result.
+  const navSections = NAV_BY_ROLE[activeView]
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        const pageId = PAGE_ID_BY_HREF[item.href]
+        return !pageId || (pageVisibility[pageId] ?? true)
+      }),
+    }))
+    .filter((section) => section.items.length > 0)
 
   function handleViewToggle(view: UserRole) {
     if (user.role !== 'owner') return
@@ -317,7 +357,7 @@ export default function Sidebar({ user }: { user: User }) {
             </div>
           )}
         </div>
-      ) : (
+      ) : user.role === 'superadmin' ? null : (
         <>
           {user.role === 'owner' && (
             <div className="mx-3 pt-4 border-t border-border mb-4">

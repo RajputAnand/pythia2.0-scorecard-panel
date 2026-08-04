@@ -1,4 +1,8 @@
+'use client'
+
 import type React from 'react'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 type SegmentVariant = 'growing' | 'shrinking' | 'stable'
 
@@ -56,6 +60,13 @@ const segments: Segment[] = [
   },
 ]
 
+const previewSegments: Segment[] = [
+  { icon: '🚀', variant: 'growing', name: 'Young Professionals (25–34)', detail: 'Weekday lunch + after-work peaks', visitGrowth: '+18%', visitColor: 'text-accent', avgBasket: '$14.20', basketColor: 'text-accent' },
+  { icon: '📱', variant: 'growing', name: 'Gen Z (18–24)', detail: 'Evening visits', visitGrowth: '+24%', visitColor: 'text-accent', avgBasket: '$9.80', basketColor: 'text-secondary' },
+  { icon: '➡️', variant: 'stable', name: 'Families (35–44)', detail: 'Weekend morning peaks', visitGrowth: '+2%', visitColor: 'text-secondary', avgBasket: '$21.40', basketColor: 'text-accent' },
+  { icon: '📉', variant: 'shrinking', name: 'Older Adults (45+)', detail: 'Morning visits', visitGrowth: '-6%', visitColor: 'text-danger', avgBasket: '$16.10', basketColor: 'text-secondary' },
+]
+
 const borderColor: Record<SegmentVariant, string> = {
   growing: 'border-l-accent',
   shrinking: 'border-l-danger',
@@ -68,7 +79,12 @@ const iconBg: Record<SegmentVariant, string> = {
   stable: 'bg-surface-alt',
 }
 
-export default function CustomerSegmentShifts() {
+export default function CustomerSegmentShifts({ previewMode }: { previewMode?: boolean } = {}) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.marketingCustomerSegmentShifts] ?? true)
+  if (!previewMode && !visible) return null
+
+  const shownSegments = previewMode ? previewSegments.slice(0, 2) : segments
+
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
       <div className="px-[22px] py-4 border-b border-border">
@@ -77,7 +93,7 @@ export default function CustomerSegmentShifts() {
       </div>
 
       <div className="flex flex-col gap-[10px] px-[22px] py-5">
-        {segments.map((seg) => (
+        {shownSegments.map((seg) => (
           <div
             key={seg.name}
             className={`flex items-center gap-3 px-[14px] py-3 border border-border rounded-[11px] border-l-[3px] ${borderColor[seg.variant]}`}
@@ -103,7 +119,10 @@ export default function CustomerSegmentShifts() {
         ))}
 
         <div className="mt-[2px] bg-surface-alt rounded-[9px] px-[13px] py-[10px] text-[12px] text-secondary leading-[1.5]">
-          <strong className="font-semibold text-primary">Opportunity:</strong> Segment growth data is not yet available for this period.
+          <strong className="font-semibold text-primary">Opportunity:</strong>{' '}
+          {previewMode
+            ? 'Gen Z visits are growing fastest (+24%) but spend the least per visit — a loyalty perk could lift their basket size.'
+            : 'Segment growth data is not yet available for this period.'}
         </div>
       </div>
     </div>

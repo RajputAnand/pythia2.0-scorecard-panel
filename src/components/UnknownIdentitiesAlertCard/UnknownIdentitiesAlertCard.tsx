@@ -1,10 +1,18 @@
+'use client'
+
 import Link from 'next/link'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 interface Props {
   count: number | null
+  previewMode?: boolean
 }
 
-export default function UnknownIdentitiesAlertCard({ count }: Props) {
+export default function UnknownIdentitiesAlertCard({ count, previewMode }: Props) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.managerUnknownIdentitiesAlert] ?? true)
+  if (!previewMode && !visible) return null
+
   if (count === null) {
     return (
       <div className="bg-surface border border-border rounded-[13px] px-5 py-4 flex items-center gap-3 animate-pulse">

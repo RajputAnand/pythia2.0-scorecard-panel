@@ -1,7 +1,14 @@
+'use client'
+
 import type { CoachingSummary } from '@/types/coaching-plan'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 interface Props {
   summary: CoachingSummary | null
+  previewMode?: boolean
+  /** Super Admin preview only — dims every card except the one being previewed, so it's obvious which card a given row controls. */
+  highlightId?: string
 }
 
 function WinStripSkeleton() {
@@ -22,7 +29,10 @@ function WinStripSkeleton() {
   )
 }
 
-export default function CoachingWinStrip({ summary }: Props) {
+export default function CoachingWinStrip({ summary, previewMode, highlightId }: Props) {
+  const storeVisibility = useAdminConfigStore((s) => s.visibility)
+  const visibility = previewMode ? {} : storeVisibility
+
   if (!summary) return <WinStripSkeleton />
 
   const { team_win_rate, avg_time_to_resolve, ai_stalled, in_progress } = summary
@@ -37,6 +47,7 @@ export default function CoachingWinStrip({ summary }: Props) {
   const cards = [
     {
       key: 'win_rate',
+      id: KPI_IDS.coachingWinRate,
       label: 'Team Win Rate',
       icon: '✅',
       iconBg: 'bg-accent-light',
@@ -51,6 +62,7 @@ export default function CoachingWinStrip({ summary }: Props) {
     },
     {
       key: 'avg_time',
+      id: KPI_IDS.coachingAvgTime,
       label: 'Avg. Time to Resolve',
       icon: '⏱',
       iconBg: 'bg-cobalt-light',
@@ -65,6 +77,7 @@ export default function CoachingWinStrip({ summary }: Props) {
     },
     {
       key: 'stalled',
+      id: KPI_IDS.coachingAiStalled,
       label: 'AI Stalled Issues',
       icon: '🚨',
       iconBg: 'bg-danger-light',
@@ -79,6 +92,7 @@ export default function CoachingWinStrip({ summary }: Props) {
     },
     {
       key: 'in_progress',
+      id: KPI_IDS.coachingInProgress,
       label: 'Issues In Progress',
       icon: '🔄',
       iconBg: 'bg-amber-light',
@@ -91,14 +105,24 @@ export default function CoachingWinStrip({ summary }: Props) {
       subBold: 'Across ',
       sub: `${in_progress.employees_affected} employee${in_progress.employees_affected === 1 ? '' : 's'} this week`,
     },
-  ]
+  ].filter((card) => visibility[card.id] ?? true)
+
+  if (cards.length === 0) return null
 
   return (
-    <div className="grid grid-cols-4 gap-[14px]">
-      {cards.map((card) => (
+    <div className="grid gap-[14px]" style={{ gridTemplateColumns: `repeat(${cards.length}, 1fr)` }}>
+      {cards.map((card) => {
+        const dimmed = highlightId != null && card.id !== highlightId
+        return (
         <div
           key={card.key}
-          className="bg-surface border border-border rounded-[13px] px-5 py-[18px] flex flex-col gap-[10px] transition-shadow duration-200 hover:shadow-[0_4px_18px_rgba(0,0,0,.07)]"
+          className={`bg-surface border rounded-[13px] px-5 py-[18px] flex flex-col gap-[10px] transition-all duration-200 ${
+            dimmed
+              ? 'border-border opacity-35 blur-[1.5px] saturate-50'
+              : highlightId != null
+                ? 'border-accent ring-2 ring-accent/40 shadow-[0_4px_18px_rgba(0,0,0,.07)]'
+                : 'border-border hover:shadow-[0_4px_18px_rgba(0,0,0,.07)]'
+          }`}
         >
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -127,7 +151,8 @@ export default function CoachingWinStrip({ summary }: Props) {
             {card.sub}
           </div>
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

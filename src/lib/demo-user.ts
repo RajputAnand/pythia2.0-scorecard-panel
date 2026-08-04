@@ -35,4 +35,11 @@ export const DEMO_USERS: DemoUser[] = [
     name: "Sam B.",
     role: "owner",
   },
+  {
+    email: "superadmin@demo.com",
+    password: "demo1234",
+    initials: "SA",
+    name: "Super Admin",
+    role: "superadmin",
+  },
 ];

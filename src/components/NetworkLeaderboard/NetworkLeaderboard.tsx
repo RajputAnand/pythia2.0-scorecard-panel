@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 type PercentileVariant = 'top5' | 'top10' | 'top25' | 'top50'
 type MovementVariant = 'up' | 'down' | 'flat'
@@ -34,6 +36,17 @@ const rows: StoreRow[] = [
   { rank: 6, rankVariant: 'yours', name: 'Main St. Store', isYours: true, overall: 0, overallVariant: 'yours', hospitality: 0, hospColor: '#1D5C3A', checkout: 0, checkoutColor: '#C47F18', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top25' },
   { rank: 7, rankVariant: 'regular', name: 'Store #9', overall: 0, hospitality: 0, hospColor: '#7EC8A0', checkout: 0, checkoutColor: '#1D5C3A', timeToSvc: 0, ttsColor: '#7EC8A0', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top25' },
   { rank: 8, rankVariant: 'regular', name: 'Store #2', overall: 0, hospitality: 0, hospColor: '#7EC8A0', checkout: 0, checkoutColor: '#7EC8A0', timeToSvc: 0, ttsColor: '#7EC8A0', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top50' },
+]
+
+const previewRows: StoreRow[] = [
+  { rank: 1, rankVariant: 'gold', name: 'Store #14', overall: 94, overallVariant: 'gold', hospitality: 92, hospColor: '#1D5C3A', checkout: 96, checkoutColor: '#1D5C3A', timeToSvc: 93, ttsColor: '#1D5C3A', movement: '↑ 1', movementVariant: 'up', percentile: 'Top 5%', percentileVariant: 'top5' },
+  { rank: 2, rankVariant: 'silver', name: 'Store #7', overall: 90, overallVariant: 'silver', hospitality: 88, hospColor: '#7EC8A0', checkout: 91, checkoutColor: '#1D5C3A', timeToSvc: 89, ttsColor: '#1D5C3A', movement: '↓ 1', movementVariant: 'down', percentile: 'Top 5%', percentileVariant: 'top5' },
+  { rank: 3, rankVariant: 'bronze', name: 'Main St. Store', overall: 84, overallVariant: 'bronze', hospitality: 86, hospColor: '#1D5C3A', checkout: 79, checkoutColor: '#7EC8A0', timeToSvc: 82, ttsColor: '#1D5C3A', movement: '↑ 11', movementVariant: 'up', isYours: true, percentile: 'Top 12%', percentileVariant: 'top10' },
+  { rank: 4, rankVariant: 'regular', name: 'Store #21', overall: 81, hospitality: 80, hospColor: '#7EC8A0', checkout: 83, checkoutColor: '#1D5C3A', timeToSvc: 78, ttsColor: '#1D5C3A', movement: '→', movementVariant: 'flat', percentile: 'Top 20%', percentileVariant: 'top25' },
+  { rank: 5, rankVariant: 'regular', name: 'Store #3', overall: 77, hospitality: 75, hospColor: '#7EC8A0', checkout: 79, checkoutColor: '#1D5C3A', timeToSvc: 76, ttsColor: '#1D5C3A', movement: '↑ 2', movementVariant: 'up', percentile: 'Top 25%', percentileVariant: 'top25' },
+  { rank: 6, rankVariant: 'regular', name: 'Store #18', overall: 74, hospitality: 72, hospColor: '#7EC8A0', checkout: 75, checkoutColor: '#1D5C3A', timeToSvc: 74, ttsColor: '#7EC8A0', movement: '↓ 2', movementVariant: 'down', percentile: 'Top 30%', percentileVariant: 'top50' },
+  { rank: 7, rankVariant: 'regular', name: 'Store #9', overall: 71, hospitality: 69, hospColor: '#7EC8A0', checkout: 72, checkoutColor: '#1D5C3A', timeToSvc: 70, ttsColor: '#7EC8A0', movement: '→', movementVariant: 'flat', percentile: 'Top 40%', percentileVariant: 'top50' },
+  { rank: 8, rankVariant: 'regular', name: 'Store #2', overall: 68, hospitality: 66, hospColor: '#7EC8A0', checkout: 69, checkoutColor: '#7EC8A0', timeToSvc: 67, ttsColor: '#7EC8A0', movement: '↓ 1', movementVariant: 'down', percentile: 'Top 45%', percentileVariant: 'top50' },
 ]
 
 const FILTERS = ['All Stores', 'Top 10', 'Near You ±3', 'Improving', 'Declining'] as const
@@ -78,8 +91,13 @@ function MetricCell({ value, color }: { value: number; color: string }) {
   )
 }
 
-export default function NetworkLeaderboard() {
+export default function NetworkLeaderboard({ previewMode }: { previewMode?: boolean } = {}) {
   const [activeFilter, setActiveFilter] = useState('All Stores')
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingNetworkLeaderboard] ?? true)
+
+  if (!previewMode && !visible) return null
+
+  const shownRows = previewMode ? previewRows.filter((r) => r.rank === 1 || r.isYours) : rows
 
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
@@ -121,7 +139,7 @@ export default function NetworkLeaderboard() {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
+          {shownRows.map((row) => (
             <tr key={row.rank} className={row.isYours ? 'bg-accent-light' : ''}>
               <td className="pl-[22px] pr-[18px] py-[13px] border-b border-border align-middle">
                 <div className="flex items-center gap-[10px]">
@@ -166,7 +184,7 @@ export default function NetworkLeaderboard() {
           ))}
           <tr>
             <td colSpan={8} className="px-[22px] py-[10px] text-[11.5px] text-muted bg-surface-alt text-center">
-              Additional stores · Score data N/A · Below top 50%
+              {previewMode ? '16 additional stores · below top 50%' : 'Additional stores · Score data N/A · Below top 50%'}
             </td>
           </tr>
         </tbody>

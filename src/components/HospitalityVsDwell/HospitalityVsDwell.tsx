@@ -5,9 +5,43 @@ import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import { renderText } from '@/utils/common'
 import { HOSPITALITY_VS_DWELL_DATA } from '@/lib/hospitality-vs-dwell-data'
 import type { HospitalityVsDwellData } from '@/types/hospitality-vs-dwell'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
-export default function HospitalityVsDwell() {
-  const [data] = useState<HospitalityVsDwellData>(HOSPITALITY_VS_DWELL_DATA)
+const PREVIEW_DATA: HospitalityVsDwellData = {
+  ...HOSPITALITY_VS_DWELL_DATA,
+  badge: '0.71 correlation',
+  series: [
+    {
+      ...HOSPITALITY_VS_DWELL_DATA.series[0],
+      labels: [
+        { x: 15, y: 103, value: '71' },
+        { x: 130, y: 95, value: '76' },
+        { x: 245, y: 77, value: '81' },
+        { x: 340, y: 60, value: '86' },
+      ],
+    },
+    {
+      ...HOSPITALITY_VS_DWELL_DATA.series[1],
+      labels: [
+        { x: 9, y: 128, value: '2.1m' },
+        { x: 122, y: 128, value: '3.0m' },
+        { x: 237, y: 128, value: '3.8m' },
+        { x: 330, y: 128, value: '4.6m' },
+        { x: 422, y: 128, value: '5.2m', opacity: 0.6 },
+      ],
+    },
+  ],
+  insightEmoji: '⏱',
+  insightText: 'Higher **hospitality scores** track with longer **average dwell time** — engaged customers browse and buy more before leaving.',
+}
+
+export default function HospitalityVsDwell({ previewMode }: { previewMode?: boolean } = {}) {
+  const [realData] = useState<HospitalityVsDwellData>(HOSPITALITY_VS_DWELL_DATA)
+  const data = previewMode ? PREVIEW_DATA : realData
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiHospitalityVsDwell] ?? true)
+
+  if (!previewMode && !visible) return null
 
   return (
     <div className="bg-surface border border-border rounded-2xl overflow-hidden">

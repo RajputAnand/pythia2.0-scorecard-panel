@@ -4,6 +4,8 @@ import Panel from '@/components/shared/Panel/Panel'
 import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import type { ChartDot, ChartLabel, ChartMinorTick, ChartXLabel, ChartYLabel, LineChartSeries } from '@/types/line-chart'
 import type { ProgressOverTimeChartData, ProgressOverTimeData } from '@/types/overview'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 const PLOT_LEFT = 28
 const PLOT_RIGHT = 450
@@ -63,9 +65,10 @@ function buildSeries(
   return { path, color, strokeWidth, dots, labels }
 }
 
-export default function ProgressChart({ data }: { data: ProgressOverTimeData }) {
+export default function ProgressChart({ data, previewMode }: { data: ProgressOverTimeData; previewMode?: boolean }) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.employeeProgressChart] ?? true)
   const { weeks, points_change_total } = data
-  if (weeks.length === 0) return null
+  if ((!previewMode && !visible) || weeks.length === 0) return null
 
   const allValues = weeks.flatMap((w) => [w.overall, w.hospitality, w.checkout_speed])
   const rawMin = Math.min(...allValues)
