@@ -4,6 +4,8 @@ import Panel from '@/components/shared/Panel/Panel'
 import { PosVariant } from '@/types/leaderboart'
 import type { TeamRankingData } from '@/types/overview'
 import { renderText } from '@/utils/common'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 const posClass: Record<PosVariant, string> = {
   gold: 'bg-[#FBF0C0] text-[#A07010]',
@@ -30,7 +32,10 @@ function getBarColor(rank: number, isYou: boolean): string {
   return 'var(--color-amber)'
 }
 
-export default function Leaderboard({ data }: { data: TeamRankingData }) {
+export default function Leaderboard({ data, previewMode }: { data: TeamRankingData; previewMode?: boolean }) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.employeeLeaderboard] ?? true)
+  if (!previewMode && !visible) return null
+
   const topScore = Math.max(...data.members.map((member) => member.score), 1)
   // Defensive against a backend bug where more than one member can come back
   // flagged is_you: true — only the first such row is ever treated as "you",

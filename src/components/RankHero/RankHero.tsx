@@ -1,3 +1,8 @@
+'use client'
+
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
+
 const rankHistory = [
   { month: 'Nov', width: '0%', color: '#E4DFD8', rank: 'N/A', accent: false },
   { month: 'Dec', width: '0%', color: '#B0CFC0', rank: 'N/A', accent: false },
@@ -12,7 +17,27 @@ const metrics = [
   { label: 'Overall Score', val: 0, rank: 'N/A', color: 'text-accent' },
 ]
 
-export default function RankHero() {
+const previewRankHistory = [
+  { month: 'Nov', width: '45%', color: '#E4DFD8', rank: '#14', accent: false },
+  { month: 'Dec', width: '58%', color: '#B0CFC0', rank: '#9', accent: false },
+  { month: 'Jan', width: '72%', color: '#78B898', rank: '#5', accent: false },
+  { month: 'Feb', width: '88%', color: '#1D5C3A', rank: '#3', accent: true },
+]
+
+const previewMetrics = [
+  { label: 'Hospitality', val: 86, rank: '#2 of 24', color: 'text-accent' },
+  { label: 'Checkout Spd', val: 79, rank: '#6 of 24', color: 'text-amber' },
+  { label: 'Time to Svc', val: 82, rank: '#4 of 24', color: 'text-accent' },
+  { label: 'Overall Score', val: 84, rank: '#3 of 24', color: 'text-accent' },
+]
+
+export default function RankHero({ previewMode }: { previewMode?: boolean } = {}) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingRankHero] ?? true)
+  if (!previewMode && !visible) return null
+
+  const history = previewMode ? previewRankHistory : rankHistory
+  const shownMetrics = previewMode ? previewMetrics : metrics
+
   return (
     <div className="grid grid-cols-[auto_1fr_auto] bg-surface border border-border rounded-2xl overflow-hidden">
 
@@ -22,13 +47,13 @@ export default function RankHero() {
         style={{ background: 'linear-gradient(160deg, #1A1714 0%, #2C2820 100%)' }}
       >
         <div className="text-[10px] font-semibold uppercase tracking-[.12em] text-white/35">Your Rank</div>
-        <div className="font-mono text-[72px] font-medium text-white leading-none tracking-[-0.04em]">N/A</div>
-        <div className="font-mono text-[13px] text-white/35">N/A</div>
+        <div className="font-mono text-[72px] font-medium text-white leading-none tracking-[-0.04em]">{previewMode ? '#3' : 'N/A'}</div>
+        <div className="font-mono text-[13px] text-white/35">{previewMode ? 'of 24 stores' : 'N/A'}</div>
         <div
           className="flex items-center gap-[6px] rounded-full px-3 py-1"
           style={{ background: 'rgba(255,255,255,0.1)' }}
         >
-          <span className="font-mono text-[12px] font-semibold text-white/50">N/A</span>
+          <span className="font-mono text-[12px] font-semibold text-white/50">{previewMode ? '▲ up 6 since Nov' : 'N/A'}</span>
         </div>
       </div>
 
@@ -39,9 +64,9 @@ export default function RankHero() {
           <div className="h-7 bg-surface-alt rounded-lg overflow-hidden">
             <div
               className="h-full rounded-lg flex items-center pl-3"
-              style={{ width: '0%', background: 'linear-gradient(90deg, #C8E6D6 0%, #1D5C3A 100%)' }}
+              style={{ width: previewMode ? '88%' : '0%', background: 'linear-gradient(90deg, #C8E6D6 0%, #1D5C3A 100%)' }}
             >
-              <span className="font-mono text-[12px] font-bold text-white whitespace-nowrap">N/A</span>
+              <span className="font-mono text-[12px] font-bold text-white whitespace-nowrap">{previewMode ? 'Top 12%' : 'N/A'}</span>
             </div>
           </div>
           <div className="flex justify-between mt-[5px]">
@@ -54,7 +79,7 @@ export default function RankHero() {
         </div>
 
         <div className="flex gap-2">
-          {metrics.map((m) => (
+          {shownMetrics.map((m) => (
             <div key={m.label} className="flex-1 bg-surface-alt rounded-[9px] px-3 py-[10px] flex flex-col gap-[3px]">
               <div className="text-[9.5px] text-muted uppercase tracking-[.07em]">{m.label}</div>
               <div className={`font-mono text-[16px] font-bold ${m.color}`}>{m.val}</div>
@@ -67,7 +92,7 @@ export default function RankHero() {
       {/* Right: rank history */}
       <div className="flex flex-col justify-center gap-2 px-7 py-7 min-w-[180px]">
         <div className="text-[10.5px] font-semibold text-muted uppercase tracking-[.1em] mb-1">Rank History</div>
-        {rankHistory.map((item) => (
+        {history.map((item) => (
           <div key={item.month} className="flex items-center gap-[14px]">
             <span className="font-mono text-[11px] text-muted w-7">{item.month}</span>
             <div className="flex-1 h-2 bg-surface-alt rounded overflow-hidden">

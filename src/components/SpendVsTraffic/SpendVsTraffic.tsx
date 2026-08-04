@@ -1,4 +1,12 @@
-export default function SpendVsTraffic() {
+'use client'
+
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
+
+export default function SpendVsTraffic({ previewMode }: { previewMode?: boolean } = {}) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.marketingSpendVsTraffic] ?? true)
+  if (!previewMode && !visible) return null
+
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
       <div className="flex items-start justify-between px-[22px] py-4 border-b border-border gap-3">
@@ -7,8 +15,8 @@ export default function SpendVsTraffic() {
           <div className="text-[11.5px] text-muted mt-[2px]">Monthly · All channels combined · Node 2 foot traffic vs. spend log</div>
         </div>
         <div className="flex gap-[6px] shrink-0">
-          <div className="text-[10.5px] px-[10px] py-1 rounded-full bg-accent-light text-accent font-semibold">Social N/A ROAS</div>
-          <div className="text-[10.5px] px-[10px] py-1 rounded-full bg-amber-light text-amber font-semibold">Signage N/A ROAS</div>
+          <div className="text-[10.5px] px-[10px] py-1 rounded-full bg-accent-light text-accent font-semibold">Social {previewMode ? '4.1x' : 'N/A'} ROAS</div>
+          <div className="text-[10.5px] px-[10px] py-1 rounded-full bg-amber-light text-amber font-semibold">Signage {previewMode ? '1.8x' : 'N/A'} ROAS</div>
         </div>
       </div>
 
@@ -71,10 +79,10 @@ export default function SpendVsTraffic() {
             <circle cx="500" cy="90"  r="4" fill="#1A1714"/>
             <circle cx="700" cy="65"  r="4" fill="#1A1714"/>
             {/* Traffic labels */}
-            <text x="90"  y="125" fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">N/A</text>
-            <text x="285" y="110" fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">N/A</text>
-            <text x="485" y="85"  fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">N/A</text>
-            <text x="685" y="60"  fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">N/A</text>
+            <text x="90"  y="125" fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">{previewMode ? '2.1k' : 'N/A'}</text>
+            <text x="285" y="110" fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">{previewMode ? '3.0k' : 'N/A'}</text>
+            <text x="485" y="85"  fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">{previewMode ? '3.8k' : 'N/A'}</text>
+            <text x="685" y="60"  fontSize="9" fill="#1A1714" fontFamily="DM Mono" fontWeight="500">{previewMode ? '4.6k' : 'N/A'}</text>
             {/* Y labels */}
             <text x="0" y="34"  fontSize="9" fill="#B0A89E" fontFamily="DM Mono">High</text>
             <text x="0" y="74"  fontSize="9" fill="#B0A89E" fontFamily="DM Mono">Med</text>
@@ -91,7 +99,11 @@ export default function SpendVsTraffic() {
 
         {/* Callout */}
         <div className="mt-[13px] bg-accent-light rounded-[9px] px-[13px] py-[10px] text-[12px] text-accent leading-[1.5]">
-          <strong className="font-semibold">Channel performance data is not yet available.</strong> ROAS and traffic lift figures will populate once live data is connected.
+          {previewMode ? (
+            <><strong className="font-semibold">Paid social is your best-performing channel</strong> at 4.1x ROAS — foot traffic has grown 120% since November as spend increased.</>
+          ) : (
+            <><strong className="font-semibold">Channel performance data is not yet available.</strong> ROAS and traffic lift figures will populate once live data is connected.</>
+          )}
         </div>
       </div>
     </div>

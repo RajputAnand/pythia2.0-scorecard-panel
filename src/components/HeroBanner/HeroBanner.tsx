@@ -5,10 +5,12 @@ import { HeroBannerData, MetricData } from '@/types/hero-banner'
 import { WeeklyStats } from '@/types/overview'
 import { useSession } from 'next-auth/react'
 import { getGreeting } from '@/utils/common'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 interface MetricProps extends MetricData {}
 
-function Metric({ label, value, change, valueColor }: MetricProps) {
+export function Metric({ label, value, change, valueColor }: MetricProps) {
   return (
     <div
       className="flex flex-col rounded-[9px] border gap-[2px] px-[14px] py-[8px]"
@@ -37,6 +39,7 @@ function deltaLabel(delta: number, suffix: string): string {
 
 export default function HeroBanner({ data, weeklyStats }: { data: HeroBannerData, weeklyStats: WeeklyStats }) {
   const { data: user } = useSession()
+  const metricsVisible = useAdminConfigStore((s) => s.visibility[KPI_IDS.employeeHeroMetrics] ?? true)
   if (!weeklyStats) return <></>
   const points = weeklyStats.points ?? 0
   const ringOffset = RING_CIRCUMFERENCE * (1 - Math.round(weeklyStats.overall_score ?? 0) / 100)
@@ -76,18 +79,20 @@ export default function HeroBanner({ data, weeklyStats }: { data: HeroBannerData
         <div className="text-white leading-relaxed text-[13px]">
           {data.scoreSubtitle}
         </div>
-        <div className="flex flex-wrap gap-[10px]">
-          <Metric key={"Hospitality"} change={deltaLabel(weeklyStats.hospitality_delta, 'this week')} label='Hospitality' value={(weeklyStats.hospitality ?? 0).toString()} valueColor='#78C99A' />
-          <Metric
-            key={"Checkout Spd"}
-            change={weeklyStats.checkout_coaching_active ? '→ Coaching active' : 'This week'}
-            label='Checkout Spd'
-            value={(weeklyStats.checkout_speed ?? 0).toString()}
-            valueColor={weeklyStats.checkout_coaching_active ? '#F5C842' : '#FFFFFF'}
-          />
-          <Metric key={"Time to Svc"} change={deltaLabel(weeklyStats.time_to_service_delta, 'this week')} label='Time to Svc' value={(weeklyStats.time_to_service ?? 0).toString()} valueColor='#78C99A' />
-          <Metric key={"Shift Hours"} change='This week' label='Shift Hours' value={`${weeklyStats.shift_hours ?? 0}h`} />
-        </div>
+        {metricsVisible && (
+          <div className="flex flex-wrap gap-[10px]">
+            <Metric key={"Hospitality"} change={deltaLabel(weeklyStats.hospitality_delta, 'this week')} label='Hospitality' value={(weeklyStats.hospitality ?? 0).toString()} valueColor='#78C99A' />
+            <Metric
+              key={"Checkout Spd"}
+              change={weeklyStats.checkout_coaching_active ? '→ Coaching active' : 'This week'}
+              label='Checkout Spd'
+              value={(weeklyStats.checkout_speed ?? 0).toString()}
+              valueColor={weeklyStats.checkout_coaching_active ? '#F5C842' : '#FFFFFF'}
+            />
+            <Metric key={"Time to Svc"} change={deltaLabel(weeklyStats.time_to_service_delta, 'this week')} label='Time to Svc' value={(weeklyStats.time_to_service ?? 0).toString()} valueColor='#78C99A' />
+            <Metric key={"Shift Hours"} change='This week' label='Shift Hours' value={`${weeklyStats.shift_hours ?? 0}h`} />
+          </div>
+        )}
       </div>
 
       {/* Right */}

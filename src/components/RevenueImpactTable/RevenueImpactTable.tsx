@@ -4,9 +4,26 @@ import { useState } from 'react'
 import styles from './RevenueImpactTable.module.css'
 import { REVENUE_IMPACT_DATA } from '@/lib/revenue-impact-data'
 import type { RevenueImpactData } from '@/types/revenue-impact'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
-export default function RevenueImpactTable() {
-  const [data] = useState<RevenueImpactData>(REVENUE_IMPACT_DATA)
+const PREVIEW_DATA: RevenueImpactData = {
+  ...REVENUE_IMPACT_DATA,
+  rows: [
+    { metric: 'Team Hospitality Score', sub: 'Greeting rate, tone, engagement', scoreBefore: '71', scoreAfter: '86', scoreColor: '#1D5C3A', barWidth: '86%', barColor: '#1D5C3A', outcome: 'Longer dwell time, higher basket size', actual: '$7,400', projected: '$9,100' },
+    { metric: 'Checkout Speed', sub: 'Avg transaction time per customer', scoreBefore: '52s', scoreAfter: '34s', scoreColor: '#C47F18', barWidth: '65%', barColor: '#C47F18', outcome: 'More customers served per shift', actual: '$6,200', projected: '$7,800' },
+    { metric: 'Time to Service', sub: 'Greeting delay reduction', scoreBefore: '68', scoreAfter: '82', scoreColor: '#1E4D7A', barWidth: '82%', barColor: '#1E4D7A', outcome: 'Fewer walk-outs during peak hours', actual: '$4,800', projected: '$5,900' },
+  ],
+  costRow: { label: 'Pythia Platform Cost', sub: 'All-in monthly subscription', outcome: 'Coaching, analytics, hardware', cost: '$1,200' },
+  netRoiRow: { label: 'Net ROI', outcome: '14.3x return on platform spend', actual: '$17,200', projected: '$20,600' },
+}
+
+export default function RevenueImpactTable({ previewMode }: { previewMode?: boolean } = {}) {
+  const [realData] = useState<RevenueImpactData>(REVENUE_IMPACT_DATA)
+  const data = previewMode ? { ...PREVIEW_DATA, rows: PREVIEW_DATA.rows.slice(0, 2) } : realData
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiRevenueImpactTable] ?? true)
+
+  if (!previewMode && !visible) return null
 
   return (
     <div className="bg-surface border border-border rounded-2xl overflow-hidden">

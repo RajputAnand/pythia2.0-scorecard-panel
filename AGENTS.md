@@ -79,6 +79,22 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Owners can access `/manager/*` routes (they oversee managers); managers cannot access `/owner/*`.
 - `src/utils/routes.ts` also exports `ROLE_LOGIN_ROUTES` (`employee` → `/login/employee`, `owner` → `/login/owner`, `manager` → `/login/manager`) alongside `ROLE_DEFAULT_ROUTES`. Used by `api-client.ts`'s 401 handler to send an expired session back to the correct role's login page instead of a generic one.
 
+## Super Admin — KPI Visibility System
+- A fourth role, `superadmin`, exists solely to manage what's visible to everyone else. It's **demo-only** — `src/actions/auth.ts → login()` branches on `requiredRole === 'superadmin'` and authenticates against `DEMO_USERS` locally instead of calling the real backend (there's no backend account for it). Demo login: `superadmin@demo.com` / `demo1234` at `/login/superadmin`.
+- The whole system lives behind `/super-admin/kpi-visibility` (`KpiVisibilityPanel.tsx`), which lets the super admin drill down Role → Page → individual KPI/graph and toggle each on/off, plus toggle a whole **page** off (which removes it from that role's Sidebar entirely).
+- **Registry — `src/lib/admin-config-data.ts`:**
+  - `KPI_IDS` — flat map of stable string ids for every individual toggle-able card/graph/panel. Import ids from here, never hardcode the string.
+  - `KPI_REGISTRY: KpiRegistryEntry[]` — one entry per id: `{ id, label, description, type: 'card'|'graph'|'panel', role, page, pageHref }`.
+  - `PAGE_IDS` / `PAGE_REGISTRY` — the coarser "show this whole page in the sidebar" toggle, one per sidebar-navigable page. `PAGE_ID_BY_HREF` maps a Sidebar nav item's `href` to its page-level id.
+  - Visibility state for **both** registries lives in one flat map (`Record<string, boolean>`) in `src/store/adminConfigStore.ts`, backed by `src/mock/adminConfigAPIs.ts` (`fakeGetVisibility`/`fakeSetVisibility`) per the standard **Async action pattern**. Any component reads its own flag with `useAdminConfigStore(s => s.visibility[KPI_IDS.xxx] ?? true)` — default **true** so nothing new silently disappears.
+- **Wiring a real component to its toggle** — two patterns, matching how its cards are structured:
+  - **Coarse** (the component is one cohesive visual — a hero banner, a chart, a table): `const visible = useAdminConfigStore(...); if (!previewMode && !visible) return null` at the top of the component.
+  - **Fine-grained** (the component already builds an internal array of N independent cards, e.g. a 4-card KPI strip): filter the array by `visibility[card.id] ?? true` before mapping, and switch the grid from a fixed `grid-cols-N` to `style={{ gridTemplateColumns: \`repeat(${cards.length}, 1fr)\` }}` so it reflows cleanly when fewer are visible.
+  - Every wired component also accepts an optional **`previewMode?: boolean`** prop that bypasses its own visibility check (so the admin panel can preview a currently-hidden item) and, for fine-grained ones, an optional **`highlightId?: string`** that dims every card except the one matching it (used when hovering a single row in the panel that maps to one card within a shared strip).
+  - Preview instances (with realistic sample data instead of live/placeholder data) are registered in `src/components/KpiVisibilityPanel/kpiPreviews.tsx` (`getKpiPreview(id)`), sourcing fake data from `src/lib/kpi-preview-data.ts`.
+- **Sidebar enforcement** — `Sidebar.tsx` reads `PAGE_ID_BY_HREF` + the same `useAdminConfigStore` visibility map and filters out any nav item (and any section left empty as a result) whose page has been toggled off. This is UI-only — it does not block direct URL navigation or enforce anything at `proxy.ts`.
+- **Convention: register new UI as part of building it, not after.** Whenever you add a new sidebar nav item, KPI card, graph, or panel anywhere in the app, add its entry to `KPI_REGISTRY` (and `PAGE_REGISTRY` if it's a new sidebar-navigable page) **in the same change**, defaulting to visible (the mock API seeds every registry id to `true`, and every `?? true` fallback assumes this — never seed a new entry as hidden by default). Wire the real component with the coarse or fine-grained pattern above, and add a preview entry in `kpiPreviews.tsx`. Treat an unregistered card/page as an incomplete implementation, not an optional follow-up.
+
 ## HTTP Client — Axios
 
 All real API calls go through the `pythia2Client` axios instance exported from `src/lib/api-client.ts`. Never use `fetch` directly in server actions or query functions.

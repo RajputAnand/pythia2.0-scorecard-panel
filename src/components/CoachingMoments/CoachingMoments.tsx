@@ -5,6 +5,8 @@ import Panel from '@/components/shared/Panel/Panel'
 import styles from './CoachingMoments.module.css'
 import { CoachingMoment } from '@/types/overview'
 import { renderText } from '@/utils/common'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 const CATEGORY_COLORS = [
   'bg-accent-light text-accent',
@@ -37,14 +39,19 @@ const CALLOUT_ICON: Record<CoachingMoment['callout_type'], string> = {
 export default function CoachingMoments({
   items,
   generationInProgress = false,
+  previewMode,
 }: {
   items: CoachingMoment[]
   generationInProgress?: boolean
+  previewMode?: boolean
 }) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.employeeCoachingMoments] ?? true)
 
   const [openIds, setOpenIds] = useState<Set<string>>(
     new Set(items[0] ? [items[0].record_id] : [])
   )
+
+  if (!previewMode && !visible) return null
 
   function toggle(id: string) {
     setOpenIds((prev) => {

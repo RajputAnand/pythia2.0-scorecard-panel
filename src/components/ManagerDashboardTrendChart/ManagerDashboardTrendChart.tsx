@@ -1,10 +1,15 @@
+'use client'
+
 import Panel from '@/components/shared/Panel/Panel'
 import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import type { ManagerDashboardTrendWeek } from '@/types/manager-dashboard'
 import type { ChartDot, ChartLabel, ChartXLabel, ChartYLabel, LineChartSeries } from '@/types/line-chart'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 interface Props {
   weeks: ManagerDashboardTrendWeek[] | null
+  previewMode?: boolean
 }
 
 const PLOT_LEFT = 30
@@ -62,7 +67,9 @@ function Skeleton() {
   )
 }
 
-export default function ManagerDashboardTrendChart({ weeks }: Props) {
+export default function ManagerDashboardTrendChart({ weeks, previewMode }: Props) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.managerTrendChart] ?? true)
+  if (!previewMode && !visible) return null
   if (!weeks || weeks.length === 0) return <Skeleton />
 
   const gridLines = [0, 1, 2, 3, 4].map((i) => ({ y: PLOT_TOP + (i * (PLOT_BOTTOM - PLOT_TOP)) / 4 }))

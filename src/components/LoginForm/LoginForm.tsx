@@ -9,7 +9,7 @@ import type { FormField } from '@/types/dynamic-form'
 import { ROLE_DEFAULT_ROUTES } from '@/utils/routes'
 
 interface LoginFormProps {
-  role: 'employee' | 'manager' | 'owner'
+  role: 'employee' | 'manager' | 'owner' | 'superadmin'
 }
 
 const roleConfig = {
@@ -27,6 +27,11 @@ const roleConfig = {
     title: 'Owner Login',
     description: 'Sign in as an owner to access business insights',
     color: 'from-green-500 to-green-600',
+  },
+  superadmin: {
+    title: 'Super Admin Login',
+    description: 'Sign in to manage KPI and graph visibility app-wide',
+    color: 'from-slate-700 to-slate-900',
   },
 }
 
@@ -138,7 +143,7 @@ export default function LoginForm({ role }: LoginFormProps) {
         <div className="mt-6 pt-6 border-t border-border">
           <p className="text-[12px] text-secondary text-center mb-3">Want to log in as a different role?</p>
           <div className="flex gap-2">
-            {(['employee', 'manager', 'owner'] as const).map((r) => (
+            {(['employee', 'manager', 'owner', 'superadmin'] as const).map((r) => (
               <Link
                 key={r}
                 href={`/login/${r}`}
