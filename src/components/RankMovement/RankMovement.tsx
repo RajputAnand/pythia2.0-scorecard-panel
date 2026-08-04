@@ -1,3 +1,8 @@
+'use client'
+
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
+
 interface StoreTrack {
   label: string
   isYours?: boolean
@@ -77,13 +82,26 @@ const tracks: StoreTrack[] = [
   },
 ]
 
+const previewTracks: StoreTrack[] = [
+  { label: '#1', months: [{ rank: '#3', flex: 0.82, color: '#B8860B' }, { rank: '#2', flex: 0.88, color: '#B8860B' }, { rank: '#1', flex: 0.94, color: '#B8860B' }, { rank: '#1', flex: 0.96, color: '#B8860B' }], currentRank: '#1', currentColor: '#B8860B', delta: '↑ 2', deltaVariant: 'up' },
+  { label: '#2', months: [{ rank: '#1', flex: 0.9, color: '#5A7A9A' }, { rank: '#1', flex: 0.9, color: '#5A7A9A' }, { rank: '#2', flex: 0.86, color: '#5A7A9A' }, { rank: '#2', flex: 0.85, color: '#5A7A9A' }], currentRank: '#2', currentColor: '#5A7A9A', delta: '↓ 1', deltaVariant: 'down' },
+  { label: '#5', months: [{ rank: '#6', flex: 0.68, color: '#4A8A6A' }, { rank: '#5', flex: 0.72, color: '#4A8A6A' }, { rank: '#4', flex: 0.76, color: '#4A8A6A' }, { rank: '#3', flex: 0.8, color: '#4A8A6A' }], currentRank: '#3', currentColor: '#4A8A6A', delta: '↑ 3', deltaVariant: 'up' },
+  { label: 'You', isYours: true, months: [{ rank: '#14', flex: 0.45, color: '#1D5C3A' }, { rank: '#9', flex: 0.58, color: '#1D5C3A' }, { rank: '#5', flex: 0.72, color: '#1D5C3A' }, { rank: '#3', flex: 0.88, color: '#1D5C3A' }], currentRank: '#3', currentColor: '#1D5C3A', delta: '↑ 11', deltaVariant: 'up' },
+  { label: '#4', months: [{ rank: '#3', flex: 0.78, color: '#888' }, { rank: '#3', flex: 0.78, color: '#888' }, { rank: '#3', flex: 0.76, color: '#888' }, { rank: '#4', flex: 0.74, color: '#888' }], currentRank: '#4', currentColor: '#888', delta: '↓ 1', deltaVariant: 'down' },
+]
+
 const deltaClass: Record<'up' | 'down' | 'flat', string> = {
   up: 'text-accent',
   down: 'text-danger',
   flat: 'text-muted',
 }
 
-export default function RankMovement() {
+export default function RankMovement({ previewMode }: { previewMode?: boolean } = {}) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingRankMovement] ?? true)
+  if (!previewMode && !visible) return null
+
+  const shownTracks = previewMode ? previewTracks.filter((t) => t.isYours || t.label === '#1') : tracks
+
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
       <div className="px-[22px] py-4 border-b border-border">
@@ -92,7 +110,7 @@ export default function RankMovement() {
       </div>
 
       <div className="flex flex-col gap-[14px] px-[22px] py-5">
-        {tracks.map((track) => (
+        {shownTracks.map((track) => (
           <div key={track.label} className="flex items-center gap-[14px]">
             <div className={`w-[72px] font-mono text-[11.5px] font-semibold shrink-0 ${track.isYours ? 'text-accent' : 'text-secondary'}`}>
               {track.label}
@@ -116,7 +134,10 @@ export default function RankMovement() {
         ))}
 
         <div className="pt-3 border-t border-border text-[11.5px] text-muted leading-[1.6]">
-          <strong className="font-semibold text-secondary">Key takeaway:</strong> Rank movement data is not yet available for this period.
+          <strong className="font-semibold text-secondary">Key takeaway:</strong>{' '}
+          {previewMode
+            ? 'Your store climbed from #14 to #3 over the last 4 months — the fastest-rising store in the network.'
+            : 'Rank movement data is not yet available for this period.'}
         </div>
       </div>
     </div>

@@ -4,10 +4,13 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { fetchManagerDashboardLeaderboard } from '@/queries/manager-dashboard'
 import type { ManagerDashboardEmployeeRow, ManagerDashboardSortBy, ManagerDashboardView } from '@/types/manager-dashboard'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 interface Props {
   initialEmployees: ManagerDashboardEmployeeRow[]
   initialView: ManagerDashboardView
+  previewMode?: boolean
 }
 
 const rankClass: Record<'gold' | 'silver' | 'bronze' | 'regular', string> = {
@@ -49,9 +52,10 @@ const VIEWS: { key: ManagerDashboardView; label: string }[] = [
   { key: 'all', label: 'All Time' },
 ]
 
-export default function ManagerDashboardLeaderboard({ initialEmployees, initialView }: Props) {
+export default function ManagerDashboardLeaderboard({ initialEmployees, initialView, previewMode }: Props) {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.managerLeaderboard] ?? true)
 
   const [sortBy, setSortBy] = useState<ManagerDashboardSortBy>('thanked_count')
   const [view, setView] = useState<ManagerDashboardView>(initialView)
@@ -81,6 +85,8 @@ export default function ManagerDashboardLeaderboard({ initialEmployees, initialV
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, sortBy, view])
+
+  if (!previewMode && !visible) return null
 
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">

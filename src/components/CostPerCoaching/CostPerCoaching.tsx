@@ -5,6 +5,23 @@ import Panel from '@/components/shared/Panel/Panel'
 import { renderText } from '@/utils/common'
 import { COST_PER_COACHING_DATA } from '@/lib/cost-per-coaching-data'
 import type { CostPerCoachingData } from '@/types/cost-per-coaching'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
+
+const PREVIEW_DATA: CostPerCoachingData = {
+  title: 'Cost Per Coaching Moment vs. Performance Gain',
+  subtitle: 'How efficiently is each coaching dollar converting to score improvement?',
+  badge: 'Team avg: $4.20/pt',
+  items: [
+    { name: 'Tara C.', cost: '$3.10', quality: 'good', gain: '+9 pts', gainType: 'up' },
+    { name: 'Marcus R.', cost: '$3.80', quality: 'good', gain: '+7 pts', gainType: 'up' },
+    { name: 'Devon W.', cost: '$4.50', quality: 'ok', gain: '+5 pts', gainType: 'up' },
+    { name: 'Sofia K.', cost: '$5.20', quality: 'ok', gain: '+3 pts', gainType: 'up' },
+    { name: 'Jamie L.', cost: '$7.90', quality: 'bad', gain: '0 pts', gainType: 'flat' },
+  ],
+  insightEmoji: '💡',
+  insightText: "**Tara C.** is converting coaching dollars into score gains most efficiently on the team — **$3.10 per point**, well under the team average.",
+}
 
 const itemCostClass: Record<string, string> = {
   good: 'text-accent',
@@ -17,8 +34,12 @@ const itemGainClass: Record<string, string> = {
   flat: 'text-muted',
 }
 
-export default function CostPerCoaching() {
-  const [data] = useState<CostPerCoachingData>(COST_PER_COACHING_DATA)
+export default function CostPerCoaching({ previewMode }: { previewMode?: boolean } = {}) {
+  const [realData] = useState<CostPerCoachingData>(COST_PER_COACHING_DATA)
+  const data = previewMode ? PREVIEW_DATA : realData
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiCostPerCoaching] ?? true)
+
+  if (!previewMode && !visible) return null
 
   const badge = (
     <div className="font-bold rounded-[20px] whitespace-nowrap bg-accent-light text-accent text-[10px] px-[8px] py-[3px]">

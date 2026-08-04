@@ -11,6 +11,7 @@ const ROLE_ALLOWED_PREFIXES: Record<UserRole, string[]> = {
   employee: ['/dashboard'],
   owner: ['/owner', '/manager'],
   manager: ['/manager'],
+  superadmin: ['/super-admin'],
 }
 
 export const proxy = auth((req) => {
@@ -23,6 +24,7 @@ export const proxy = auth((req) => {
       pathname === '/login/employee' ||
       pathname === '/login/manager' ||
       pathname === '/login/owner' ||
+      pathname === '/login/superadmin' ||
       pathname === '/forgot-password' ||
       pathname === '/reset-password'
     ) return NextResponse.next()
@@ -49,5 +51,5 @@ export const proxy = auth((req) => {
 })
 
 export const config = {
-  matcher: ['/', '/login', '/forgot-password', '/reset-password', '/dashboard/:path*', '/owner/:path*', '/manager/:path*'],
+  matcher: ['/', '/login', '/forgot-password', '/reset-password', '/dashboard/:path*', '/owner/:path*', '/manager/:path*', '/super-admin/:path*'],
 }

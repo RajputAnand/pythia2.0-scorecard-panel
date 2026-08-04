@@ -1,3 +1,8 @@
+'use client'
+
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
+
 type IconColor = 'green' | 'amber' | 'blue'
 type GapVariant = 'gap' | 'close'
 
@@ -74,7 +79,21 @@ const practices: Practice[] = [
   },
 ]
 
-export default function TopStorePractices() {
+const previewPractices: Practice[] = [
+  { icon: '⚡', iconColor: 'green', title: 'Checkout speed', desc: <>Top-performing stores average <strong className="font-semibold text-primary">32 seconds per transaction</strong>. Your store averages 34s — nearly caught up.</>, pillText: 'Your gap: 2s', pillVariant: 'close' },
+  { icon: '👋', iconColor: 'green', title: 'Greeting speed and consistency', desc: <>Top performers greet customers with <strong className="font-semibold text-primary">96% consistency</strong>. Your store is at 88%.</>, pillText: 'Your gap: 8 pts', pillVariant: 'gap' },
+  { icon: '🔄', iconColor: 'blue', title: 'Zero dead air during transactions', desc: <>Top stores show <strong className="font-semibold text-primary">active verbal engagement throughout the transaction</strong> — not just greeting and close. Your team is close behind.</>, pillText: 'Your gap: close', pillVariant: 'close' },
+  { icon: '📅', iconColor: 'amber', title: 'High scorers always on during peak', desc: <>Network&apos;s top stores schedule their <strong className="font-semibold text-primary">top performers during every peak window</strong> without exception. You have 2 uncovered windows this week.</>, pillText: 'Your gap: 2 windows', pillVariant: 'gap' },
+  { icon: '📈', iconColor: 'green', title: 'Coaching resolution speed', desc: <>Top stores resolve coaching issues in an average of <strong className="font-semibold text-primary">1.8 weeks</strong>. Your team averages 2.1 weeks.</>, pillText: 'Your gap: 0.3 wks', pillVariant: 'close' },
+  { icon: '🏆', iconColor: 'blue', title: 'Staff score floor', desc: <>Top-ranked stores have <strong className="font-semibold text-primary">no employee below a 70 score</strong>. You have 1 employee below that threshold.</>, pillText: 'Your gap: 1 employee', pillVariant: 'gap' },
+]
+
+export default function TopStorePractices({ previewMode }: { previewMode?: boolean } = {}) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingTopPractices] ?? true)
+  if (!previewMode && !visible) return null
+
+  const shownPractices = previewMode ? previewPractices.slice(0, 2) : practices
+
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
       <div className="flex items-center justify-between px-[22px] py-4 border-b border-border">
@@ -88,7 +107,7 @@ export default function TopStorePractices() {
       </div>
 
       <div className="grid grid-cols-3">
-        {practices.map((p, i) => (
+        {shownPractices.map((p, i) => (
           <div
             key={p.title}
             className={`flex flex-col gap-[10px] p-[22px]

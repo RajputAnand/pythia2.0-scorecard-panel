@@ -1,7 +1,15 @@
+'use client'
+
 import type { ManagerDashboardCard, ManagerDashboardSummary } from '@/types/manager-dashboard'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 interface Props {
   summary: ManagerDashboardSummary | null
+  /** Bypasses the admin visibility filter — used by the Super Admin preview so a card always shows itself regardless of its current toggle state. */
+  previewMode?: boolean
+  /** Super Admin preview only — dims every card except the one being previewed, so it's obvious which card a given row controls. */
+  highlightId?: string
 }
 
 function KpiStripSkeleton() {
@@ -24,6 +32,7 @@ function KpiStripSkeleton() {
 
 interface StepCard {
   key: string
+  id: string
   label: string
   icon: string
   iconBg: string
@@ -38,7 +47,10 @@ interface StepCard {
 // response degrades to "not yet tracked" instead of crashing the page.
 const FALLBACK_CARD: ManagerDashboardCard = { count: 0, rate: 0, tracked: false }
 
-export default function ManagerDashboardKpiStrip({ summary }: Props) {
+export default function ManagerDashboardKpiStrip({ summary, previewMode, highlightId }: Props) {
+  const storeVisibility = useAdminConfigStore((s) => s.visibility)
+  const visibility = previewMode ? {} : storeVisibility
+
   if (!summary) return <KpiStripSkeleton />
 
   const {
@@ -53,6 +65,7 @@ export default function ManagerDashboardKpiStrip({ summary }: Props) {
   const steps: StepCard[] = [
     {
       key: 'greeted',
+      id: KPI_IDS.managerKpiGreeted,
       label: 'Greet Every Customer',
       icon: '👋',
       iconBg: 'bg-accent-light',
@@ -63,6 +76,7 @@ export default function ManagerDashboardKpiStrip({ summary }: Props) {
     },
     {
       key: 'value_proposition',
+      id: KPI_IDS.managerKpiValueProposition,
       label: 'Add a Value Proposition',
       icon: '💡',
       iconBg: 'bg-cobalt-light',
@@ -73,6 +87,7 @@ export default function ManagerDashboardKpiStrip({ summary }: Props) {
     },
     {
       key: 'validated',
+      id: KPI_IDS.managerKpiValidated,
       label: 'Validate the Purchase',
       icon: '🙌',
       iconBg: 'bg-amber-light',
@@ -83,6 +98,7 @@ export default function ManagerDashboardKpiStrip({ summary }: Props) {
     },
     {
       key: 'thanked',
+      id: KPI_IDS.managerKpiThankYou,
       label: 'Thank the Customer',
       icon: '🙏',
       iconBg: 'bg-gold-light',
@@ -91,14 +107,24 @@ export default function ManagerDashboardKpiStrip({ summary }: Props) {
       card: thank_you,
       blurb: 'A genuine thank-you at close — use their name, invite them back.',
     },
-  ]
+  ].filter((step) => visibility[step.id] ?? true)
+
+  if (steps.length === 0) return null
 
   return (
-    <div className="grid grid-cols-4 gap-[14px]">
-      {steps.map((step) => (
+    <div className="grid gap-[14px]" style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}>
+      {steps.map((step) => {
+        const dimmed = highlightId != null && step.id !== highlightId
+        return (
         <div
           key={step.key}
-          className="bg-surface border border-border rounded-[13px] px-5 py-[18px] flex flex-col gap-[10px] transition-shadow duration-200 hover:shadow-[0_4px_18px_rgba(0,0,0,.07)]"
+          className={`bg-surface border rounded-[13px] px-5 py-[18px] flex flex-col gap-[10px] transition-all duration-200 ${
+            dimmed
+              ? 'border-border opacity-35 blur-[1.5px] saturate-50'
+              : highlightId != null
+                ? 'border-accent ring-2 ring-accent/40 shadow-[0_4px_18px_rgba(0,0,0,.07)]'
+                : 'border-border hover:shadow-[0_4px_18px_rgba(0,0,0,.07)]'
+          }`}
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-[10.5px] font-medium text-muted uppercase tracking-[.06em] leading-tight">
@@ -137,7 +163,8 @@ export default function ManagerDashboardKpiStrip({ summary }: Props) {
             <div className="mt-[3px] text-[10.5px] opacity-80">{step.blurb}</div>
           </div>
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

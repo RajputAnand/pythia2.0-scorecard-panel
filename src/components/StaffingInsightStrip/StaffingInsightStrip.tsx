@@ -1,4 +1,10 @@
+'use client'
+
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
+
 interface InsightCard {
+  id: string
   label: string
   icon: string
   iconVariant: 'red' | 'amber' | 'green' | 'blue'
@@ -10,6 +16,7 @@ interface InsightCard {
 
 const CARDS: InsightCard[] = [
   {
+    id: KPI_IDS.staffingCoverageGaps,
     label: 'Coverage Gaps',
     icon: '⚠️',
     iconVariant: 'red',
@@ -19,6 +26,7 @@ const CARDS: InsightCard[] = [
     sub: ' have no high-scorer scheduled this week',
   },
   {
+    id: KPI_IDS.staffingFatigueFlags,
     label: 'Fatigue Flags',
     icon: '😓',
     iconVariant: 'amber',
@@ -28,6 +36,7 @@ const CARDS: InsightCard[] = [
     sub: ' show score drops after 8h shifts',
   },
   {
+    id: KPI_IDS.staffingWeakPairings,
     label: 'Weak Pairings',
     icon: '👥',
     iconVariant: 'amber',
@@ -37,6 +46,7 @@ const CARDS: InsightCard[] = [
     sub: ' on Thu & Fri with no top performer',
   },
   {
+    id: KPI_IDS.staffingOptimizedShifts,
     label: 'Optimized Shifts',
     icon: '✅',
     iconVariant: 'green',
@@ -61,13 +71,33 @@ const valueColor: Record<string, string> = {
   blue: 'text-cobalt',
 }
 
-export default function StaffingInsightStrip() {
+interface StaffingInsightStripProps {
+  previewMode?: boolean
+  /** Super Admin preview only — dims every card except the one being previewed, so it's obvious which card a given row controls. */
+  highlightId?: string
+}
+
+export default function StaffingInsightStrip({ previewMode, highlightId }: StaffingInsightStripProps = {}) {
+  const storeVisibility = useAdminConfigStore((s) => s.visibility)
+  const visibility = previewMode ? {} : storeVisibility
+  const cards = CARDS.filter((card) => visibility[card.id] ?? true)
+
+  if (cards.length === 0) return null
+
   return (
-    <div className="grid grid-cols-4 gap-[14px]">
-      {CARDS.map((card) => (
+    <div className="grid gap-[14px]" style={{ gridTemplateColumns: `repeat(${cards.length}, 1fr)` }}>
+      {cards.map((card) => {
+        const dimmed = highlightId != null && card.id !== highlightId
+        return (
         <div
           key={card.label}
-          className="bg-surface border border-border rounded-[13px] px-[18px] py-4 flex flex-col gap-2"
+          className={`bg-surface border rounded-[13px] px-[18px] py-4 flex flex-col gap-2 transition-all duration-200 ${
+            dimmed
+              ? 'border-border opacity-35 blur-[1.5px] saturate-50'
+              : highlightId != null
+                ? 'border-accent ring-2 ring-accent/40 shadow-[0_4px_18px_rgba(0,0,0,.07)]'
+                : 'border-border'
+          }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-[10.5px] font-medium text-muted uppercase tracking-[.07em]">{card.label}</span>
@@ -83,7 +113,8 @@ export default function StaffingInsightStrip() {
             {card.sub}
           </div>
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

@@ -5,9 +5,44 @@ import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import { renderText } from '@/utils/common'
 import { CHECKOUT_SPEED_DATA } from '@/lib/checkout-speed-data'
 import type { CheckoutSpeedData } from '@/types/checkout-speed'
+import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
-export default function CheckoutSpeed() {
-  const [data] = useState<CheckoutSpeedData>(CHECKOUT_SPEED_DATA)
+const PREVIEW_DATA: CheckoutSpeedData = {
+  ...CHECKOUT_SPEED_DATA,
+  series: [
+    {
+      ...CHECKOUT_SPEED_DATA.series[0],
+      labels: [
+        { x: 14, y: 33, value: '52s' },
+        { x: 129, y: 40, value: '46s' },
+        { x: 244, y: 55, value: '39s' },
+        { x: 339, y: 67, value: '34s' },
+      ],
+    },
+    {
+      ...CHECKOUT_SPEED_DATA.series[1],
+      labels: [
+        { x: 12, y: 100, value: '58/hr' },
+        { x: 123, y: 100, value: '64/hr' },
+        { x: 237, y: 100, value: '71/hr' },
+        { x: 330, y: 100, value: '79/hr' },
+        { x: 420, y: 100, value: '86/hr', opacity: 0.6 },
+      ],
+    },
+  ],
+  insights: [
+    { emoji: '⚡', text: 'Checkout speed improved **34% faster** this period, cutting the average transaction from 52s to 34s.', variant: 'default' },
+    { emoji: '💰', text: 'Estimated captured revenue from checkout speed improvements is **$6,200** this period.', variant: 'blue' },
+  ],
+}
+
+export default function CheckoutSpeed({ previewMode }: { previewMode?: boolean } = {}) {
+  const [realData] = useState<CheckoutSpeedData>(CHECKOUT_SPEED_DATA)
+  const data = previewMode ? PREVIEW_DATA : realData
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiCheckoutSpeed] ?? true)
+
+  if (!previewMode && !visible) return null
 
   return (
     <div className="bg-surface border border-border rounded-2xl overflow-hidden">
