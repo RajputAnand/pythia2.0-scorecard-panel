@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
-import { fetchEmployees, fetchEmployeeCredentials } from '@/queries/employees'
+import { fetchEmployees, fetchEmployeeCredentials, deleteEmployee } from '@/queries/employees'
 import { getEmployeeName, getEmployeeInitials, extractApiErrorMessage } from '@/utils/common'
 import { useToast } from '@/context/ToastContext'
 import DataTable from '@/components/shared/DataTable/DataTable'
 import RevealCredentialsModal from '@/components/RevealCredentialsModal/RevealCredentialsModal'
+import ConfirmDeleteEmployeeModal from '@/components/ConfirmDeleteEmployeeModal/ConfirmDeleteEmployeeModal'
 import type { ApiEmployee } from '@/types/employee'
 import type { ApiMeta, ApiResponseV2Paginated } from '@/types/api'
 import type { DataTableColumn } from '@/types/data-table'
@@ -76,6 +77,8 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
   const [revealingId, setRevealingId] = useState<string | null>(null)
   const [unrevealableIds, setUnrevealableIds] = useState<Set<string>>(new Set())
   const [revealed, setRevealed] = useState<{ name: string; userId: string; password: string } | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<ApiEmployee | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Skips exactly the first fetch after mount when the server already seeded
   // page 1 with real rows — every subsequent search/pagination/retry change
@@ -146,6 +149,23 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
     }
   }
 
+  async function handleConfirmDelete() {
+    if (!token || !pendingDelete) return
+    setIsDeleting(true)
+    try {
+      await deleteEmployee({ token, userId: pendingDelete.user_id })
+      setEmployees((prev) => prev.filter((e) => e.user_id !== pendingDelete.user_id))
+      setMeta((prev) => (prev ? { ...prev, total: Math.max(0, prev.total - 1) } : prev))
+      showToast(`${getEmployeeName(pendingDelete)} was permanently deleted`)
+      setPendingDelete(null)
+    } catch (err) {
+      console.error('Delete employee failed:', err)
+      showToast(extractApiErrorMessage(err, 'Failed to delete employee. Please try again.'))
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   const columns: DataTableColumn<ApiEmployee>[] = [
     {
       key: 'employee',
@@ -210,6 +230,20 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
         )
       },
     },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      render: (employee) => (
+        <button
+          type="button"
+          onClick={() => setPendingDelete(employee)}
+          className="text-[11.5px] font-semibold text-danger hover:opacity-80 cursor-pointer"
+        >
+          Delete
+        </button>
+      ),
+    },
   ]
 
   return (
@@ -249,6 +283,15 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
           userId={revealed.userId}
           password={revealed.password}
           onClose={() => setRevealed(null)}
+        />
+      )}
+
+      {pendingDelete && (
+        <ConfirmDeleteEmployeeModal
+          employeeName={getEmployeeName(pendingDelete)}
+          isDeleting={isDeleting}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setPendingDelete(null)}
         />
       )}
     </div>
