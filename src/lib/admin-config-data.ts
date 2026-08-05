@@ -1,4 +1,4 @@
-import type { KpiRegistryEntry, PageRegistryEntry } from '@/types/admin-config'
+import type { AdminRole, KpiRegistryEntry, PageRegistryEntry } from '@/types/admin-config'
 
 /**
  * Stable ids for every toggle-able KPI card / graph / panel in the app.
@@ -160,4 +160,9 @@ export const PAGE_REGISTRY: PageRegistryEntry[] = [
 /** Sidebar.tsx uses this to look up a nav item's page-level visibility id by its href. */
 export const PAGE_ID_BY_HREF: Record<string, string> = Object.fromEntries(
   PAGE_REGISTRY.map((entry) => [entry.pageHref, entry.id])
+)
+
+/** adminConfigStore uses this to find which role's `ui_field_config` doc owns a given id. */
+export const ROLE_BY_FIELD_ID: Record<string, AdminRole> = Object.fromEntries(
+  [...KPI_REGISTRY, ...PAGE_REGISTRY].map((entry) => [entry.id, entry.role])
 )

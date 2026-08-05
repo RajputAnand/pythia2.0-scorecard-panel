@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useSession } from 'next-auth/react'
 import Panel from '@/components/shared/Panel/Panel'
 import ToggleSwitch from '@/components/shared/ToggleSwitch/ToggleSwitch'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
@@ -64,6 +65,8 @@ function KpiThumbnail({ type }: { type: KpiEntryType }) {
 }
 
 export default function KpiVisibilityPanel() {
+  const { data: session } = useSession()
+  const token = session?.user?.token
   const { visibility, savingId, fetchVisibility, setCardVisibility } = useAdminConfigStore()
   const [activeRole, setActiveRole] = useState<AdminRole>('employee')
   const [selectedPage, setSelectedPage] = useState<string | null>(null)
@@ -100,8 +103,9 @@ export default function KpiVisibilityPanel() {
   }
 
   useEffect(() => {
-    fetchVisibility()
-  }, [fetchVisibility])
+    if (!token) return
+    fetchVisibility(token)
+  }, [fetchVisibility, token])
 
   const pagesByRole = useMemo(() => {
     const map = new Map<AdminRole, string[]>()
@@ -219,9 +223,9 @@ export default function KpiVisibilityPanel() {
               <div className="flex shrink-0 items-center gap-[8px]">
                 <ToggleSwitch
                   checked={pageEnabled}
-                  disabled={savingId === pageEntry.id}
+                  disabled={savingId === pageEntry.id || !token}
                   label={`Show ${selectedPage} in sidebar`}
-                  onChange={(next) => setCardVisibility(pageEntry.id, next)}
+                  onChange={(next) => token && setCardVisibility(pageEntry.id, next, token)}
                 />
               </div>
             )
@@ -266,9 +270,9 @@ export default function KpiVisibilityPanel() {
                   </button>
                   <ToggleSwitch
                     checked={checked}
-                    disabled={!pageEnabled || savingId === entry.id}
+                    disabled={!pageEnabled || savingId === entry.id || !token}
                     label={entry.label}
-                    onChange={(next) => setCardVisibility(entry.id, next)}
+                    onChange={(next) => token && setCardVisibility(entry.id, next, token)}
                   />
                 </div>
               )

@@ -263,8 +263,9 @@ export default function Sidebar({ user }: { user: User }) {
   }, [user.points, setPoints])
 
   useEffect(() => {
-    fetchPageVisibility()
-  }, [fetchPageVisibility])
+    if (!user.token) return
+    fetchPageVisibility(user.token)
+  }, [fetchPageVisibility, user.token])
 
   // Drop nav items whose page has been turned off by the Super Admin, and
   // drop any section left with no items as a result.
