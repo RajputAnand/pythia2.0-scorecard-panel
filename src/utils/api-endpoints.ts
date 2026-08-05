@@ -39,4 +39,8 @@ export const PYTHIA_2_API = {
     leaderboard: '/manager-dashboard/leaderboard',
     trend: '/manager-dashboard/trend',
   },
+  superAdmin: {
+    fieldConfig: '/super-admin/field-config',
+    fieldConfigForRole: (roleName: string) => `/super-admin/field-config/${roleName}`,
+  },
 } as const
