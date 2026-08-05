@@ -60,6 +60,12 @@ export async function fetchEmployee({ token, userId }: { token: string; userId: 
   return response.data
 }
 
+export async function deleteEmployee({ token, userId }: { token: string; userId: string }): Promise<void> {
+  await pythia2Client.delete<ApiResponseV2<null>>(PYTHIA_2_API.employees.detail(userId), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
 export interface FetchEmployeeCredentialsParams {
   token: string
   userId: string
