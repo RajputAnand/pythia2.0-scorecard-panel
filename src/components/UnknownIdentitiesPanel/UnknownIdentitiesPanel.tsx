@@ -198,7 +198,13 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
           activeIndex={trashedActiveIndex}
           onSelectIndex={setTrashedActiveIndex}
         />
-        <RestoreIdentityPanel identity={activeTrashedIdentity} onRestored={() => loadTrashed(false)} />
+        <RestoreIdentityPanel
+          identity={activeTrashedIdentity}
+          onRestored={() => {
+            loadTrashed(false)
+            loadFirstPage(false)
+          }}
+        />
       </div>
     )
   }
