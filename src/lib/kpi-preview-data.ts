@@ -1,6 +1,7 @@
 import type { ManagerDashboardEmployeeRow, ManagerDashboardSummary, ManagerDashboardTrendWeek } from '@/types/manager-dashboard'
 import type { CoachingSummary } from '@/types/coaching-plan'
-import type { CoachingMoment, ProgressOverTimeData, TeamRankingData } from '@/types/overview'
+import type { CoachingMoment, ProgressOverTimeData, TeamRankingData, WeeklyStats } from '@/types/overview'
+import type { HeroBannerData } from '@/types/hero-banner'
 
 // Illustrative sample data for the Super Admin "live preview" hover — not
 // real activity, just realistic-looking numbers so an admin can see how a
@@ -112,3 +113,38 @@ export const PREVIEW_TREND_WEEKS: ManagerDashboardTrendWeek[] = [
 ]
 
 export const PREVIEW_UNKNOWN_IDENTITIES_COUNT = 4
+
+// Sample data for the Super Admin's static Employee-view pages
+// (src/app/super-admin/employee/*) — same "illustrative, not real" purpose
+// as the rest of this file, just enough to render the full page layout.
+export const PREVIEW_HERO_BANNER_DATA: HeroBannerData = {
+  name: 'Marcus R.',
+  greeting: 'Good afternoon',
+  streakWeeks: 4,
+  score: 84,
+  scoreSubtitle: "You're trending up across every metric this week — keep it going.",
+  metrics: [
+    { label: 'Hospitality', value: '83', change: '↑ +3 this week', valueColor: '#78C99A' },
+    { label: 'Checkout Spd', value: '85', change: 'This week' },
+    { label: 'Time to Svc', value: '79', change: '↑ +2 this week', valueColor: '#78C99A' },
+    { label: 'Shift Hours', value: '32h', change: 'This week' },
+  ],
+  teamRank: '#2',
+}
+
+export const PREVIEW_WEEKLY_STATS: WeeklyStats = {
+  overall_score: 84,
+  hospitality: 83,
+  checkout_speed: 85,
+  time_to_service: 79,
+  shift_hours: 32,
+  points: 1450,
+  team_rank: '#2',
+  score_change: 3,
+  streak_weeks: 4,
+  display_name: 'Marcus R.',
+  hospitality_delta: 3,
+  time_to_service_delta: 2,
+  team_percentile: 82,
+  checkout_coaching_active: false,
+}
