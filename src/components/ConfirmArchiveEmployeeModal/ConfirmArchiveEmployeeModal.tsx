@@ -1,18 +1,18 @@
 'use client'
 
-interface ConfirmDeleteEmployeeModalProps {
+interface ConfirmArchiveEmployeeModalProps {
   employeeName: string
-  isDeleting: boolean
+  isArchiving: boolean
   onConfirm: () => void
   onCancel: () => void
 }
 
-export default function ConfirmDeleteEmployeeModal({
+export default function ConfirmArchiveEmployeeModal({
   employeeName,
-  isDeleting,
+  isArchiving,
   onConfirm,
   onCancel,
-}: ConfirmDeleteEmployeeModalProps) {
+}: ConfirmArchiveEmployeeModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={onCancel}>
       <div
@@ -23,7 +23,7 @@ export default function ConfirmDeleteEmployeeModal({
           <div className="w-14 h-14 rounded-full flex items-center justify-center bg-danger-light">
             <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
               <path
-                d="M12 9v4m0 4h.01M12 3l9.66 16.59A1 1 0 0120.66 21H3.34a1 1 0 01-.86-1.41L12 3z"
+                d="M4 7h16M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m-7 4v6m4-6v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12"
                 stroke="var(--color-danger)"
                 strokeWidth="2"
                 strokeLinecap="round"
@@ -31,17 +31,17 @@ export default function ConfirmDeleteEmployeeModal({
               />
             </svg>
           </div>
-          <h1 className="text-[18px] font-semibold text-primary">Delete {employeeName}?</h1>
+          <h1 className="text-[18px] font-semibold text-primary">Archive {employeeName}?</h1>
           <p className="text-[13px] text-secondary leading-relaxed">
-            This permanently removes their account and login, along with every score, weekly/monthly rollup,
-            coaching tip, and points history on file. Any capture assigned to them is unassigned. This
-            can&apos;t be undone.
+            They&apos;ll be signed out and hidden from your team everywhere — the employee list, leaderboards,
+            and dashboards. Their scores, points, and coaching history stay on file. You can unarchive them
+            from the Archived tab at any time.
           </p>
           <div className="flex w-full gap-3 mt-2">
             <button
               type="button"
               onClick={onCancel}
-              disabled={isDeleting}
+              disabled={isArchiving}
               className="flex-1 border border-border text-primary font-semibold text-[13.5px] rounded-lg py-[11px] hover:bg-surface-alt transition-colors disabled:opacity-50 disabled:cursor-default cursor-pointer"
             >
               Cancel
@@ -49,10 +49,10 @@ export default function ConfirmDeleteEmployeeModal({
             <button
               type="button"
               onClick={onConfirm}
-              disabled={isDeleting}
+              disabled={isArchiving}
               className="flex-1 bg-danger text-white font-semibold text-[13.5px] rounded-lg py-[11px] hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-default cursor-pointer"
             >
-              {isDeleting ? 'Deleting…' : 'Delete permanently'}
+              {isArchiving ? 'Archiving…' : 'Archive employee'}
             </button>
           </div>
         </div>
