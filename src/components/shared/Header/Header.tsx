@@ -14,7 +14,7 @@ interface HeaderProps {
 export default function Header({ title, subtitle, children }: HeaderProps) {
   const { data: session } = useSession()
   const role = session?.user?.role
-  const isManagerOrOwner = role === 'owner' || role === 'manager'
+  const showStoreSelector = role === 'owner' || role === 'manager' || role === 'superadmin'
 
   const { stores, currentStore, setCurrentStore } = useUserStore()
 
@@ -45,8 +45,8 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-[10px]">
-        {/* Store selector — owner and manager */}
-        {isManagerOrOwner && stores.length > 0 && (
+        {/* Store selector — owner, manager, and super admin */}
+        {showStoreSelector && stores.length > 0 && (
           <div ref={dropdownRef} className="relative">
             <button
               id="store-selector-trigger"
