@@ -21,6 +21,9 @@ export interface ApiEmployee {
   device_id: string | null
   is_active: boolean
   must_change_password?: boolean
+  // Only present once an employee has been archived (POST /employees/{user_id}/archive).
+  archived_by?: string | null
+  archived_at?: string | null
 }
 
 export interface CreateEmployeeParams {

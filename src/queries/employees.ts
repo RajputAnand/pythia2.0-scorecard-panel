@@ -21,6 +21,17 @@ export async function fetchEmployees({ token, search, skip = 0, limit = 8 }: Fet
   return response
 }
 
+export async function fetchArchivedEmployees({ token, search, skip = 0, limit = 8 }: FetchEmployeesParams) {
+  const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<ApiEmployee[]>>(
+    PYTHIA_2_API.employees.archived,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { search: search || undefined, skip, limit },
+    },
+  )
+  return response
+}
+
 export async function createEmployee({
   token,
   firstName,
@@ -60,8 +71,14 @@ export async function fetchEmployee({ token, userId }: { token: string; userId: 
   return response.data
 }
 
-export async function deleteEmployee({ token, userId }: { token: string; userId: string }): Promise<void> {
-  await pythia2Client.delete<ApiResponseV2<null>>(PYTHIA_2_API.employees.detail(userId), {
+export async function archiveEmployee({ token, userId }: { token: string; userId: string }): Promise<void> {
+  await pythia2Client.post<ApiResponseV2<null>>(PYTHIA_2_API.employees.archive(userId), null, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
+export async function unarchiveEmployee({ token, userId }: { token: string; userId: string }): Promise<void> {
+  await pythia2Client.post<ApiResponseV2<null>>(PYTHIA_2_API.employees.unarchive(userId), null, {
     headers: { Authorization: `Bearer ${token}` },
   })
 }
