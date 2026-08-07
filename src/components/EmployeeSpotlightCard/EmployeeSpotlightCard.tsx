@@ -76,8 +76,8 @@ export default function EmployeeSpotlightCard({ topEmployee, view, previewMode }
           {topEmployee.role_title} — leading the team with the most customer thank-yous {periodLabel}.
         </div>
         <div className="flex flex-wrap gap-[10px]">
-          <Chip label="Value Prop." value={`${topEmployee.value_prop_rate}%`} valueColor="#F5C842" />
           <Chip label="Greeted" value={`${topEmployee.greeted_rate}%`} valueColor="#FFFFFF" />
+          <Chip label="Value Prop." value={`${topEmployee.value_prop_rate}%`} valueColor="#F5C842" />
           <Chip label="Avg Score" value={`${topEmployee.avg_overall_score}`} valueColor="#78C99A" />
           <Chip label="Transactions" value={`${topEmployee.transaction_count}`} valueColor="#FFFFFF" />
         </div>

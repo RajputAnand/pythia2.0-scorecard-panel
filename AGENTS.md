@@ -59,7 +59,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - The store pill (`storeName`, `location`) in the Sidebar comes from **`useUserStore(s => s.currentStore)`** (Zustand), not from the session. Do not read store display data from `user` props.
 - The employee score in the Sidebar bottom widget uses **`useUserStore(s => s.currentScore)`** with a fallback to `user.score` from the session (`currentScore ?? user.score`). `currentScore` is populated by `OverviewContent` when the dashboard summary loads; before that, the session score is shown.
 - `Header.tsx` does **not** accept a `user` prop. It calls `useSession()` directly to read the token and role. Pages must not pass `user` to `<Header>`.
-- **Header store selector** — renders for both `owner` and `manager` roles (not employee). Condition: `(role === 'owner' || role === 'manager') && stores.length > 0`. Do not restrict it to `owner` only.
+- **Header store selector** — renders for `owner`, `manager`, and `superadmin` roles (not employee). Condition: `(role === 'owner' || role === 'manager' || role === 'superadmin') && stores.length > 0`. Do not restrict it to `owner` only.
 - **Store data flow (currently hardcoded)** — the legacy stores endpoint no longer accepts a token from the unified auth backend, so `userStore`'s `stores` list is seeded directly from the static `STORES` constant in `src/lib/store-data.ts` (currently a single demo store) rather than fetched. `Header` reads `stores`/`currentStore` straight off `useUserStore()` — it does not fetch anything. `setStores(stores)` still exists on the store for when a real endpoint returns, but nothing calls it today.
 - **Swag points** — `userStore` also holds `points: number | null`. `Sidebar` seeds it from the session (`user.points`) via a `useEffect` on mount; `swagStore.redeemItem()` optimistically decrements it (rolling back on failure) via `useUserStore.getState().setPoints(...)`.
 
@@ -73,10 +73,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Role → allowed route prefixes → default route:
   | Role       | Allowed prefixes          | Default route                     |
   |------------|---------------------------|-----------------------------------|
-  | `employee` | `/dashboard`              | `/dashboard/overview`             |
-  | `owner`    | `/owner`, `/manager`      | `/owner/roi-attribution`          |
-  | `manager`  | `/manager`                | `/manager/coaching-tracker`       |
+  | `employee`   | `/dashboard`              | `/dashboard/overview`             |
+  | `owner`      | `/owner`, `/manager`      | `/owner/roi-attribution`          |
+  | `manager`    | `/manager`                | `/manager/coaching-tracker`       |
+  | `superadmin` | `/super-admin`            | `/super-admin/kpi-visibility`     |
 - Owners can access `/manager/*` routes (they oversee managers); managers cannot access `/owner/*`.
+- Super Admin's read-only manager/employee mirror pages (`/super-admin/manager/*`, `/super-admin/employee/*`, see **Super Admin — Manager/Employee Live Views** below) live under the `/super-admin` prefix, so no proxy change was needed to expose them — they're not real `/manager/*` or `/dashboard/*` routes.
 - `src/utils/routes.ts` also exports `ROLE_LOGIN_ROUTES` (`employee` → `/login/employee`, `owner` → `/login/owner`, `manager` → `/login/manager`) alongside `ROLE_DEFAULT_ROUTES`. Used by `api-client.ts`'s 401 handler to send an expired session back to the correct role's login page instead of a generic one.
 
 ## Super Admin — KPI Visibility System
@@ -95,6 +97,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - Preview instances (with realistic sample data instead of live/placeholder data) are registered in `src/components/KpiVisibilityPanel/kpiPreviews.tsx` (`getKpiPreview(id)`), sourcing fake data from `src/lib/kpi-preview-data.ts`.
 - **Sidebar enforcement** — `Sidebar.tsx` reads `PAGE_ID_BY_HREF` + the same `useAdminConfigStore` visibility map (fetched via its own `user.token`, see above) and filters out any nav item (and any section left empty as a result) whose page has been toggled off. This is UI-only — it does not block direct URL navigation or enforce anything at `proxy.ts`.
 - **Convention: register new UI as part of building it, not after.** Whenever you add a new sidebar nav item, KPI card, graph, or panel anywhere in the app, add its entry to `KPI_REGISTRY` (and `PAGE_REGISTRY` if it's a new sidebar-navigable page) **in the same change**, defaulting to visible (the mock API seeds every registry id to `true`, and every `?? true` fallback assumes this — never seed a new entry as hidden by default). Wire the real component with the coarse or fine-grained pattern above, and add a preview entry in `kpiPreviews.tsx`. Treat an unregistered card/page as an incomplete implementation, not an optional follow-up.
+
+## Super Admin — Manager/Employee Live Views
+- Separate from the KPI Visibility config tool above, Super Admin also gets read-only mirrors of every Manager page and every Employee page, under `SUPERADMIN_NAV`'s **Manager View** and **Employee View** sections in `Sidebar.tsx`.
+- **Manager mirrors** — `src/app/super-admin/manager/{dashboard,employees,coaching-tracker,staffing-intelligence,unknown-identities}/page.tsx` are near-verbatim copies of the corresponding `src/app/manager/*/page.tsx`: same queries, same components, same `session.user.pythia2Token` fetch pattern (just called with the super admin's own token instead of a manager's). There's no per-manager/per-store picker yet — it renders whatever the backend returns for the authenticated super admin. Keep these in sync by hand if the manager page they mirror changes; there's no shared source file to update once.
+- **Employee mirrors** — `src/app/super-admin/employee/{overview,progress,coaching,leaderboard,swag}/page.tsx` are intentionally **static**, not live: employee pages fetch data scoped to the logged-in employee's own session, and there's no "view employee X's data" backend capability yet. These pages render the real employee-facing components (`HeroBanner`, `ProgressChart`, `Leaderboard`, `CoachingMoments`, `SwagStore`) with `previewMode` and sample data from `src/lib/kpi-preview-data.ts` (`PREVIEW_HERO_BANNER_DATA`, `PREVIEW_WEEKLY_STATS`, plus the existing `PREVIEW_PROGRESS_DATA`/`PREVIEW_TEAM_RANKING`/`PREVIEW_COACHING_MOMENTS`) — the same sample-data convention `kpiPreviews.tsx` already uses for hover previews, just assembled into full pages instead of individual card previews.
+- Both sets of routes live under the `/super-admin` prefix, so `proxy.ts`'s existing `superadmin: ['/super-admin']` allow-list already covers them — no proxy change needed.
+- Not registered in `KPI_REGISTRY`/`PAGE_REGISTRY` — that system controls what `employee`/`manager`/`owner` see in their own Sidebar, and `AdminRole` doesn't include `superadmin`. These mirror pages are Super Admin's own internal views of other roles' panels, not something Super Admin toggles visibility on for itself.
+- No real-time/live-refresh mechanism exists for any of this yet (no websockets/SSE/polling anywhere in the app) — every mirror page just fetches (or renders static sample data) once per page load, same as every other page in this project.
 
 ## HTTP Client — Axios
 
@@ -333,12 +343,13 @@ interface DomainState {
 - **When adding a new page, always create its `loading.tsx` at the same time.**
 
 ## Routes
-- Pages are organized by role under three route groups:
+- Pages are organized by role under four route groups:
   - `src/app/dashboard/` — employee pages: `overview`, `progress`, `coaching`, `leaderboard`, `swag`
   - `src/app/owner/` — owner pages: `roi-attribution`, `benchmarking`, `marketing-loop`
   - `src/app/manager/` — manager pages: `coaching-tracker`, `dashboard`, `employees`, `staffing-intelligence`, `unknown-identities`
+  - `src/app/super-admin/` — super admin pages: `kpi-visibility`, plus read-only mirrors of every manager page (`manager/dashboard`, `manager/employees`, `manager/coaching-tracker`, `manager/staffing-intelligence`, `manager/unknown-identities`) and every employee page (`employee/overview`, `employee/progress`, `employee/coaching`, `employee/leaderboard`, `employee/swag`) — see **Super Admin — Manager/Employee Live Views** above
   - `src/app/(auth)/` — public pages, not gated by the proxy's role check: `login/employee`, `login/manager`, `login/owner`, `forgot-password`, `reset-password`
-- Each of the three role groups has its own `layout.tsx` — an `async` Server Component that calls `await auth()` and renders `<Sidebar user={...} />`.
+- Each of the four role groups has its own `layout.tsx` — an `async` Server Component that calls `await auth()` and renders `<Sidebar user={...} />`.
 - The employee overview page is at `/dashboard/overview` — not at `/`.
 - Every route with a `page.tsx` has a co-located `loading.tsx` (see **Loading Skeletons** above) — this holds for all current routes.
 <!-- END:project-conventions -->
