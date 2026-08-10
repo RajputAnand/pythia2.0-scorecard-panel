@@ -37,7 +37,7 @@ export default async function SuperAdminManagerDashboardPage() {
       fetchManagerDashboardLeaderboard({ token, view: 'all', sortBy: 'thanked_count' }),
       fetchManagerDashboardTrend({ token, weeks: 8 }),
       fetchUnknownIdentitiesCount({ token }),
-      fetchCoachingSummary({ token, view: 'week' }),
+      fetchCoachingSummary({ token, view: 'month' }),
     ])
     // Promise.allSettled swallows thrown errors as 'rejected' results, including
     // the NEXT_REDIRECT next/navigation throws server-side on a 401 (session

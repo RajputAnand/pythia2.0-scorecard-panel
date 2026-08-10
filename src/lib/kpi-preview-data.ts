@@ -26,8 +26,8 @@ export const PREVIEW_COACHING_SUMMARY: CoachingSummary = {
   avg_time_to_resolve: { weeks: 2.1, target_weeks: 3, target_label: 'under 3 weeks' },
   ai_stalled: { count: 2, flag_label: 'needs review', action_label: 'No stalled issues' },
   in_progress: { count: 5, employees_affected: 3, label: 'In progress' },
-  view: 'week',
-  week_start: '2026-06-08',
+  view: 'month',
+  month_start: '2026-06-01',
 }
 
 export const PREVIEW_PROGRESS_DATA: ProgressOverTimeData = {

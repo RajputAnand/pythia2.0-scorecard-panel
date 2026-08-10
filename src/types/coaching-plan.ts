@@ -48,7 +48,7 @@ export interface ManagerActionRequestBody {
   edits?: PlanEditFields
 }
 
-export type CoachingView = 'week' | 'all'
+export type CoachingView = 'month' | 'all'
 
 // Mirrors get_coaching_summary in app/services/manager_coaching_service.py —
 // the 4-card summary returned by GET /manager-coaching/summary (and embedded
@@ -77,7 +77,7 @@ export interface CoachingSummary {
     label: string
   }
   view: CoachingView
-  week_start: string | null
+  month_start: string | null
 }
 
 // Mirrors one row of get_coaching_effectiveness — GET /manager-coaching/effectiveness,
