@@ -103,7 +103,7 @@ export default function CoachingWinStrip({ summary, previewMode, highlightId }: 
       barSuffix: 'active',
       barSuffixColor: 'text-amber',
       subBold: 'Across ',
-      sub: `${in_progress.employees_affected} employee${in_progress.employees_affected === 1 ? '' : 's'} this week`,
+      sub: `${in_progress.employees_affected} employee${in_progress.employees_affected === 1 ? '' : 's'} this month`,
     },
   ].filter((card) => visibility[card.id] ?? true)
 

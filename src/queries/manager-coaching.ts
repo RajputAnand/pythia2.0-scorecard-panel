@@ -90,7 +90,7 @@ export interface FetchCoachingViewParams {
   view?: CoachingView
 }
 
-export async function fetchCoachingSummary({ token, view = 'week' }: FetchCoachingViewParams): Promise<CoachingSummary> {
+export async function fetchCoachingSummary({ token, view = 'month' }: FetchCoachingViewParams): Promise<CoachingSummary> {
   const { data } = await pythia2Client.get<SummaryResponse>(PYTHIA_2_API.managerCoaching.summary, {
     headers: { Authorization: `Bearer ${token}` },
     params: { view },
@@ -100,7 +100,7 @@ export async function fetchCoachingSummary({ token, view = 'week' }: FetchCoachi
 
 export async function fetchCoachingEffectiveness({
   token,
-  view = 'week',
+  view = 'month',
 }: FetchCoachingViewParams): Promise<CoachingEffectivenessRow[]> {
   const { data } = await pythia2Client.get<EffectivenessResponse>(PYTHIA_2_API.managerCoaching.effectiveness, {
     headers: { Authorization: `Bearer ${token}` },
