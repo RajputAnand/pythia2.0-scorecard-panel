@@ -24,7 +24,7 @@ export default async function SuperAdminCoachingTrackerPage() {
 
   if (token) {
     const [summaryResult, employeesResult] = await Promise.allSettled([
-      fetchCoachingSummary({ token, view: 'week' }),
+      fetchCoachingSummary({ token, view: 'month' }),
       fetchCoachingEmployees({ token }),
     ])
     // Promise.allSettled swallows thrown errors as 'rejected' results, including

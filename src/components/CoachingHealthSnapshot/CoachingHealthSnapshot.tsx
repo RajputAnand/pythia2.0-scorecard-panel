@@ -40,7 +40,7 @@ export default function CoachingHealthSnapshot({ summary, previewMode }: Props) 
   return (
     <Panel
       title="Coaching Health"
-      subtitle={summary.view === 'week' ? 'Current week' : 'All time'}
+      subtitle={summary.view === 'month' ? 'Current month' : 'All time'}
       badge={
         <Link href="/manager/coaching-tracker" className="text-[11px] font-semibold text-accent hover:underline shrink-0">
           View Coach Tracker →
