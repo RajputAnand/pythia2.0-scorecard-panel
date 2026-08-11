@@ -18,3 +18,26 @@ export const ROLE_LOGIN_ROUTES: Record<UserRole, string> = {
   manager: '/login/manager',
   superadmin: '/login/superadmin',
 }
+
+/** Allowed route prefixes per role. Owners can access both /owner and /manager
+ * routes (they oversee managers). Shared by proxy.ts (blocking disallowed routes)
+ * and getSafeRedirect below (validating a post-login redirectTo target). */
+export const ROLE_ALLOWED_PREFIXES: Record<UserRole, string[]> = {
+  employee: ['/dashboard'],
+  owner: ['/owner', '/manager'],
+  manager: ['/manager'],
+  superadmin: ['/super-admin'],
+}
+
+/** Validates a `redirectTo` query value before sending a just-authenticated user
+ * there: it must be a same-origin relative path (rejects absolute/protocol-relative
+ * URLs to guard against open redirects) within a prefix the role is actually
+ * allowed to access. Falls back to the role's default route otherwise. */
+export function getSafeRedirect(redirectTo: string | null | undefined, role: UserRole): string {
+  if (!redirectTo || !redirectTo.startsWith('/') || redirectTo.startsWith('//')) {
+    return ROLE_DEFAULT_ROUTES[role]
+  }
+
+  const isAllowed = ROLE_ALLOWED_PREFIXES[role].some((prefix) => redirectTo.startsWith(prefix))
+  return isAllowed ? redirectTo : ROLE_DEFAULT_ROUTES[role]
+}
