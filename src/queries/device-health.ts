@@ -31,8 +31,12 @@ export async function fetchDeviceState({ token, deviceId, signal }: FetchDeviceS
 }
 
 /** ws(s)://<backend host>/device-states/ws, derived from the same base URL
- * pythia2Client uses — a browser WebSocket can't reuse an axios instance. */
+ * pythia2Client uses — a browser WebSocket can't reuse an axios instance.
+ * Axios's baseURL + relative-path joining tolerates a trailing slash on
+ * NEXT_PUBLIC_PYTHIA_2_API_URL (e.g. "https://host.com/"); this manual
+ * template string doesn't get that for free, so it's stripped explicitly —
+ * otherwise this produces "wss://host.com//device-states/ws" (double slash). */
 export function getDeviceStatesWsUrl(): string {
-  const base = process.env.NEXT_PUBLIC_PYTHIA_2_API_URL || ''
+  const base = (process.env.NEXT_PUBLIC_PYTHIA_2_API_URL || '').replace(/\/+$/, '')
   return `${base.replace(/^http/, 'ws')}${PYTHIA_2_API.deviceHealth.ws}`
 }
