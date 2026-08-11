@@ -49,5 +49,6 @@ export const PYTHIA_2_API = {
   deviceHealth: {
     list: '/device-states',
     detail: (deviceId: string) => `/device-states/${deviceId}`,
+    ws: '/device-states/ws',
   },
 } as const
