@@ -2,11 +2,12 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { login } from '@/actions/auth'
 import { loginSchema, employeeLoginSchema, type LoginSchema } from '@/schemas/auth'
 import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
 import type { FormField } from '@/types/dynamic-form'
-import { ROLE_DEFAULT_ROUTES } from '@/utils/routes'
+import { getSafeRedirect } from '@/utils/routes'
 
 interface LoginFormProps {
   role: 'employee' | 'manager' | 'owner' | 'superadmin'
@@ -38,6 +39,8 @@ const roleConfig = {
 export default function LoginForm({ role }: LoginFormProps) {
   const [serverError, setServerError] = useState<string | undefined>()
   const [isPending, startTransition] = useTransition()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirectTo')
 
   const config = roleConfig[role]
   const schema = role === 'employee' ? employeeLoginSchema : loginSchema
@@ -85,13 +88,13 @@ export default function LoginForm({ role }: LoginFormProps) {
         // redirect:false signIn() only updates the cookie, not the client
         // session cache. A full navigation forces SessionProvider to remount
         // and read the freshly-set cookie.
-        // Navigate straight to this role's default route rather than '/' —
-        // login() only returns null once the backend has confirmed `role`
-        // matches the account, so this is trustworthy without waiting on the
-        // proxy to re-derive the role from the just-set session cookie (which
-        // can momentarily still look unauthenticated and bounce to
-        // /login/employee).
-        window.location.href = ROLE_DEFAULT_ROUTES[role]
+        // Navigate straight to this role's default route (or back to the page
+        // that redirected here, via `redirectTo`) rather than '/' — login()
+        // only returns null once the backend has confirmed `role` matches the
+        // account, so this is trustworthy without waiting on the proxy to
+        // re-derive the role from the just-set session cookie (which can
+        // momentarily still look unauthenticated and bounce to /login/employee).
+        window.location.href = getSafeRedirect(redirectTo, role)
       } else if (typeof result === 'string') {
         setServerError(result)
       }
