@@ -149,7 +149,7 @@ export default function LoginForm({ role }: LoginFormProps) {
             {(['employee', 'manager', 'owner', 'superadmin'] as const).map((r) => (
               <Link
                 key={r}
-                href={`/login/${r}`}
+                href={redirectTo ? `/login/${r}?redirectTo=${encodeURIComponent(redirectTo)}` : `/login/${r}`}
                 className={`flex-1 px-2 py-2 text-[11px] font-semibold rounded-lg border transition-colors text-center capitalize ${r === role
                   ? 'bg-accent text-white border-accent'
                   : 'border-border text-secondary hover:bg-surface-alt'
