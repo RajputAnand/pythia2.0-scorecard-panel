@@ -4,14 +4,16 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import DeviceHealthCard from '@/components/DeviceHealthCard/DeviceHealthCard'
-import { fetchDeviceStates } from '@/queries/device-health'
-import type { DeviceStateSummary } from '@/types/device-health'
+import { fetchDeviceStates, getDeviceStatesWsUrl } from '@/queries/device-health'
+import type { DeviceStateSummary, DeviceStateWsMessage } from '@/types/device-health'
 import { extractApiErrorMessage } from '@/utils/common'
 
-// Devices report every ~30s (DEVICE_STATE_REPORT_INTERVAL_SEC on the data
-// preprocessor); polling faster than that just re-fetches the same snapshot,
-// but 5s keeps the panel feeling live without hammering the backend.
-const POLL_INTERVAL_MS = 5000
+type ConnectionStatus = 'connecting' | 'live' | 'reconnecting'
+
+// How long to wait before retrying a dropped WebSocket connection (network
+// blip, backend restart/redeploy). No backoff growth — a fixed 3s is simple
+// and this connection is cheap to retry (nothing per-attempt to rate-limit).
+const RECONNECT_DELAY_MS = 3000
 
 function DeviceHealthSkeleton() {
   return (
@@ -30,40 +32,106 @@ export default function DeviceHealthPanel() {
   const [devices, setDevices] = useState<DeviceStateSummary[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [status, setStatus] = useState<ConnectionStatus>('connecting')
   const [now, setNow] = useState(() => new Date())
 
+  // One-time initial snapshot, so the page has something to show immediately
+  // instead of waiting for every device to happen to report over the socket
+  // after connecting (devices report every few seconds, but with several
+  // devices the first one might take a moment to come through).
   useEffect(() => {
     if (!token) return
     const controller = new AbortController()
     let cancelled = false
 
-    const load = () => {
-      fetchDeviceStates({ token, signal: controller.signal })
-        .then((data) => {
-          if (cancelled) return
-          setDevices(data)
-          setError(null)
-        })
-        .catch((err) => {
-          if (cancelled || axios.isCancel(err)) return
-          setError(extractApiErrorMessage(err, 'Unable to load device health data.'))
-        })
-        .finally(() => {
-          if (!cancelled) setLoading(false)
-        })
-    }
+    fetchDeviceStates({ token, signal: controller.signal })
+      .then((data) => {
+        if (cancelled) return
+        setDevices(data)
+        setError(null)
+      })
+      .catch((err) => {
+        if (cancelled || axios.isCancel(err)) return
+        setError(extractApiErrorMessage(err, 'Unable to load device health data.'))
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
 
-    load()
-    const id = setInterval(load, POLL_INTERVAL_MS)
     return () => {
       cancelled = true
       controller.abort()
-      clearInterval(id)
     }
   }, [token])
 
-  // Ticks the "Updated Xs ago" labels between polls — independent of the
-  // poll interval itself so the label stays accurate even between fetches.
+  // Live updates over WebSocket (GET /device-states/ws) — each device_update
+  // message is merged into the snapshot above by device_id, so the page
+  // updates the moment a device reports instead of on the next poll.
+  useEffect(() => {
+    if (!token) return
+    let cancelled = false
+    let ws: WebSocket | null = null
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+
+    const connect = () => {
+      if (cancelled) return
+      setStatus((prev) => (prev === 'live' ? 'reconnecting' : 'connecting'))
+      ws = new WebSocket(getDeviceStatesWsUrl())
+
+      ws.onopen = () => {
+        // A browser WebSocket can't send a custom Authorization header, so
+        // auth happens over the socket itself as the first message instead
+        // — see device_states_ws in app/routers/device_states.py.
+        ws?.send(JSON.stringify({ token }))
+      }
+
+      ws.onmessage = (event) => {
+        let message: DeviceStateWsMessage
+        try {
+          message = JSON.parse(event.data)
+        } catch {
+          return
+        }
+
+        if (message.type === 'connected') {
+          setStatus('live')
+          setError(null)
+        } else if (message.type === 'device_update') {
+          const update = message.data
+          setDevices((prev) => {
+            const list = prev ? [...prev] : []
+            const idx = list.findIndex((d) => d.device_id === update.device_id)
+            if (idx >= 0) list[idx] = update
+            else list.unshift(update)
+            return list
+          })
+        }
+      }
+
+      ws.onclose = () => {
+        if (cancelled) return
+        setStatus('reconnecting')
+        reconnectTimer = setTimeout(connect, RECONNECT_DELAY_MS)
+      }
+
+      // A socket-level error is always followed by onclose — just close
+      // explicitly so that single reconnect path is the only one that fires.
+      ws.onerror = () => {
+        ws?.close()
+      }
+    }
+
+    connect()
+
+    return () => {
+      cancelled = true
+      if (reconnectTimer) clearTimeout(reconnectTimer)
+      ws?.close()
+    }
+  }, [token])
+
+  // Ticks the "Updated Xs ago" labels once a second, independent of when
+  // updates actually arrive.
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(id)
@@ -89,11 +157,19 @@ export default function DeviceHealthPanel() {
 
   return (
     <div className="grid gap-4">
+      <div className="flex items-center justify-end gap-[7px] text-[11.5px] text-muted">
+        <span
+          className={`w-[7px] h-[7px] rounded-full ${status === 'live' ? 'bg-accent' : 'bg-amber animate-pulse'}`}
+        />
+        {status === 'live' ? 'Live' : status === 'connecting' ? 'Connecting…' : 'Reconnecting…'}
+      </div>
+
       {error && (
         <div className="bg-danger-light border border-danger rounded-[10px] px-4 py-[10px] text-danger text-[12px]">
           {error} — showing the last known data.
         </div>
       )}
+
       {devices.map((device) => (
         <DeviceHealthCard key={device.device_id} device={device} now={now} />
       ))}
