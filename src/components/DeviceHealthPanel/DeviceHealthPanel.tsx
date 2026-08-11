@@ -169,6 +169,7 @@ export default function DeviceHealthPanel() {
           {error} — showing the last known data.
         </div>
       )}
+
       {devices.map((device) => (
         <DeviceHealthCard key={device.device_id} device={device} now={now} />
       ))}
