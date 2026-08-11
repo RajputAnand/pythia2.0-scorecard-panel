@@ -46,4 +46,8 @@ export const PYTHIA_2_API = {
     fieldConfig: '/super-admin/field-config',
     fieldConfigForRole: (roleName: string) => `/super-admin/field-config/${roleName}`,
   },
+  deviceHealth: {
+    list: '/device-states',
+    detail: (deviceId: string) => `/device-states/${deviceId}`,
+  },
 } as const
