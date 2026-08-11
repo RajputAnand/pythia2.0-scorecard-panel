@@ -29,3 +29,10 @@ export async function fetchDeviceState({ token, deviceId, signal }: FetchDeviceS
   )
   return data.data
 }
+
+/** ws(s)://<backend host>/device-states/ws, derived from the same base URL
+ * pythia2Client uses — a browser WebSocket can't reuse an axios instance. */
+export function getDeviceStatesWsUrl(): string {
+  const base = process.env.NEXT_PUBLIC_PYTHIA_2_API_URL || ''
+  return `${base.replace(/^http/, 'ws')}${PYTHIA_2_API.deviceHealth.ws}`
+}

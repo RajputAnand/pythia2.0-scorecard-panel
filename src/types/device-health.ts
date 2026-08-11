@@ -37,3 +37,16 @@ export interface DeviceStateSummary {
   reported_at: string
   updated_at: string
 }
+
+// Mirrors app/routers/device_states.py's device_states_ws message shapes —
+// GET /device-states/ws (a WebSocket route despite the GET-looking verb).
+export interface DeviceStateWsConnectedMessage {
+  type: 'connected'
+}
+
+export interface DeviceStateWsUpdateMessage {
+  type: 'device_update'
+  data: DeviceStateSummary
+}
+
+export type DeviceStateWsMessage = DeviceStateWsConnectedMessage | DeviceStateWsUpdateMessage
