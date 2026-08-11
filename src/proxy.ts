@@ -1,18 +1,7 @@
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import type { UserRole } from "@/types/user"
-import { ROLE_DEFAULT_ROUTES } from "@/utils/routes"
-
-/**
- * Allowed route prefixes per role.
- * Owners can access both /owner and /manager routes (they oversee managers).
- */
-const ROLE_ALLOWED_PREFIXES: Record<UserRole, string[]> = {
-  employee: ['/dashboard'],
-  owner: ['/owner', '/manager'],
-  manager: ['/manager'],
-  superadmin: ['/super-admin'],
-}
+import { ROLE_ALLOWED_PREFIXES, ROLE_DEFAULT_ROUTES } from "@/utils/routes"
 
 export const proxy = auth((req) => {
   const { pathname } = req.nextUrl
@@ -28,7 +17,12 @@ export const proxy = auth((req) => {
       pathname === '/forgot-password' ||
       pathname === '/reset-password'
     ) return NextResponse.next()
-    return NextResponse.redirect(new URL('/login/employee', req.url))
+
+    // Carry the page the user was trying to reach so LoginForm can send them
+    // back there (instead of the role's default route) once they sign in.
+    const loginUrl = new URL('/login/employee', req.url)
+    loginUrl.searchParams.set('redirectTo', pathname + req.nextUrl.search)
+    return NextResponse.redirect(loginUrl)
   }
 
   // Authenticated: redirect away from /login and /
