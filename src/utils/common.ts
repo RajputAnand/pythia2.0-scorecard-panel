@@ -30,6 +30,20 @@ export function getGreeting(date: Date = new Date()): string {
   return 'Good evening'
 }
 
+/** Returns "just now" / "Ns ago" / "Nm ago" / "Nh ago" for an ISO timestamp relative to now. */
+export function formatRelativeTime(isoTimestamp: string, now: Date = new Date()): string {
+  const then = new Date(isoTimestamp).getTime()
+  if (Number.isNaN(then)) return isoTimestamp
+  const seconds = Math.max(0, Math.round((now.getTime() - then) / 1000))
+  if (seconds < 5) return 'just now'
+  if (seconds < 60) return `${seconds}s ago`
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.round(hours / 24)}d ago`
+}
+
 /** Returns "Week of MMM D – MMM D, YYYY" for the Mon–Sun week containing the given date. */
 export function getWeekSubtitle(date: Date): string {
   const day = date.getDay() // 0 = Sun
