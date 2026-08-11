@@ -232,6 +232,17 @@ const SUPERADMIN_NAV: NavSection[] = [
           </svg>
         ),
       },
+      {
+        label: 'Device Health',
+        href: '/super-admin/device-health',
+        icon: (
+          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <rect x="4" y="2" width="16" height="20" rx="2" />
+            <path d="M8 6h8M8 10h4" strokeLinecap="round" />
+            <circle cx="16" cy="16" r="2" />
+          </svg>
+        ),
+      },
     ],
   },
   {
