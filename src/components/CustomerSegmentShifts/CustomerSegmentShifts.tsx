@@ -3,6 +3,7 @@
 import type React from 'react'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
+import type { CustomerSegmentsResponse } from '@/types/demographics'
 
 type SegmentVariant = 'growing' | 'shrinking' | 'stable'
 
@@ -79,11 +80,76 @@ const iconBg: Record<SegmentVariant, string> = {
   stable: 'bg-surface-alt',
 }
 
-export default function CustomerSegmentShifts({ previewMode }: { previewMode?: boolean } = {}) {
-  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.marketingCustomerSegmentShifts] ?? true)
+function mapSegmentData(data?: CustomerSegmentsResponse | null): Segment[] {
+  if (!data || !data.segments || data.segments.length === 0) return segments
+
+  return data.segments.map(item => {
+    let variant: SegmentVariant = 'stable'
+    let visitGrowth = 'N/A'
+    let visitColor = 'text-secondary'
+    
+    if (item.visit_growth_percentage !== null && item.visit_growth_percentage !== undefined) {
+      if (item.visit_growth_percentage > 0) {
+        variant = 'growing'
+        visitGrowth = `+${Math.round(item.visit_growth_percentage)}%`
+        visitColor = 'text-accent'
+      } else if (item.visit_growth_percentage < 0) {
+        variant = 'shrinking'
+        visitGrowth = `${Math.round(item.visit_growth_percentage)}%`
+        visitColor = 'text-danger'
+      } else {
+        visitGrowth = '0%'
+      }
+    }
+    
+    let icon = '➡️'
+    let name = item.segment_key
+    let detail = ''
+    
+    if (item.segment_key === 'gen_z') {
+      icon = '📱'
+      name = 'Gen Z (18–24)'
+      detail = 'Evening visits'
+    } else if (item.segment_key === 'young_professionals') {
+      icon = '🚀'
+      name = 'Young Professionals (25–34)'
+      detail = 'Weekday lunch + after-work peaks'
+    } else if (item.segment_key === 'families') {
+      icon = '➡️'
+      name = 'Families (35–44)'
+      detail = 'Weekend morning peaks'
+    } else if (item.segment_key === 'older_adults') {
+      icon = '📉'
+      name = 'Older Adults (45+)'
+      detail = 'Morning visits'
+    }
+
+    const avgBasket = item.avg_basket ? `$${item.avg_basket.toFixed(2)}` : '$0'
+    const basketColor = item.avg_basket > 10 ? 'text-accent' : 'text-secondary'
+
+    return {
+      icon,
+      variant,
+      name,
+      detail,
+      visitGrowth,
+      visitColor,
+      avgBasket,
+      basketColor
+    }
+  })
+}
+
+interface Props {
+  previewMode?: boolean
+  customerSegmentsData?: CustomerSegmentsResponse | null
+}
+
+export default function CustomerSegmentShifts({ previewMode, customerSegmentsData }: Props = {}) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.managerCustomerSegmentShifts] ?? true)
   if (!previewMode && !visible) return null
 
-  const shownSegments = previewMode ? previewSegments.slice(0, 2) : segments
+  const shownSegments = previewMode ? previewSegments.slice(0, 2) : (customerSegmentsData ? mapSegmentData(customerSegmentsData) : segments)
 
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
@@ -122,7 +188,7 @@ export default function CustomerSegmentShifts({ previewMode }: { previewMode?: b
           <strong className="font-semibold text-primary">Opportunity:</strong>{' '}
           {previewMode
             ? 'Gen Z visits are growing fastest (+24%) but spend the least per visit — a loyalty perk could lift their basket size.'
-            : 'Segment growth data is not yet available for this period.'}
+            : (customerSegmentsData ? 'Data shows the latest segment trends based on store activity.' : 'Segment growth data is not yet available for this period.')}
         </div>
       </div>
     </div>

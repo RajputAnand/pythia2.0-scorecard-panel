@@ -2,8 +2,6 @@ import Header from '@/components/shared/Header/Header'
 import headerStyles from '@/components/shared/Header/Header.module.css'
 import AddCampaignButton from '@/components/AddCampaignButton/AddCampaignButton'
 import MarketingInsightStrip from '@/components/MarketingInsightStrip/MarketingInsightStrip'
-import DemographicShifts from '@/components/DemographicShifts/DemographicShifts'
-import CustomerSegmentShifts from '@/components/CustomerSegmentShifts/CustomerSegmentShifts'
 import SpendVsTraffic from '@/components/SpendVsTraffic/SpendVsTraffic'
 import CampaignCards from '@/components/CampaignCards/CampaignCards'
 
@@ -25,11 +23,6 @@ export default function SuperAdminMarketingLoopPage() {
 
       <div className="grid px-[30px] py-[24px] gap-5">
         <MarketingInsightStrip />
-
-        <div className="grid grid-cols-[1fr_1fr] gap-[18px] items-start">
-          <DemographicShifts />
-          <CustomerSegmentShifts />
-        </div>
 
         <SpendVsTraffic />
         <CampaignCards />
