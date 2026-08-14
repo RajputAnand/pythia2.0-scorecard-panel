@@ -42,9 +42,9 @@ export default async function ManagerDashboardPage() {
       fetchManagerDashboardTrend({ token, weeks: 8 }),
       fetchUnknownIdentitiesCount({ token }),
       fetchCoachingSummary({ token, view: 'month' }),
-      fetchAgeDistribution({ token, storeId: 'STORE-001' }),
-      fetchGenderDistribution({ token, storeId: 'STORE-001' }),
-      fetchCustomerSegments({ token, storeId: 'STORE-001' }),
+      fetchAgeDistribution({ token, storeId: '69c19e66a27efce5858b6487' }),
+      fetchGenderDistribution({ token, storeId: '69c19e66a27efce5858b6487' }),
+      fetchCustomerSegments({ token, storeId: '69c19e66a27efce5858b6487' }),
     ])
     // Promise.allSettled swallows thrown errors as 'rejected' results, including
     // the NEXT_REDIRECT next/navigation throws server-side on a 401 (session
