@@ -1,8 +1,7 @@
 import Header from '@/components/shared/Header/Header'
 import headerStyles from '@/components/shared/Header/Header.module.css'
 import BenchmarkingMetricFilter from '@/components/BenchmarkingMetricFilter/BenchmarkingMetricFilter'
-import RankHero from '@/components/RankHero/RankHero'
-import NetworkLeaderboard from '@/components/NetworkLeaderboard/NetworkLeaderboard'
+import BenchmarkingContent from './BenchmarkingContent'
 import StoreComparison from '@/components/StoreComparison/StoreComparison'
 import TopStorePractices from '@/components/TopStorePractices/TopStorePractices'
 import RankMovement from '@/components/RankMovement/RankMovement'
@@ -15,8 +14,7 @@ export default async function BenchmarkingPage() {
       </Header>
 
       <div className="grid px-[30px] py-[24px] gap-5">
-        <RankHero />
-        <NetworkLeaderboard />
+        <BenchmarkingContent />
         <StoreComparison />
         <TopStorePractices />
         <RankMovement />
