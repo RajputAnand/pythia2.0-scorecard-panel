@@ -101,8 +101,6 @@ const KPI_PREVIEW_RENDERERS: Record<string, (id: string) => ReactNode> = {
   [KPI_IDS.managerLeaderboard]: () => managerLeaderboardPreview,
   [KPI_IDS.managerTrendChart]: () => trendChartPreview,
   [KPI_IDS.managerUnknownIdentitiesAlert]: () => unknownIdentitiesPreview,
-  [KPI_IDS.managerDemographicShifts]: () => <DemographicShifts previewMode />,
-  [KPI_IDS.managerCustomerSegmentShifts]: () => <CustomerSegmentShifts previewMode />,
 
   [KPI_IDS.coachingWinRate]: coachingWinStripPreview,
   [KPI_IDS.coachingAvgTime]: coachingWinStripPreview,
@@ -132,6 +130,8 @@ const KPI_PREVIEW_RENDERERS: Record<string, (id: string) => ReactNode> = {
   [KPI_IDS.marketingBestChannel]: marketingInsightStripPreview,
   [KPI_IDS.marketingFastestGrowingSegment]: marketingInsightStripPreview,
   [KPI_IDS.marketingActiveCampaigns]: marketingInsightStripPreview,
+  [KPI_IDS.marketingDemographicShifts]: () => <DemographicShifts previewMode />,
+  [KPI_IDS.marketingCustomerSegmentShifts]: () => <CustomerSegmentShifts previewMode />,
   [KPI_IDS.marketingSpendVsTraffic]: () => <SpendVsTraffic previewMode />,
   [KPI_IDS.marketingCampaignCards]: () => <CampaignCards previewMode />,
 }

@@ -98,7 +98,7 @@ export default function RankHero({ previewMode, data, loading }: RankHeroProps =
       </div>
 
       {/* Center: percentile + metric chips */}
-      <div className={`flex flex-col justify-center gap-[14px] px-8 py-7 border-l border-r border-border transition-opacity ${loading ? 'opacity-50' : ''}`}>
+      <div className="flex flex-col justify-center gap-[14px] px-8 py-7 border-l border-r border-border">
         <div>
           <div className="text-[11px] font-semibold text-muted uppercase tracking-[.1em] mb-[10px]">Percentile Rank</div>
           <div className="h-7 bg-surface-alt rounded-lg overflow-hidden">
