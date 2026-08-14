@@ -1,43 +1,129 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { useToast } from '@/context/ToastContext'
+import { useStaffingStore } from '@/store/staffingStore'
 import {
-  type Shift,
-  type ShiftVariant,
-  type StaffEmployee,
-} from '@/types/staff'
-import {
-  STAFF_EMPLOYEES,
-  SHIFT_HOURS_OPTIONS,
-  STATION_OPTIONS,
-  PAIRED_WITH_OPTIONS,
-} from "@/lib/staffing-data"
+  transformScheduleToStaffEmployees,
+  transformRosterToTeamScores,
+  transformHeatmapToRows,
+  transformHeatmapToPeakBars,
+  transformHeatmapToDayLabels,
+  addDaysToDateString,
+} from '@/lib/staffing-transform'
 import StaffingSchedulePanel from '@/components/StaffingSchedulePanel/StaffingSchedulePanel'
 import StaffingRecommendations from '@/components/StaffingRecommendations/StaffingRecommendations'
 import StaffingTeamScores from '@/components/StaffingTeamScores/StaffingTeamScores'
+import type {
+  ApiScheduleResponse,
+  ApiRosterMember,
+  ApiTrafficHeatmap,
+  ApiInsights,
+  ApiRecommendationsResponse,
+} from '@/types/staff'
 
 type EditTarget = { empIdx: number; dayIdx: number } | null
 
-const DAYS_DISPLAY = ['Mon 2/23', 'Tue 2/24', 'Wed 2/25 ●', 'Thu 2/26', 'Fri 2/27 ⚠', 'Sat 2/28', 'Sun 3/1']
+const DAY_PART_OPTIONS = [
+  { value: 'off', label: 'Day Off' },
+  { value: 'morning', label: 'Morning (7a – 11a)' },
+  { value: 'afternoon', label: 'Afternoon (11a – 5p)' },
+  { value: 'evening', label: 'Evening (5p – 9p)' },
+  { value: 'night', label: 'Night (9p – 7a)' },
+]
 
-export default function StaffingPageContent() {
+interface Props {
+  storeId: string
+  initialWeekStartDate: string
+  initialSchedule: ApiScheduleResponse | null
+  initialRoster: ApiRosterMember[]
+  initialHeatmap: ApiTrafficHeatmap | null
+  initialInsights: ApiInsights | null
+  initialRecommendations: ApiRecommendationsResponse | null
+}
+
+export default function StaffingPageContent({
+  storeId,
+  initialWeekStartDate,
+  initialSchedule,
+  initialRoster,
+  initialHeatmap,
+  initialInsights,
+  initialRecommendations,
+}: Props) {
+  const { data: session } = useSession()
+  const token = session?.user?.pythia2Token
   const { showToast } = useToast()
-  const [employees, setEmployees] = useState<StaffEmployee[]>(STAFF_EMPLOYEES)
+
+  const hydrate = useStaffingStore((s) => s.hydrate)
+  const schedule = useStaffingStore((s) => s.schedule)
+  const roster = useStaffingStore((s) => s.roster)
+  const heatmap = useStaffingStore((s) => s.heatmap)
+  const recommendations = useStaffingStore((s) => s.recommendations)
+  const criticalAlert = useStaffingStore((s) => s.criticalAlert)
+  const generationStatus = useStaffingStore((s) => s.generationStatus)
+  const weekStartDate = useStaffingStore((s) => s.weekStartDate)
+  const applyingId = useStaffingStore((s) => s.applyingId)
+  const savingShift = useStaffingStore((s) => s.savingShift)
+  const lastSyncedAt = useStaffingStore((s) => s.lastSyncedAt)
+  const saveShiftAction = useStaffingStore((s) => s.saveShift)
+  const deleteShiftAction = useStaffingStore((s) => s.deleteShift)
+  const fetchAll = useStaffingStore((s) => s.fetchAll)
+  const applyRecommendation = useStaffingStore((s) => s.applyRecommendation)
+  const applyAllRecommendations = useStaffingStore((s) => s.applyAllRecommendations)
+  const dismissRecommendation = useStaffingStore((s) => s.dismissRecommendation)
+
+  useEffect(() => {
+    hydrate({
+      storeId,
+      weekStartDate: initialWeekStartDate,
+      schedule: initialSchedule,
+      roster: initialRoster,
+      heatmap: initialHeatmap,
+      insights: initialInsights,
+      recommendations: initialRecommendations,
+    })
+    // Seed once from server-fetched props — subsequent updates flow through the
+    // store's own actions (fetchAll/goToNextWeek/etc), same pattern as
+    // Sidebar seeding userStore.points from the session on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const [editTarget, setEditTarget] = useState<EditTarget>(null)
-  const [editHours, setEditHours] = useState('')
-  const [editStation, setEditStation] = useState('Register 1')
+  const [editDayPart, setEditDayPart] = useState('off')
   const [editPaired, setEditPaired] = useState('Solo')
-  const [alertDismissed, setAlertDismissed] = useState(false)
 
   const drawerRef = useRef<HTMLDivElement>(null)
 
-  // Scroll drawer into view whenever it opens
   useEffect(() => {
     if (editTarget !== null && drawerRef.current) {
       drawerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
   }, [editTarget])
+
+  const effectiveWeekStartDate = weekStartDate ?? initialWeekStartDate
+  const employees =
+    schedule && roster.length > 0 ? transformScheduleToStaffEmployees(schedule, roster, effectiveWeekStartDate) : []
+  const teamScores = transformRosterToTeamScores(roster)
+  const heatmapRows = heatmap ? transformHeatmapToRows(heatmap) : []
+  const peakBars = heatmap ? transformHeatmapToPeakBars(heatmap) : []
+  const dayLabels = heatmap ? transformHeatmapToDayLabels(heatmap) : []
+  const pairedWithOptions = ['Solo', ...roster.map((r) => `${r.first_name} ${r.last_name}`.trim())]
+
+  const findExistingShift = (empIdx: number, dayIdx: number) => {
+    if (!schedule) return null
+    const employee = roster[empIdx]
+    if (!employee) return null
+    const dateStr = addDaysToDateString(effectiveWeekStartDate, dayIdx)
+    const dayShifts = (schedule.by_employee[employee.employee_id] ?? []).filter((s) => s.date === dateStr)
+    return dayShifts[0] ?? null
+  }
+
+  const nameForEmployeeId = (employeeId: string | null | undefined) => {
+    const r = roster.find((m) => m.employee_id === employeeId)
+    return r ? `${r.first_name} ${r.last_name}`.trim() : 'Solo'
+  }
 
   const handleShiftClick = (empIdx: number, dayIdx: number) => {
     // toggle off if same shift clicked again
@@ -46,34 +132,57 @@ export default function StaffingPageContent() {
       return
     }
     setEditTarget({ empIdx, dayIdx })
-    setEditHours(employees[empIdx].shifts[dayIdx].time)
-    setEditStation('Register 1')
-    setEditPaired('Solo')
+    const existing = findExistingShift(empIdx, dayIdx)
+    setEditDayPart(existing?.day_part ?? 'off')
+    setEditPaired(existing?.paired_with ? nameForEmployeeId(existing.paired_with) : 'Solo')
   }
 
   const closeEdit = () => setEditTarget(null)
 
-  const saveShift = () => {
-    if (!editTarget) return
+  const saveShift = async () => {
+    if (!editTarget || !token) return
     const { empIdx, dayIdx } = editTarget
-    setEmployees((prev) =>
-      prev.map((e, ei) => {
-        if (ei !== empIdx) return e
-        const shifts = e.shifts.map((s, si) => {
-          if (si !== dayIdx) return s
-          const newVariant: ShiftVariant = editHours === 'Day Off' ? 'off' : 'high'
-          return { time: editHours, variant: newVariant } as Shift
-        })
-        return { ...e, shifts }
+    const employee = roster[empIdx]
+    if (!employee) return
+
+    const dateStr = addDaysToDateString(effectiveWeekStartDate, dayIdx)
+    const existing = findExistingShift(empIdx, dayIdx)
+    const isRealShiftId = !!existing && !existing.id.startsWith('actual:')
+    const pairedEmployee = editPaired === 'Solo' ? null : roster.find((r) => `${r.first_name} ${r.last_name}`.trim() === editPaired)
+
+    if (editDayPart === 'off') {
+      if (isRealShiftId && existing) {
+        await deleteShiftAction(token, existing.id)
+        showToast('Shift removed')
+      }
+      closeEdit()
+      return
+    }
+
+    if (isRealShiftId && existing) {
+      await saveShiftAction(token, {
+        shiftId: existing.id,
+        body: { day_part: editDayPart, paired_with: pairedEmployee?.employee_id ?? null },
       })
-    )
-    showToast('Shift updated — remember to save draft')
+    } else {
+      await saveShiftAction(token, {
+        shiftId: null,
+        body: {
+          store_id: storeId,
+          employee_id: employee.employee_id,
+          date: dateStr,
+          day_part: editDayPart,
+          paired_with: pairedEmployee?.employee_id ?? null,
+        },
+      })
+    }
+    showToast('Shift updated')
     closeEdit()
   }
 
   const drawerTitle =
-    editTarget != null
-      ? `${employees[editTarget.empIdx].name} · ${DAYS_DISPLAY[editTarget.dayIdx]}`
+    editTarget != null && employees[editTarget.empIdx]
+      ? `${employees[editTarget.empIdx].name} · ${(dayLabels[editTarget.dayIdx] ?? '').replace(' ●', '').replace(' ⚠', '')}`
       : ''
 
   return (
@@ -82,19 +191,12 @@ export default function StaffingPageContent() {
       <div className="grid gap-[18px] items-start" style={{ gridTemplateColumns: '1fr 320px' }}>
         {/* Left: schedule */}
         <div className="flex flex-col gap-[14px]">
-          {/* Alert banner */}
-          {!alertDismissed && (
+          {criticalAlert && (
             <div className="bg-danger-light border border-[#EAB8B3] rounded-[11px] px-4 py-3 flex items-start gap-[10px]">
               <span className="text-[15px] shrink-0 mt-px">🚨</span>
               <div className="text-[12.5px] text-danger leading-[1.5] flex-1">
-                <strong className="font-semibold">Friday has a critical coverage gap:</strong> Jamie L. is the only staff member scheduled 11a–3p — your highest-traffic window. Pythia recommends adding Tara C. or Marcus R. to this shift.
+                <strong className="font-semibold">{criticalAlert.text}</strong> {criticalAlert.detail}
               </div>
-              <button
-                onClick={() => setAlertDismissed(true)}
-                className="text-[11.5px] font-semibold text-danger opacity-70 hover:opacity-100 whitespace-nowrap cursor-pointer border-0 bg-transparent font-sans"
-              >
-                Dismiss
-              </button>
             </div>
           )}
 
@@ -102,14 +204,38 @@ export default function StaffingPageContent() {
             employees={employees}
             selectedShift={editTarget}
             onShiftClick={handleShiftClick}
+            heatmapRows={heatmapRows}
+            peakBars={peakBars}
+            dayLabels={dayLabels}
+            onApplyAllSuggestions={async () => {
+              if (!token) return
+              const ok = await applyAllRecommendations(token)
+              showToast(ok ? 'All suggestions applied to schedule' : 'Some suggestions failed to apply — try again')
+            }}
+            onDiscardChanges={() => token && fetchAll(token)}
+            onSaveDraft={() => token && fetchAll(token)}
+            isSaving={savingShift}
+            lastSyncedAt={lastSyncedAt}
           />
         </div>
 
-
-        {/* Right: edit drawer (when open) + recommendations + team scores */}
+        {/* Right: recommendations + edit drawer (when open) + team scores */}
         <div className="flex flex-col gap-[14px]">
-
-          <StaffingRecommendations />
+          <StaffingRecommendations
+            recommendations={recommendations}
+            generationStatus={generationStatus}
+            applyingId={applyingId}
+            onApply={async (id) => {
+              if (!token) return
+              const ok = await applyRecommendation(token, id)
+              showToast(ok ? 'Recommendation applied to schedule' : 'Failed to apply recommendation — please try again')
+            }}
+            onDismiss={async (id) => {
+              if (!token) return
+              const ok = await dismissRecommendation(token, id)
+              showToast(ok ? 'Recommendation dismissed' : 'Failed to dismiss recommendation — please try again')
+            }}
+          />
 
           {/* Edit Drawer — appears between Recommendations and Team Scores when a shift is selected */}
           {editTarget !== null && (
@@ -124,22 +250,32 @@ export default function StaffingPageContent() {
                 </button>
               </div>
               <div className="px-4 py-[14px] flex flex-col gap-3">
-                {[
-                  { label: 'Shift Hours', value: editHours, onChange: setEditHours, options: SHIFT_HOURS_OPTIONS },
-                  { label: 'Station / Role', value: editStation, onChange: setEditStation, options: STATION_OPTIONS },
-                  { label: 'Paired With', value: editPaired, onChange: setEditPaired, options: PAIRED_WITH_OPTIONS },
-                ].map(({ label, value, onChange, options }) => (
-                  <div key={label} className="flex flex-col gap-[5px]">
-                    <div className="text-[10.5px] font-semibold text-muted uppercase tracking-[.08em]">{label}</div>
-                    <select
-                      className="w-full px-[10px] py-2 border border-border rounded-lg font-sans text-[13px] text-primary bg-surface cursor-pointer focus:outline-none focus:border-accent"
-                      value={value}
-                      onChange={(e) => onChange(e.target.value)}
-                    >
-                      {options.map((o) => <option key={o}>{o}</option>)}
-                    </select>
-                  </div>
-                ))}
+                <div className="flex flex-col gap-[5px]">
+                  <div className="text-[10.5px] font-semibold text-muted uppercase tracking-[.08em]">Shift Hours</div>
+                  <select
+                    className="w-full px-[10px] py-2 border border-border rounded-lg font-sans text-[13px] text-primary bg-surface cursor-pointer focus:outline-none focus:border-accent"
+                    value={editDayPart}
+                    onChange={(e) => setEditDayPart(e.target.value)}
+                  >
+                    {DAY_PART_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-[5px]">
+                  <div className="text-[10.5px] font-semibold text-muted uppercase tracking-[.08em]">Paired With</div>
+                  <select
+                    className="w-full px-[10px] py-2 border border-border rounded-lg font-sans text-[13px] text-primary bg-surface cursor-pointer focus:outline-none focus:border-accent"
+                    value={editPaired}
+                    onChange={(e) => setEditPaired(e.target.value)}
+                  >
+                    {pairedWithOptions.map((o) => (
+                      <option key={o}>{o}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="px-4 py-3 border-t border-border flex gap-2">
                 <button
@@ -158,10 +294,9 @@ export default function StaffingPageContent() {
             </div>
           )}
 
-          <StaffingTeamScores />
+          <StaffingTeamScores members={teamScores} />
         </div>
       </div>
-
     </>
   )
 }
