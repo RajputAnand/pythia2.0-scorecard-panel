@@ -1,17 +1,14 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
-import { BenchmarkingStoreData } from '@/types/benchmarking'
-import { useUserStore } from '@/store/userStore'
 
 type PercentileVariant = 'top5' | 'top10' | 'top25' | 'top50'
 type MovementVariant = 'up' | 'down' | 'flat'
 type RankVariant = 'gold' | 'silver' | 'bronze' | 'yours' | 'regular'
 
 interface StoreRow {
-  storeId: string
   rank: number
   rankVariant: RankVariant
   name: string
@@ -31,25 +28,25 @@ interface StoreRow {
 }
 
 const rows: StoreRow[] = [
-  { storeId: 'mock1', rank: 1, rankVariant: 'gold', name: 'Store #14', overall: 0, overallVariant: 'gold', hospitality: 0, hospColor: '#1D5C3A', checkout: 0, checkoutColor: '#1D5C3A', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top5' },
-  { storeId: 'mock2', rank: 2, rankVariant: 'silver', name: 'Store #7', overall: 0, overallVariant: 'silver', hospitality: 0, hospColor: '#7EC8A0', checkout: 0, checkoutColor: '#1D5C3A', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top10' },
-  { storeId: 'mock3', rank: 3, rankVariant: 'bronze', name: 'Store #21', overall: 0, overallVariant: 'bronze', hospitality: 0, hospColor: '#1D5C3A', checkout: 0, checkoutColor: '#7EC8A0', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top10' },
-  { storeId: 'mock4', rank: 4, rankVariant: 'regular', name: 'Store #3', overall: 0, hospitality: 0, hospColor: '#7EC8A0', checkout: 0, checkoutColor: '#1D5C3A', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top25' },
-  { storeId: 'mock5', rank: 5, rankVariant: 'regular', name: 'Store #18', overall: 0, hospitality: 0, hospColor: '#7EC8A0', checkout: 0, checkoutColor: '#1D5C3A', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top25' },
-  { storeId: 'mock6', rank: 6, rankVariant: 'yours', name: 'Main St. Store', isYours: true, overall: 0, overallVariant: 'yours', hospitality: 0, hospColor: '#1D5C3A', checkout: 0, checkoutColor: '#C47F18', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top25' },
-  { storeId: 'mock7', rank: 7, rankVariant: 'regular', name: 'Store #9', overall: 0, hospitality: 0, hospColor: '#7EC8A0', checkout: 0, checkoutColor: '#1D5C3A', timeToSvc: 0, ttsColor: '#7EC8A0', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top25' },
-  { storeId: 'mock8', rank: 8, rankVariant: 'regular', name: 'Store #2', overall: 0, hospitality: 0, hospColor: '#7EC8A0', checkout: 0, checkoutColor: '#7EC8A0', timeToSvc: 0, ttsColor: '#7EC8A0', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top50' },
+  { rank: 1, rankVariant: 'gold', name: 'Store #14', overall: 0, overallVariant: 'gold', hospitality: 0, hospColor: '#1D5C3A', checkout: 0, checkoutColor: '#1D5C3A', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top5' },
+  { rank: 2, rankVariant: 'silver', name: 'Store #7', overall: 0, overallVariant: 'silver', hospitality: 0, hospColor: '#7EC8A0', checkout: 0, checkoutColor: '#1D5C3A', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top10' },
+  { rank: 3, rankVariant: 'bronze', name: 'Store #21', overall: 0, overallVariant: 'bronze', hospitality: 0, hospColor: '#1D5C3A', checkout: 0, checkoutColor: '#7EC8A0', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top10' },
+  { rank: 4, rankVariant: 'regular', name: 'Store #3', overall: 0, hospitality: 0, hospColor: '#7EC8A0', checkout: 0, checkoutColor: '#1D5C3A', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top25' },
+  { rank: 5, rankVariant: 'regular', name: 'Store #18', overall: 0, hospitality: 0, hospColor: '#7EC8A0', checkout: 0, checkoutColor: '#1D5C3A', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top25' },
+  { rank: 6, rankVariant: 'yours', name: 'Main St. Store', isYours: true, overall: 0, overallVariant: 'yours', hospitality: 0, hospColor: '#1D5C3A', checkout: 0, checkoutColor: '#C47F18', timeToSvc: 0, ttsColor: '#1D5C3A', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top25' },
+  { rank: 7, rankVariant: 'regular', name: 'Store #9', overall: 0, hospitality: 0, hospColor: '#7EC8A0', checkout: 0, checkoutColor: '#1D5C3A', timeToSvc: 0, ttsColor: '#7EC8A0', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top25' },
+  { rank: 8, rankVariant: 'regular', name: 'Store #2', overall: 0, hospitality: 0, hospColor: '#7EC8A0', checkout: 0, checkoutColor: '#7EC8A0', timeToSvc: 0, ttsColor: '#7EC8A0', movement: 'N/A', movementVariant: 'flat', percentile: 'N/A', percentileVariant: 'top50' },
 ]
 
 const previewRows: StoreRow[] = [
-  { storeId: 'prev1', rank: 1, rankVariant: 'gold', name: 'Store #14', overall: 89.2, overallVariant: 'gold', hospitality: 91, hospColor: '#1D5C3A', checkout: 88, checkoutColor: '#1D5C3A', timeToSvc: 90, ttsColor: '#1D5C3A', movement: '+2.1', movementVariant: 'up', percentile: 'Top 5%', percentileVariant: 'top5' },
-  { storeId: 'prev2', rank: 2, rankVariant: 'silver', name: 'Store #7', overall: 86.5, overallVariant: 'silver', hospitality: 88, hospColor: '#1D5C3A', checkout: 85, checkoutColor: '#7EC8A0', timeToSvc: 87, ttsColor: '#1D5C3A', movement: '+1.4', movementVariant: 'up', percentile: 'Top 5%', percentileVariant: 'top5' },
-  { storeId: 'prev3', rank: 3, rankVariant: 'bronze', name: 'Main St. Store', isYours: true, overall: 84.8, overallVariant: 'yours', hospitality: 86, hospColor: '#1D5C3A', checkout: 79, checkoutColor: '#C47F18', timeToSvc: 82, ttsColor: '#1D5C3A', movement: '+0.5', movementVariant: 'up', percentile: 'Top 12%', percentileVariant: 'top10' },
-  { storeId: 'prev4', rank: 4, rankVariant: 'regular', name: 'Store #3', overall: 82.1, hospitality: 84, hospColor: '#1D5C3A', checkout: 81, checkoutColor: '#1D5C3A', timeToSvc: 83, ttsColor: '#1D5C3A', movement: '-0.2', movementVariant: 'flat', percentile: 'Top 15%', percentileVariant: 'top25' },
-  { storeId: 'prev5', rank: 5, rankVariant: 'regular', name: 'Store #18', overall: 81.5, hospitality: 82, hospColor: '#1D5C3A', checkout: 80, checkoutColor: '#1D5C3A', timeToSvc: 81, ttsColor: '#1D5C3A', movement: '+0.8', movementVariant: 'up', percentile: 'Top 20%', percentileVariant: 'top25' },
-  { storeId: 'prev6', rank: 6, rankVariant: 'regular', name: 'Store #21', overall: 79.2, hospitality: 80, hospColor: '#7EC8A0', checkout: 78, checkoutColor: '#7EC8A0', timeToSvc: 79, ttsColor: '#7EC8A0', movement: '-1.1', movementVariant: 'down', percentile: 'Top 25%', percentileVariant: 'top50' },
-  { storeId: 'prev7', rank: 7, rankVariant: 'regular', name: 'Store #9', overall: 78.4, hospitality: 79, hospColor: '#7EC8A0', checkout: 77, checkoutColor: '#7EC8A0', timeToSvc: 78, ttsColor: '#7EC8A0', movement: '0.0', movementVariant: 'flat', percentile: 'Top 30%', percentileVariant: 'top50' },
-  { storeId: 'prev8', rank: 8, rankVariant: 'regular', name: 'Store #2', overall: 76.8, hospitality: 77, hospColor: '#7EC8A0', checkout: 75, checkoutColor: '#7EC8A0', timeToSvc: 76, ttsColor: '#7EC8A0', movement: '-0.5', movementVariant: 'down', percentile: 'Top 35%', percentileVariant: 'top50' },
+  { rank: 1, rankVariant: 'gold', name: 'Store #14', overall: 94, overallVariant: 'gold', hospitality: 92, hospColor: '#1D5C3A', checkout: 96, checkoutColor: '#1D5C3A', timeToSvc: 93, ttsColor: '#1D5C3A', movement: '↑ 1', movementVariant: 'up', percentile: 'Top 5%', percentileVariant: 'top5' },
+  { rank: 2, rankVariant: 'silver', name: 'Store #7', overall: 90, overallVariant: 'silver', hospitality: 88, hospColor: '#7EC8A0', checkout: 91, checkoutColor: '#1D5C3A', timeToSvc: 89, ttsColor: '#1D5C3A', movement: '↓ 1', movementVariant: 'down', percentile: 'Top 5%', percentileVariant: 'top5' },
+  { rank: 3, rankVariant: 'bronze', name: 'Main St. Store', overall: 84, overallVariant: 'bronze', hospitality: 86, hospColor: '#1D5C3A', checkout: 79, checkoutColor: '#7EC8A0', timeToSvc: 82, ttsColor: '#1D5C3A', movement: '↑ 11', movementVariant: 'up', isYours: true, percentile: 'Top 12%', percentileVariant: 'top10' },
+  { rank: 4, rankVariant: 'regular', name: 'Store #21', overall: 81, hospitality: 80, hospColor: '#7EC8A0', checkout: 83, checkoutColor: '#1D5C3A', timeToSvc: 78, ttsColor: '#1D5C3A', movement: '→', movementVariant: 'flat', percentile: 'Top 20%', percentileVariant: 'top25' },
+  { rank: 5, rankVariant: 'regular', name: 'Store #3', overall: 77, hospitality: 75, hospColor: '#7EC8A0', checkout: 79, checkoutColor: '#1D5C3A', timeToSvc: 76, ttsColor: '#1D5C3A', movement: '↑ 2', movementVariant: 'up', percentile: 'Top 25%', percentileVariant: 'top25' },
+  { rank: 6, rankVariant: 'regular', name: 'Store #18', overall: 74, hospitality: 72, hospColor: '#7EC8A0', checkout: 75, checkoutColor: '#1D5C3A', timeToSvc: 74, ttsColor: '#7EC8A0', movement: '↓ 2', movementVariant: 'down', percentile: 'Top 30%', percentileVariant: 'top50' },
+  { rank: 7, rankVariant: 'regular', name: 'Store #9', overall: 71, hospitality: 69, hospColor: '#7EC8A0', checkout: 72, checkoutColor: '#1D5C3A', timeToSvc: 70, ttsColor: '#7EC8A0', movement: '→', movementVariant: 'flat', percentile: 'Top 40%', percentileVariant: 'top50' },
+  { rank: 8, rankVariant: 'regular', name: 'Store #2', overall: 68, hospitality: 66, hospColor: '#7EC8A0', checkout: 69, checkoutColor: '#7EC8A0', timeToSvc: 67, ttsColor: '#7EC8A0', movement: '↓ 1', movementVariant: 'down', percentile: 'Top 45%', percentileVariant: 'top50' },
 ]
 
 const FILTERS = ['All Stores', 'Top 10', 'Near You ±3', 'Improving', 'Declining'] as const
@@ -94,66 +91,13 @@ function MetricCell({ value, color }: { value: number; color: string }) {
   )
 }
 
-interface NetworkLeaderboardProps {
-  previewMode?: boolean
-  data?: BenchmarkingStoreData[]
-  loading?: boolean
-  selectedStoreId?: string | null
-  onSelectStore?: (storeId: string) => void
-}
-
-export default function NetworkLeaderboard({ 
-  previewMode, data, loading, selectedStoreId, onSelectStore 
-}: NetworkLeaderboardProps = {}) {
+export default function NetworkLeaderboard({ previewMode }: { previewMode?: boolean } = {}) {
   const [activeFilter, setActiveFilter] = useState('All Stores')
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingNetworkLeaderboard] ?? true)
-  const currentStore = useUserStore((s) => s.currentStore)
 
   if (!previewMode && !visible) return null
 
-  const displayRows = useMemo(() => {
-    if (previewMode) return previewRows.filter((r) => r.rank === 1 || r.isYours)
-    if (!data || data.length === 0) return rows
-
-    return data.map((d, index) => {
-      const isYours = d.store_id === currentStore?._id
-      
-      let rankVariant: RankVariant = 'regular'
-      if (index === 0) rankVariant = 'gold'
-      else if (index === 1) rankVariant = 'silver'
-      else if (index === 2) rankVariant = 'bronze'
-      else if (isYours) rankVariant = 'yours'
-
-      const hospColor = (d.hospitality ?? 0) > 80 ? '#1D5C3A' : '#7EC8A0'
-      const checkoutColor = (d.checkout ?? 0) > 80 ? '#1D5C3A' : '#7EC8A0'
-      const ttsColor = (d.time_to_svc ?? 0) > 80 ? '#1D5C3A' : '#7EC8A0'
-
-      let percentileVariant: PercentileVariant = 'top50'
-      if (index < data.length * 0.05) percentileVariant = 'top5'
-      else if (index < data.length * 0.1) percentileVariant = 'top10'
-      else if (index < data.length * 0.25) percentileVariant = 'top25'
-
-      return {
-        storeId: d.store_id,
-        rank: index + 1,
-        rankVariant,
-        name: isYours ? currentStore?.name || 'Your Store' : `Store #${d.store_id.slice(-4)}`,
-        isYours,
-        overall: d.overall ?? 0,
-        overallVariant: rankVariant,
-        hospitality: d.hospitality ?? 0,
-        hospColor,
-        checkout: d.checkout ?? 0,
-        checkoutColor,
-        timeToSvc: d.time_to_svc ?? 0,
-        ttsColor,
-        movement: String(d.mom_change ?? 'N/A'),
-        movementVariant: 'flat' as MovementVariant,
-        percentile: String(d.percentile ?? 'N/A'),
-        percentileVariant
-      }
-    })
-  }, [data, previewMode, currentStore])
+  const shownRows = previewMode ? previewRows.filter((r) => r.rank === 1 || r.isYours) : rows
 
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
@@ -180,7 +124,7 @@ export default function NetworkLeaderboard({
         ))}
       </div>
 
-      <table className={`w-full border-collapse transition-opacity ${loading ? 'opacity-50' : ''}`}>
+      <table className="w-full border-collapse">
         <thead>
           <tr>
             {['Rank', 'Store', 'Overall', 'Hospitality', 'Checkout', 'Time to Svc', 'MoM Change', 'Percentile'].map((h, i) => (
@@ -195,12 +139,8 @@ export default function NetworkLeaderboard({
           </tr>
         </thead>
         <tbody>
-          {displayRows.map((row) => (
-            <tr 
-              key={row.storeId} 
-              className={`cursor-pointer transition-colors ${selectedStoreId === row.storeId ? 'bg-surface-alt' : row.isYours ? 'bg-accent-light' : 'hover:bg-surface-alt/50'}`}
-              onClick={() => onSelectStore?.(row.storeId)}
-            >
+          {shownRows.map((row) => (
+            <tr key={row.rank} className={row.isYours ? 'bg-accent-light' : ''}>
               <td className="pl-[22px] pr-[18px] py-[13px] border-b border-border align-middle">
                 <div className="flex items-center gap-[10px]">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-mono text-[12px] font-bold shrink-0 ${rankNumClass[row.rankVariant]}`}>
