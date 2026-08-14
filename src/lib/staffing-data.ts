@@ -94,7 +94,7 @@ export const STAFF_EMPLOYEES: StaffEmployee[] = [
 export const RECOMMENDATIONS: Recommendation[] = [
   {
     id: 'rec1',
-    type: 'coverage',
+    type: 'coverage_gap',
     typeLabel: 'Coverage Gap',
     text: 'Add Tara C. or Marcus R. to Friday 11a–3p',
     detail:
@@ -102,7 +102,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
   },
   {
     id: 'rec2',
-    type: 'pairing',
+    type: 'weak_pairing',
     typeLabel: 'Weak Pairing',
     text: 'Pair Jamie L. with Tara C. on Thursday',
     detail:
@@ -110,7 +110,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
   },
   {
     id: 'rec3',
-    type: 'fatigue',
+    type: 'fatigue_shift',
     typeLabel: 'Fatigue Flag',
     text: "Shorten Marcus R.'s Tuesday shift to 8 hours",
     detail:
@@ -118,7 +118,7 @@ export const RECOMMENDATIONS: Recommendation[] = [
   },
   {
     id: 'rec4',
-    type: 'peak',
+    type: 'alone_at_peak',
     typeLabel: 'Peak Coverage',
     text: "Move Devon W.'s Saturday shift to start at 9a",
     detail:
@@ -127,11 +127,11 @@ export const RECOMMENDATIONS: Recommendation[] = [
 ]
 
 export const TEAM_SCORES: TeamScoreMember[] = [
-  { initials: 'TC', avatarColor: '#1D5C3A', name: 'Tara C.', score: 91, barWidth: '91%', barColor: 'var(--color-accent)', scoreColor: 'good' },
-  { initials: 'MR', avatarColor: '#1E4D7A', name: 'Marcus R.', score: 84, barWidth: '84%', barColor: 'var(--color-accent)', scoreColor: 'good' },
-  { initials: 'DW', avatarColor: '#7A6A55', name: 'Devon W.', score: 80, barWidth: '80%', barColor: 'var(--color-accent)', scoreColor: 'good' },
-  { initials: 'SK', avatarColor: '#555', name: 'Sofia K.', score: 69, barWidth: '69%', barColor: 'var(--color-amber)', scoreColor: 'ok' },
-  { initials: 'JL', avatarColor: '#B8622A', name: 'Jamie L.', score: 66, barWidth: '66%', barColor: 'var(--color-amber)', scoreColor: 'ok' },
+  { id: 'tara', initials: 'TC', avatarColor: '#1D5C3A', name: 'Tara C.', score: 91, barWidth: '91%', barColor: 'var(--color-accent)', scoreColor: 'good' },
+  { id: 'marcus', initials: 'MR', avatarColor: '#1E4D7A', name: 'Marcus R.', score: 84, barWidth: '84%', barColor: 'var(--color-accent)', scoreColor: 'good' },
+  { id: 'devon', initials: 'DW', avatarColor: '#7A6A55', name: 'Devon W.', score: 80, barWidth: '80%', barColor: 'var(--color-accent)', scoreColor: 'good' },
+  { id: 'sofia', initials: 'SK', avatarColor: '#555', name: 'Sofia K.', score: 69, barWidth: '69%', barColor: 'var(--color-amber)', scoreColor: 'ok' },
+  { id: 'jamie', initials: 'JL', avatarColor: '#B8622A', name: 'Jamie L.', score: 66, barWidth: '66%', barColor: 'var(--color-amber)', scoreColor: 'ok' },
 ]
 
 // Heatmap: rows = [Morning, Lunch, Afternoon, Evening], cols = [Mon..Sun]
@@ -167,10 +167,6 @@ export const PEAK_BARS: { label: string; width: string; color: string }[] = [
 export const SHIFT_HOURS_OPTIONS = [
   'Day Off', '6a – 2p', '7a – 3p', '8a – 4p', '9a – 5p',
   '10a – 6p', '11a – 7p', '11a – 3p', '3p – 9p', '4p – 10p', '5p – 11p',
-]
-
-export const STATION_OPTIONS = [
-  'Register 1', 'Register 2', 'Floor / Stock', 'Manager on Duty', 'Flexible',
 ]
 
 export const PAIRED_WITH_OPTIONS = [
