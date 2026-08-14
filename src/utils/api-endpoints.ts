@@ -60,4 +60,17 @@ export const PYTHIA_2_API = {
     detail: (deviceId: string) => `/device-states/${deviceId}`,
     ws: '/device-states/ws',
   },
+  staffing: {
+    schedule: '/staffing/schedule',
+    scheduleGenerate: '/staffing/schedule/generate',
+    scheduleEntry: (shiftId: string) => `/staffing/schedule/${shiftId}`,
+    schedulePublish: '/staffing/schedule/publish',
+    roster: '/staffing/roster',
+    trafficHeatmap: '/staffing/traffic-heatmap',
+    insights: '/staffing/insights',
+    recommendations: '/staffing/recommendations',
+    recommendationsGenerate: '/staffing/recommendations/generate',
+    recommendationApply: (id: string) => `/staffing/recommendations/${id}/apply`,
+    recommendationDismiss: (id: string) => `/staffing/recommendations/${id}/dismiss`,
+  },
 } as const
