@@ -2,7 +2,6 @@
 
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
-import { BenchmarkingStoreData } from '@/types/benchmarking'
 
 const rankHistory = [
   { month: 'Nov', width: '0%', color: '#E4DFD8', rank: 'N/A', accent: false },
@@ -32,29 +31,12 @@ const previewMetrics = [
   { label: 'Overall Score', val: 84, rank: '#3 of 24', color: 'text-accent' },
 ]
 
-interface RankHeroProps {
-  previewMode?: boolean
-  data?: BenchmarkingStoreData | null
-  loading?: boolean
-}
-
-export default function RankHero({ previewMode, data, loading }: RankHeroProps = {}) {
+export default function RankHero({ previewMode }: { previewMode?: boolean } = {}) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingRankHero] ?? true)
   if (!previewMode && !visible) return null
 
   const history = previewMode ? previewRankHistory : rankHistory
-  
-  // Combine real data with preview/default metrics layout
-  const baseMetrics = previewMode ? previewMetrics : metrics
-  const shownMetrics = baseMetrics.map(m => {
-    if (data && !loading) {
-      if (m.label === 'Hospitality') return { ...m, val: data.hospitality ?? 0 }
-      if (m.label === 'Checkout Spd') return { ...m, val: data.checkout ?? 0 }
-      if (m.label === 'Time to Svc') return { ...m, val: data.time_to_svc ?? 0 }
-      if (m.label === 'Overall Score') return { ...m, val: data.overall ?? 0 }
-    }
-    return m
-  })
+  const shownMetrics = previewMode ? previewMetrics : metrics
 
   return (
     <div className="grid grid-cols-[auto_1fr_auto] bg-surface border border-border rounded-2xl overflow-hidden">
@@ -76,7 +58,7 @@ export default function RankHero({ previewMode, data, loading }: RankHeroProps =
       </div>
 
       {/* Center: percentile + metric chips */}
-      <div className={`flex flex-col justify-center gap-[14px] px-8 py-7 border-l border-r border-border transition-opacity ${loading ? 'opacity-50' : ''}`}>
+      <div className="flex flex-col justify-center gap-[14px] px-8 py-7 border-l border-r border-border">
         <div>
           <div className="text-[11px] font-semibold text-muted uppercase tracking-[.1em] mb-[10px]">Percentile Rank</div>
           <div className="h-7 bg-surface-alt rounded-lg overflow-hidden">

@@ -35,10 +35,7 @@ async function resolveLoginRoute(): Promise<string> {
 // trigger another refresh attempt via the response interceptor below.
 const refreshClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_PYTHIA_2_API_URL,
-  headers: { 
-    'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true',
-  },
+  headers: { 'Content-Type': 'application/json' },
 })
 
 type RetriableConfig = InternalAxiosRequestConfig & { _retriedAfterRefresh?: boolean }
@@ -89,10 +86,7 @@ async function refreshAccessToken(): Promise<string | null> {
 function createClient(baseURL: string | undefined): AxiosInstance {
   const client = axios.create({
     baseURL,
-    headers: { 
-      'Content-Type': 'application/json',
-      'ngrok-skip-browser-warning': 'true',
-    },
+    headers: { 'Content-Type': 'application/json' },
   })
 
   // Request interceptor — inject auth token from session when available.
