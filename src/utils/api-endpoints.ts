@@ -9,6 +9,15 @@ export const PYTHIA_2_API = {
   dashboard: {
     summary: '/dashboard/summary',
   },
+  demographics: {
+    ageDistribution: '/demographics/age-distribution',
+    genderDistribution: '/demographics/gender-distribution',
+    customerSegments: '/demographics/customer-segments',
+  },
+  benchmarking: {
+    allStoreData: '/benchmarking/all_store_data',
+    fetchStoreData: (storeId: string) => `/benchmarking/fetch_store_data?store_id=${storeId}`,
+  },
   coaching: {
     moments: '/coaching-moments',
   },
