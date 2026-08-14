@@ -23,8 +23,6 @@ export const KPI_IDS = {
   managerLeaderboard: 'managerDashboard.leaderboard',
   managerTrendChart: 'managerDashboard.trendChart',
   managerUnknownIdentitiesAlert: 'managerDashboard.unknownIdentitiesAlert',
-  managerDemographicShifts: 'managerDashboard.demographicShifts',
-  managerCustomerSegmentShifts: 'managerDashboard.customerSegmentShifts',
 
   // Manager · Coaching Tracker
   coachingWinRate: 'coachingTracker.winRate',
@@ -59,6 +57,8 @@ export const KPI_IDS = {
   marketingBestChannel: 'marketing.insight.bestChannel',
   marketingFastestGrowingSegment: 'marketing.insight.fastestGrowingSegment',
   marketingActiveCampaigns: 'marketing.insight.activeCampaigns',
+  marketingDemographicShifts: 'marketing.demographicShifts',
+  marketingCustomerSegmentShifts: 'marketing.customerSegmentShifts',
   marketingSpendVsTraffic: 'marketing.spendVsTraffic',
   marketingCampaignCards: 'marketing.campaignCards',
 } as const
@@ -103,8 +103,6 @@ export const KPI_REGISTRY: KpiRegistryEntry[] = [
   { id: KPI_IDS.managerLeaderboard, label: 'Manager Leaderboard', description: 'Team ranking panel shown on the manager dashboard.', type: 'panel', ...MANAGER_DASHBOARD },
   { id: KPI_IDS.managerTrendChart, label: 'Performance Trend Chart', description: 'Line chart tracking team performance trend over time.', type: 'graph', ...MANAGER_DASHBOARD },
   { id: KPI_IDS.managerUnknownIdentitiesAlert, label: 'Unknown Identities Alert', description: 'Alert card surfacing unresolved unknown-identity transactions.', type: 'panel', ...MANAGER_DASHBOARD },
-  { id: KPI_IDS.managerDemographicShifts, label: 'Demographic Shifts', description: 'Age and gender distribution shifts among customers.', type: 'panel', ...MANAGER_DASHBOARD },
-  { id: KPI_IDS.managerCustomerSegmentShifts, label: 'Customer Segment Shifts', description: 'Shifts in customer segment composition over time.', type: 'panel', ...MANAGER_DASHBOARD },
 
   // Manager · Coaching Tracker
   { id: KPI_IDS.coachingWinRate, label: 'Team Win Rate', description: 'Share of coaching issues resolved this month.', type: 'card', ...MANAGER_COACHING_TRACKER },
@@ -139,6 +137,8 @@ export const KPI_REGISTRY: KpiRegistryEntry[] = [
   { id: KPI_IDS.marketingBestChannel, label: 'Best Channel', description: 'Highest traffic-per-dollar marketing channel.', type: 'card', ...OWNER_MARKETING },
   { id: KPI_IDS.marketingFastestGrowingSegment, label: 'Fastest Growing Segment', description: 'Customer segment with the fastest growth this period.', type: 'card', ...OWNER_MARKETING },
   { id: KPI_IDS.marketingActiveCampaigns, label: 'Active Campaigns', description: 'Count of currently active marketing campaigns.', type: 'card', ...OWNER_MARKETING },
+  { id: KPI_IDS.marketingDemographicShifts, label: 'Demographic Shifts', description: 'Age and gender distribution shifts among customers.', type: 'panel', ...OWNER_MARKETING },
+  { id: KPI_IDS.marketingCustomerSegmentShifts, label: 'Customer Segment Shifts', description: 'Shifts in customer segment composition over time.', type: 'panel', ...OWNER_MARKETING },
   { id: KPI_IDS.marketingSpendVsTraffic, label: 'Spend vs Traffic Chart', description: 'Chart comparing marketing spend against foot traffic.', type: 'graph', ...OWNER_MARKETING },
   { id: KPI_IDS.marketingCampaignCards, label: 'Campaign Cards', description: 'Cards summarizing each active marketing campaign.', type: 'panel', ...OWNER_MARKETING },
 ]
