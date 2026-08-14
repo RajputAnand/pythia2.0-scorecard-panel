@@ -8,12 +8,12 @@ export interface BenchmarkingStoreData {
   percentile: string | number | null
 }
 
-export interface BenchmarkingAllStoreDataResponse {
-  success: boolean
-  data: BenchmarkingStoreData[]
-}
+// export interface BenchmarkingAllStoreDataResponse {
+//   success: boolean
+//   data: BenchmarkingStoreData[]
+// }
 
-export interface BenchmarkingFetchStoreDataResponse {
-  success: boolean
-  data: BenchmarkingStoreData[]
-}
+// export interface BenchmarkingFetchStoreDataResponse {
+//   success: boolean
+//   data: BenchmarkingStoreData[]
+// }
