@@ -1,10 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import type React from 'react'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
-import type { AgeDistributionResponse, GenderDistributionResponse } from '@/types/demographics'
 
 type PillVariant = 'up' | 'down' | 'flat'
 
@@ -56,7 +54,7 @@ const pillClass: Record<PillVariant, string> = {
   flat: 'bg-surface-alt text-muted',
 }
 
-function DemoBarRows({ rows, insight, baselineLabel, currentLabel }: { rows: DemoRow[]; insight: React.ReactNode; baselineLabel: string; currentLabel: string }) {
+function DemoBarRows({ rows, insight }: { rows: DemoRow[]; insight: React.ReactNode }) {
   return (
     <div className="px-[22px] py-[18px]">
       <div className="flex flex-col gap-[11px]">
@@ -65,14 +63,14 @@ function DemoBarRows({ rows, insight, baselineLabel, currentLabel }: { rows: Dem
             <div className="w-[58px] font-mono text-[11.5px] font-semibold text-secondary shrink-0">{row.label}</div>
             <div className="flex-1 flex flex-col gap-[3px]">
               <div className="flex items-center gap-[7px]">
-                <span className="text-[9px] text-muted w-[22px] shrink-0">{baselineLabel}</span>
+                <span className="text-[9px] text-muted w-[22px] shrink-0">Nov</span>
                 <div className="flex-1 h-[9px] bg-surface-alt rounded overflow-hidden">
                   <div className="h-full rounded bg-[#C8DFC8]" style={{ width: `${row.novPct}%` }} />
                 </div>
                 <span className="font-mono text-[10px] font-semibold text-muted w-8 text-right">{row.novPct}%</span>
               </div>
               <div className="flex items-center gap-[7px]">
-                <span className="text-[9px] text-muted w-[22px] shrink-0">{currentLabel}</span>
+                <span className="text-[9px] text-muted w-[22px] shrink-0">Feb</span>
                 <div className="flex-1 h-[9px] bg-surface-alt rounded overflow-hidden">
                   <div className="h-full rounded" style={{ width: `${row.febPct}%`, background: row.febColor }} />
                 </div>
@@ -92,82 +90,20 @@ function DemoBarRows({ rows, insight, baselineLabel, currentLabel }: { rows: Dem
   )
 }
 
-function mapAgeData(data?: AgeDistributionResponse | null): DemoRow[] {
-  if (!data || !data.age_ranges || data.age_ranges.length === 0) return AGE_ROWS
-  return data.age_ranges.map(item => {
-    let changeVariant: PillVariant = 'flat'
-    let changeStr = '→'
-    let febColor = '#B0A89E'
-    const change = Math.round(item.change * 100) / 100 // rounding
-    if (change > 0) {
-      changeVariant = 'up'
-      changeStr = `↑ ${change}`
-      febColor = '#1D5C3A'
-    } else if (change < 0) {
-      changeVariant = 'down'
-      changeStr = `↓ ${Math.abs(change)}`
-      febColor = '#B52B1E'
-    }
-    return {
-      label: item.age_range,
-      novPct: Math.round(item.baseline.percentage),
-      febPct: Math.round(item.current.percentage),
-      febColor,
-      change: changeStr,
-      changeVariant
-    }
-  })
-}
+import type React from 'react'
 
-function mapGenderData(data?: GenderDistributionResponse | null): DemoRow[] {
-  if (!data || !data.genders || data.genders.length === 0) return GENDER_ROWS
-  return data.genders.map(item => {
-    let changeVariant: PillVariant = 'flat'
-    let changeStr = '→'
-    let febColor = '#B0A89E'
-    const change = Math.round(item.change * 100) / 100 // rounding
-    if (change > 0) {
-      changeVariant = 'up'
-      changeStr = `↑ ${change}`
-      febColor = '#1D5C3A'
-    } else if (change < 0) {
-      changeVariant = 'down'
-      changeStr = `↓ ${Math.abs(change)}`
-      febColor = '#B52B1E'
-    }
-    return {
-      label: item.gender,
-      novPct: Math.round(item.baseline.percentage),
-      febPct: Math.round(item.current.percentage),
-      febColor,
-      change: changeStr,
-      changeVariant
-    }
-  })
-}
-
-interface Props {
-  previewMode?: boolean
-  ageData?: AgeDistributionResponse | null
-  genderData?: GenderDistributionResponse | null
-}
-
-export default function DemographicShifts({ previewMode, ageData, genderData }: Props = {}) {
+export default function DemographicShifts({ previewMode }: { previewMode?: boolean } = {}) {
   const [tab, setTab] = useState<'age' | 'gender'>('age')
-  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.managerDemographicShifts] ?? true)
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.marketingDemographicShifts] ?? true)
 
   if (!previewMode && !visible) return null
-
-  const baselineLabel = ageData?.windows?.baseline?.label || genderData?.windows?.baseline?.label || 'Nov'
-  const currentLabel = ageData?.windows?.current?.label || genderData?.windows?.current?.label || 'Feb'
-  const timeRange = `${baselineLabel} 2026 – ${currentLabel} 2026` // Hardcoding 2026 for now, or could compute
 
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
       <div className="flex items-start justify-between px-[22px] py-4 border-b border-border gap-3">
         <div>
           <div className="text-[13.5px] font-semibold">Demographic Shifts Over Time</div>
-          <div className="text-[11.5px] text-muted mt-[2px]">Node 2 age + gender tracking · {timeRange}</div>
+          <div className="text-[11.5px] text-muted mt-[2px]">Node 2 age + gender tracking · Nov 2025 – Feb 2026</div>
         </div>
         <span className="font-mono text-[10.5px] text-muted whitespace-nowrap">4-month view</span>
       </div>
@@ -189,18 +125,8 @@ export default function DemographicShifts({ previewMode, ageData, genderData }: 
       </div>
 
       {tab === 'age'
-        ? <DemoBarRows 
-            rows={previewMode ? PREVIEW_AGE_ROWS.slice(0, 2) : (ageData ? mapAgeData(ageData) : AGE_ROWS)} 
-            insight={previewMode ? PREVIEW_AGE_INSIGHT : (ageData ? '' : AGE_INSIGHT)} 
-            baselineLabel={baselineLabel}
-            currentLabel={currentLabel}
-          />
-        : <DemoBarRows 
-            rows={previewMode ? PREVIEW_GENDER_ROWS.slice(0, 2) : (genderData ? mapGenderData(genderData) : GENDER_ROWS)} 
-            insight={previewMode ? PREVIEW_GENDER_INSIGHT : (genderData ? '' : GENDER_INSIGHT)} 
-            baselineLabel={baselineLabel}
-            currentLabel={currentLabel}
-          />
+        ? <DemoBarRows rows={previewMode ? PREVIEW_AGE_ROWS.slice(0, 2) : AGE_ROWS} insight={previewMode ? PREVIEW_AGE_INSIGHT : AGE_INSIGHT} />
+        : <DemoBarRows rows={previewMode ? PREVIEW_GENDER_ROWS.slice(0, 2) : GENDER_ROWS} insight={previewMode ? PREVIEW_GENDER_INSIGHT : GENDER_INSIGHT} />
       }
     </div>
   )
