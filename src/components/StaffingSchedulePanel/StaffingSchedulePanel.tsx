@@ -1,16 +1,12 @@
 'use client'
 
-import { Fragment, useState } from 'react'
-import { useToast } from '@/context/ToastContext'
-import {
-  HEATMAP_ROWS,
-  PEAK_BARS,
-} from '@/lib/staffing-data'
+import { Fragment } from 'react'
 import {
   type Shift,
   type ShiftVariant,
   type StaffEmployee,
-} from "@/types/staff"
+} from '@/types/staff'
+import { formatRelativeTime } from '@/utils/common'
 
 const shiftBlockClass: Record<ShiftVariant, string> = {
   high: 'bg-accent-light border border-[#B8D9C6]',
@@ -44,20 +40,33 @@ const scoreColorClass: Record<string, string> = {
   bad: 'text-danger',
 }
 
-const DAYS_DISPLAY = ['Mon 2/23', 'Tue 2/24', 'Wed 2/25 ●', 'Thu 2/26', 'Fri 2/27 ⚠', 'Sat 2/28', 'Sun 3/1']
-
 interface Props {
   employees: StaffEmployee[]
   selectedShift: { empIdx: number; dayIdx: number } | null
   onShiftClick: (empIdx: number, dayIdx: number) => void
+  heatmapRows: { label: string; cells: string[] }[]
+  peakBars: { label: string; width: string; color: string }[]
+  dayLabels: string[]
+  onApplyAllSuggestions: () => void
+  onDiscardChanges: () => void
+  onSaveDraft: () => void
+  isSaving: boolean
+  lastSyncedAt: string | null
 }
 
 export default function StaffingSchedulePanel({
   employees,
   selectedShift,
   onShiftClick,
+  heatmapRows,
+  peakBars,
+  dayLabels,
+  onApplyAllSuggestions,
+  onDiscardChanges,
+  onSaveDraft,
+  isSaving,
+  lastSyncedAt,
 }: Props) {
-  const { showToast } = useToast()
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
       {/* Header */}
@@ -66,7 +75,10 @@ export default function StaffingSchedulePanel({
           <div className="text-[13.5px] font-semibold">Weekly Schedule</div>
           <div className="text-[11.5px] text-muted mt-0.5">Click any shift to edit · Pythia flags are shown inline</div>
         </div>
-        <button className="text-[11.5px] font-medium text-secondary border border-border bg-none rounded-lg px-3 py-[6px] cursor-pointer bg-surface hover:bg-surface-alt transition-colors">
+        <button
+          onClick={onApplyAllSuggestions}
+          className="text-[11.5px] font-medium text-secondary border border-border bg-none rounded-lg px-3 py-[6px] cursor-pointer bg-surface hover:bg-surface-alt transition-colors"
+        >
           Apply All Suggestions
         </button>
       </div>
@@ -102,10 +114,15 @@ export default function StaffingSchedulePanel({
         <div className="text-[9.5px] font-semibold text-muted uppercase tracking-[.09em] mb-2">Customer traffic by hour · Node 2 data</div>
         <div className="grid gap-[3px]" style={{ gridTemplateColumns: '80px repeat(7,1fr)' }}>
           <div />
-          {['Mon', 'Tue', <span key="wed" className="text-accent font-bold">Wed ●</span>, 'Thu', <span key="fri" className="text-danger">Fri ⚠</span>, 'Sat', 'Sun'].map((d, i) => (
-            <div key={i} className="text-[9.5px] font-semibold text-muted text-center pb-1">{d}</div>
+          {dayLabels.map((d, i) => (
+            <div
+              key={i}
+              className={`text-[9.5px] font-semibold text-center pb-1 ${d.includes('⚠') ? 'text-danger' : d.includes('●') ? 'text-accent font-bold' : 'text-muted'}`}
+            >
+              {d.split(' ').slice(0, 2).join(' ')}
+            </div>
           ))}
-          {HEATMAP_ROWS.map((row) => (
+          {heatmapRows.map((row) => (
             <Fragment key={row.label}>
               <div className="text-[9.5px] text-muted font-mono flex items-center">{row.label}</div>
               {row.cells.map((color, ci) => (
@@ -121,15 +138,15 @@ export default function StaffingSchedulePanel({
         <table className="w-full border-collapse" style={{ minWidth: 580 }}>
           <thead>
             <tr>
-              <th className="text-[10px] font-semibold text-muted uppercase tracking-[.08em] px-2 pt-[10px] pb-2 border-b border-border text-center whitespace-nowrap pl-5 w-[90px]">
+              <th className="text-[10px] font-semibold text-muted uppercase tracking-[.08em] px-2 pt-[10px] pb-2 border-b border-border text-center whitespace-nowrap pl-5 w-[130px]">
                 Employee
               </th>
-              {DAYS_DISPLAY.map((d, i) => (
+              {dayLabels.map((d, i) => (
                 <th
-                  key={d}
-                  className={`text-[10px] font-semibold uppercase tracking-[.08em] px-2 pt-[10px] pb-2 border-b border-border text-center whitespace-nowrap last:pr-5 ${i === 2
+                  key={d + i}
+                  className={`text-[10px] font-semibold uppercase tracking-[.08em] px-2 pt-[10px] pb-2 border-b border-border text-center whitespace-nowrap last:pr-5 ${d.includes('●')
                     ? 'bg-accent-light text-accent'
-                    : i === 4
+                    : d.includes('⚠')
                       ? 'bg-surface-alt text-danger'
                       : 'bg-surface-alt text-muted'
                     }`}
@@ -150,13 +167,13 @@ export default function StaffingSchedulePanel({
                     >
                       {emp.initials}
                     </div>
-                    <div>
-                      <div className="text-[12px] font-medium">{emp.name}</div>
+                    <div className="min-w-0">
+                      <div className="text-[12px] font-medium truncate" title={emp.name}>{emp.name}</div>
                       <div className={`text-[10px] font-mono font-semibold ${scoreColorClass[emp.scoreColor]}`}>{emp.score}</div>
                     </div>
                   </div>
                 </td>
-                {emp.shifts.map((shift, dayIdx) => {
+                {emp.shifts.map((shift: Shift, dayIdx) => {
                   const isSelected = selectedShift?.empIdx === empIdx && selectedShift?.dayIdx === dayIdx
                   return (
                     <td key={dayIdx} className="px-[6px] py-[6px] border-b border-border align-top last:pr-5">
@@ -188,13 +205,20 @@ export default function StaffingSchedulePanel({
                 })}
               </tr>
             ))}
+            {employees.length === 0 && (
+              <tr>
+                <td colSpan={8} className="text-center text-[12px] text-muted py-8">
+                  No employees on record for this store
+                </td>
+              </tr>
+            )}
 
             {/* Peak row */}
             <tr>
               <td className="bg-surface-alt px-2 pt-[6px] pb-[6px] pl-5">
                 <div className="text-[9.5px] font-semibold text-muted uppercase tracking-[.07em] py-[6px]">Peak Traffic</div>
               </td>
-              {PEAK_BARS.map((bar, i) => (
+              {peakBars.map((bar, i) => (
                 <td key={i} className="bg-surface-alt px-[6px] py-1 last:pr-5">
                   <div className="py-1">
                     <div className="h-[28px] bg-border rounded overflow-hidden relative">
@@ -216,18 +240,27 @@ export default function StaffingSchedulePanel({
       {/* Footer */}
       <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-surface-alt">
         <div className="text-[11.5px] text-muted">
-          Last edited <strong className="text-secondary font-medium">today 9:14 AM</strong> ·{' '}
-          <strong className="text-secondary font-medium">3 unsaved changes</strong>
+          {lastSyncedAt ? (
+            <>
+              Synced <strong className="text-secondary font-medium">{formatRelativeTime(lastSyncedAt)}</strong>
+            </>
+          ) : (
+            'Not yet synced'
+          )}
         </div>
         <div className="flex gap-2">
-          <button className="text-[12.5px] font-medium text-secondary border border-border bg-surface rounded-lg px-[15px] py-[7px] cursor-pointer hover:bg-surface-alt transition-colors font-sans">
+          <button
+            onClick={onDiscardChanges}
+            className="text-[12.5px] font-medium text-secondary border border-border bg-surface rounded-lg px-[15px] py-[7px] cursor-pointer hover:bg-surface-alt transition-colors font-sans"
+          >
             Discard Changes
           </button>
           <button
-            onClick={() => showToast('Schedule draft saved')}
-            className="text-[12.5px] font-medium text-white bg-primary border-0 rounded-lg px-[15px] py-[7px] cursor-pointer hover:opacity-90 transition-opacity font-sans"
+            onClick={onSaveDraft}
+            disabled={isSaving}
+            className="text-[12.5px] font-medium text-white bg-primary border-0 rounded-lg px-[15px] py-[7px] cursor-pointer hover:opacity-90 transition-opacity font-sans disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Save Draft
+            {isSaving ? 'Saving…' : 'Save Draft'}
           </button>
         </div>
       </div>

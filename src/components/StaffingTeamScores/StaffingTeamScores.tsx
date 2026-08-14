@@ -1,4 +1,4 @@
-import { TEAM_SCORES } from '@/lib/staffing-data'
+import type { TeamScoreMember } from '@/types/staff'
 
 const scoreColor: Record<string, string> = {
   good: 'text-accent',
@@ -6,7 +6,11 @@ const scoreColor: Record<string, string> = {
   bad: 'text-danger',
 }
 
-export default function StaffingTeamScores() {
+interface Props {
+  members: TeamScoreMember[]
+}
+
+export default function StaffingTeamScores({ members }: Props) {
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
       <div className="px-[18px] py-[13px] border-b border-border">
@@ -14,8 +18,8 @@ export default function StaffingTeamScores() {
         <div className="text-[11px] text-muted mt-0.5">Use when scheduling — higher scores = peak hour priority</div>
       </div>
       <div className="px-[18px] py-[10px] flex flex-col gap-2">
-        {TEAM_SCORES.map((member) => (
-          <div key={member.name} className="flex items-center gap-[9px]">
+        {members.map((member) => (
+          <div key={member.id} className="flex items-center gap-[9px]">
             <div
               className="w-[26px] h-[26px] rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
               style={{ background: member.avatarColor }}
@@ -34,6 +38,9 @@ export default function StaffingTeamScores() {
             </span>
           </div>
         ))}
+        {members.length === 0 && (
+          <div className="text-center text-[11.5px] text-muted py-4">No employees on record for this store</div>
+        )}
       </div>
     </div>
   )

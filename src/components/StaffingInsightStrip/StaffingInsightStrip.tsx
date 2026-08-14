@@ -1,7 +1,9 @@
 'use client'
 
 import { useAdminConfigStore } from '@/store/adminConfigStore'
+import { useStaffingStore } from '@/store/staffingStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
+import type { ApiInsights } from '@/types/staff'
 
 interface InsightCard {
   id: string
@@ -14,48 +16,54 @@ interface InsightCard {
   subBold: string
 }
 
-const CARDS: InsightCard[] = [
-  {
-    id: KPI_IDS.staffingCoverageGaps,
-    label: 'Coverage Gaps',
-    icon: '⚠️',
-    iconVariant: 'red',
-    value: '3',
-    valueVariant: 'red',
-    subBold: '3 peak windows',
-    sub: ' have no high-scorer scheduled this week',
-  },
-  {
-    id: KPI_IDS.staffingFatigueFlags,
-    label: 'Fatigue Flags',
-    icon: '😓',
-    iconVariant: 'amber',
-    value: '2',
-    valueVariant: 'amber',
-    subBold: 'Marcus & Devon',
-    sub: ' show score drops after 8h shifts',
-  },
-  {
-    id: KPI_IDS.staffingWeakPairings,
-    label: 'Weak Pairings',
-    icon: '👥',
-    iconVariant: 'amber',
-    value: '2',
-    valueVariant: 'amber',
-    subBold: 'Jamie scheduled alone',
-    sub: ' on Thu & Fri with no top performer',
-  },
-  {
-    id: KPI_IDS.staffingOptimizedShifts,
-    label: 'Optimized Shifts',
-    icon: '✅',
-    iconVariant: 'green',
-    value: '4',
-    valueVariant: 'green',
-    subBold: '4 of 7 days',
-    sub: ' have strong coverage during peak hours',
-  },
-]
+/** Falls back to representative placeholder values when `data` is null — covers
+ * both the loading state (before the first fetch resolves) and the Super Admin
+ * KPI-visibility panel's hover preview, which renders this component with no
+ * `data` prop at all. */
+function buildCards(data: ApiInsights | null | undefined): InsightCard[] {
+  return [
+    {
+      id: KPI_IDS.staffingCoverageGaps,
+      label: 'Coverage Gaps',
+      icon: '⚠️',
+      iconVariant: 'red',
+      value: String(data?.coverage_gaps ?? 3),
+      valueVariant: 'red',
+      subBold: data?.coverage_gaps_sub_bold ?? '3 peak windows',
+      sub: data?.coverage_gaps_sub ?? ' have no high-scorer scheduled this week',
+    },
+    {
+      id: KPI_IDS.staffingFatigueFlags,
+      label: 'Fatigue Flags',
+      icon: '😓',
+      iconVariant: 'amber',
+      value: String(data?.fatigue_flags ?? 2),
+      valueVariant: 'amber',
+      subBold: data?.fatigue_flags_sub_bold ?? 'Marcus & Devon',
+      sub: data?.fatigue_flags_sub ?? ' show score drops after 8h shifts',
+    },
+    {
+      id: KPI_IDS.staffingWeakPairings,
+      label: 'Weak Pairings',
+      icon: '👥',
+      iconVariant: 'amber',
+      value: String(data?.weak_pairings ?? 2),
+      valueVariant: 'amber',
+      subBold: data?.weak_pairings_sub_bold ?? 'Jamie scheduled alone',
+      sub: data?.weak_pairings_sub ?? ' on Thu & Fri with no top performer',
+    },
+    {
+      id: KPI_IDS.staffingOptimizedShifts,
+      label: 'Optimized Shifts',
+      icon: '✅',
+      iconVariant: 'green',
+      value: String(data?.optimized_shifts ?? 4),
+      valueVariant: 'green',
+      subBold: data?.optimized_shifts_sub_bold ?? '4 of 7 days',
+      sub: data?.optimized_shifts_sub ?? ' have strong coverage during peak hours',
+    },
+  ]
+}
 
 const iconBg: Record<string, string> = {
   red: 'bg-danger-light',
@@ -72,15 +80,26 @@ const valueColor: Record<string, string> = {
 }
 
 interface StaffingInsightStripProps {
+  data?: ApiInsights | null
   previewMode?: boolean
   /** Super Admin preview only — dims every card except the one being previewed, so it's obvious which card a given row controls. */
   highlightId?: string
 }
 
-export default function StaffingInsightStrip({ previewMode, highlightId }: StaffingInsightStripProps = {}) {
+export default function StaffingInsightStrip({ data, previewMode, highlightId }: StaffingInsightStripProps = {}) {
   const storeVisibility = useAdminConfigStore((s) => s.visibility)
   const visibility = previewMode ? {} : storeVisibility
-  const cards = CARDS.filter((card) => visibility[card.id] ?? true)
+
+  // Rendered at the page level as a sibling of StaffingPageContent (which owns the
+  // Zustand-based week/schedule state — see AGENTS.md's Zustand convention for state
+  // shared across unrelated components). Prefer the live store value once
+  // StaffingPageContent hydrates/refetches it, falling back to the server-fetched
+  // `data` prop for the very first paint so there's no loading flash. Bypassed
+  // entirely in previewMode so the Super Admin hover preview never reads real page state.
+  const liveInsights = useStaffingStore((s) => s.insights)
+  const effectiveData = previewMode ? undefined : liveInsights ?? data
+
+  const cards = buildCards(effectiveData).filter((card) => visibility[card.id] ?? true)
 
   if (cards.length === 0) return null
 
