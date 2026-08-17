@@ -12,6 +12,16 @@ export interface DeviceContainerStat {
   ram_percent: number | null
 }
 
+export interface DevicePm2ServiceStat {
+  service: string
+  status: string
+  pid: number | null
+  cpu_percent: number | null
+  ram_used_mb: number | null
+  restarts: number
+  uptime_sec: number | null
+}
+
 export interface DeviceDockerDiskUsage {
   images_gb: number | null
   containers_gb: number | null
@@ -32,6 +42,7 @@ export interface DeviceStateSummary {
   storage_total_gb: number | null
   storage_used_gb: number | null
   containers: DeviceContainerStat[]
+  pm2_services: DevicePm2ServiceStat[]
   docker_disk_usage: DeviceDockerDiskUsage | null
   active_alerts: DeviceAlertMetric[]
   reported_at: string
