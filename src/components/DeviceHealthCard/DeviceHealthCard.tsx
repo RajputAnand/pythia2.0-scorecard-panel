@@ -1,7 +1,15 @@
 import DataTable from '@/components/shared/DataTable/DataTable'
 import type { DataTableColumn } from '@/types/data-table'
-import type { DeviceAlertMetric, DeviceContainerStat, DeviceStateSummary } from '@/types/device-health'
+import type { DeviceAlertMetric, DeviceContainerStat, DevicePm2ServiceStat, DeviceStateSummary } from '@/types/device-health'
 import { formatRelativeTime } from '@/utils/common'
+
+function formatUptime(seconds: number): string {
+  if (seconds < 60) return `${Math.floor(seconds)}s`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  return `${hours}h ${minutes % 60}m`
+}
 
 interface Props {
   device: DeviceStateSummary
@@ -46,6 +54,50 @@ const containerColumns: DataTableColumn<DeviceContainerStat>[] = [
       c.ram_used_mb != null
         ? `${c.ram_used_mb.toFixed(0)} MB${c.ram_percent != null ? ` (${c.ram_percent.toFixed(1)}%)` : ''}`
         : '—',
+  },
+]
+
+const pm2Columns: DataTableColumn<DevicePm2ServiceStat>[] = [
+  {
+    key: 'service',
+    header: 'Service',
+    render: (s) => <span className="font-medium">{s.service}</span>,
+  },
+  {
+    key: 'status',
+    header: 'Status',
+    render: (s) => (
+      <span className={`inline-flex items-center gap-1.5 text-[11.5px] ${s.status === 'online' ? 'text-accent' : 'text-muted'}`}>
+        <span className={`w-[6px] h-[6px] rounded-full ${s.status === 'online' ? 'bg-accent' : 'bg-muted'}`} />
+        {s.status}
+      </span>
+    ),
+  },
+  {
+    key: 'cpu',
+    header: 'CPU',
+    align: 'right',
+    render: (s) => (s.cpu_percent != null ? `${s.cpu_percent.toFixed(1)}%` : '—'),
+  },
+  {
+    key: 'ram',
+    header: 'RAM',
+    align: 'right',
+    render: (s) => (s.ram_used_mb != null ? `${s.ram_used_mb.toFixed(0)} MB` : '—'),
+  },
+  {
+    key: 'uptime',
+    header: 'Uptime',
+    align: 'right',
+    render: (s) => (s.uptime_sec != null ? formatUptime(s.uptime_sec) : '—'),
+  },
+  {
+    key: 'restarts',
+    header: 'Restarts',
+    align: 'right',
+    render: (s) => (
+      <span className={s.restarts > 0 ? 'text-danger font-medium' : undefined}>{s.restarts}</span>
+    ),
   },
 ]
 
@@ -170,15 +222,18 @@ export default function DeviceHealthCard({ device, now }: Props) {
         </div>
       )}
 
-      {device.docker_disk_usage && (
-        <div className="px-5 py-[14px] border-t border-border bg-surface-alt flex items-center gap-6 flex-wrap">
-          <span className="text-[10.5px] font-medium text-muted uppercase tracking-[.06em]">Docker disk</span>
-          <span className="text-[12px] font-mono">Images {device.docker_disk_usage.images_gb?.toFixed(1) ?? '—'} GB</span>
-          <span className="text-[12px] font-mono">Containers {device.docker_disk_usage.containers_gb?.toFixed(1) ?? '—'} GB</span>
-          <span className="text-[12px] font-mono">Volumes {device.docker_disk_usage.volumes_gb?.toFixed(1) ?? '—'} GB</span>
-          <span className="text-[12px] font-mono font-semibold text-primary">
-            Total {device.docker_disk_usage.total_gb?.toFixed(1) ?? '—'} GB
-          </span>
+      {device.pm2_services.length > 0 && (
+        <div className="px-5 pb-[16px]">
+          <p className="text-[10.5px] font-medium text-muted uppercase tracking-[.06em] mb-2">
+            pm2 services ({device.pm2_services.length})
+          </p>
+          <DataTable
+            columns={pm2Columns}
+            rows={device.pm2_services}
+            // service name is usually unique, but isn't guaranteed to be (e.g.
+            // briefly during a rolling restart) — index disambiguates.
+            getRowKey={(s) => `${s.service}-${device.pm2_services.indexOf(s)}`}
+          />
         </div>
       )}
     </div>
