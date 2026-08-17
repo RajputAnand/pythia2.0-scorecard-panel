@@ -42,7 +42,7 @@ export interface DeviceStateSummary {
   storage_total_gb: number | null
   storage_used_gb: number | null
   containers: DeviceContainerStat[]
-  pm2_services: DevicePm2ServiceStat[]
+  pm2_services: DevicePm2ServiceStat[] | null
   docker_disk_usage: DeviceDockerDiskUsage | null
   active_alerts: DeviceAlertMetric[]
   reported_at: string
