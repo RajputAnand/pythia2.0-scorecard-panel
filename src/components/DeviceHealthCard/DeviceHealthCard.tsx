@@ -103,6 +103,8 @@ const pm2Columns: DataTableColumn<DevicePm2ServiceStat>[] = [
 
 export default function DeviceHealthCard({ device, now }: Props) {
   const alerts = new Set(device.active_alerts)
+  // Only devices running pm2 (not all of them — some are docker-only) report this.
+  const pm2Services = device.pm2_services ?? []
 
   const tiles: StatTile[] = [
     {
@@ -222,17 +224,17 @@ export default function DeviceHealthCard({ device, now }: Props) {
         </div>
       )}
 
-      {device.pm2_services.length > 0 && (
+      {pm2Services.length > 0 && (
         <div className="px-5 pb-[16px]">
           <p className="text-[10.5px] font-medium text-muted uppercase tracking-[.06em] mb-2">
-            pm2 services ({device.pm2_services.length})
+            pm2 services ({pm2Services.length})
           </p>
           <DataTable
             columns={pm2Columns}
-            rows={device.pm2_services}
+            rows={pm2Services}
             // service name is usually unique, but isn't guaranteed to be (e.g.
             // briefly during a rolling restart) — index disambiguates.
-            getRowKey={(s) => `${s.service}-${device.pm2_services.indexOf(s)}`}
+            getRowKey={(s) => `${s.service}-${pm2Services.indexOf(s)}`}
           />
         </div>
       )}
