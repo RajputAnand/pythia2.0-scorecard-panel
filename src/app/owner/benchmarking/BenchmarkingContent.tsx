@@ -29,9 +29,16 @@ export default function BenchmarkingContent() {
 
   const searchParams = useSearchParams()
 
-  // Filter states
-  const [selectedStoreId, setSelectedStoreId] = useState<string | null>('STORE-003')
+  // Filter states — defaults to (and follows) the store picked in the Header dropdown
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(currentStore?._id ?? null)
   const [period, setPeriod] = useState<string | undefined>(undefined)
+
+  // Picking a different store in the Header dropdown re-targets the benchmarking
+  // detail view (RankHero/StoreComparison/RankMovement) at that store, which
+  // drives fetchAllStoreData below via the selectedStoreId dependency.
+  useEffect(() => {
+    if (currentStore?._id) setSelectedStoreId(currentStore._id)
+  }, [currentStore?._id])
   
   const sortByMap: Record<string, string> = { 'Overall': 'overall', 'Hospitality': 'hospitality', 'Checkout': 'checkout', 'Time to Svc': 'time_to_svc' }
   const sortByTab = searchParams.get('sort') || 'Overall'
