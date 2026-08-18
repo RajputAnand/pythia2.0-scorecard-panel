@@ -1,7 +1,11 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
+import { fetchNetworkIntelligence } from '@/queries/benchmarking'
+import { BenchmarkingNetworkIntelligenceResponse } from '@/types/benchmarking'
 
 type IconColor = 'green' | 'amber' | 'blue'
 type GapVariant = 'gap' | 'close'
@@ -28,57 +32,6 @@ const pillStyle: Record<GapVariant, string> = {
   close: 'bg-accent-light text-accent',
 }
 
-const practices: Practice[] = [
-  {
-    icon: '⚡',
-    iconColor: 'green',
-    title: 'Checkout speed',
-    desc: <>Top-performing stores average <strong className="font-semibold text-primary">N/A per transaction</strong>. Comparison data for your store is not yet available.</>,
-    pillText: 'Your gap: N/A',
-    pillVariant: 'gap',
-  },
-  {
-    icon: '👋',
-    iconColor: 'green',
-    title: 'Greeting speed and consistency',
-    desc: <>Top performers greet customers with <strong className="font-semibold text-primary">N/A consistency</strong>. Comparison data for your store is not yet available.</>,
-    pillText: 'Your gap: N/A',
-    pillVariant: 'close',
-  },
-  {
-    icon: '🔄',
-    iconColor: 'blue',
-    title: 'Zero dead air during transactions',
-    desc: <>Top stores show <strong className="font-semibold text-primary">active verbal engagement throughout the transaction</strong> — not just greeting and close. Comparison data for your store is not yet available.</>,
-    pillText: 'Your gap: N/A',
-    pillVariant: 'gap',
-  },
-  {
-    icon: '📅',
-    iconColor: 'amber',
-    title: 'High scorers always on during peak',
-    desc: <>Network&apos;s top stores schedule their <strong className="font-semibold text-primary">top performers during every peak window</strong> without exception. Staffing comparison data for your store is not yet available.</>,
-    pillText: 'Your gap: N/A',
-    pillVariant: 'gap',
-  },
-  {
-    icon: '📈',
-    iconColor: 'green',
-    title: 'Coaching resolution speed',
-    desc: <>Top stores resolve coaching issues in an average of <strong className="font-semibold text-primary">N/A</strong>. Comparison data for your team is not yet available.</>,
-    pillText: 'Your gap: N/A',
-    pillVariant: 'close',
-  },
-  {
-    icon: '🏆',
-    iconColor: 'blue',
-    title: 'Staff score floor',
-    desc: <>Top-ranked stores have <strong className="font-semibold text-primary">no employee below the score threshold</strong>. Staff score data for your store is not yet available.</>,
-    pillText: 'Your gap: N/A',
-    pillVariant: 'gap',
-  },
-]
-
 const previewPractices: Practice[] = [
   { icon: '⚡', iconColor: 'green', title: 'Checkout speed', desc: <>Top-performing stores average <strong className="font-semibold text-primary">32 seconds per transaction</strong>. Your store averages 34s — nearly caught up.</>, pillText: 'Your gap: 2s', pillVariant: 'close' },
   { icon: '👋', iconColor: 'green', title: 'Greeting speed and consistency', desc: <>Top performers greet customers with <strong className="font-semibold text-primary">96% consistency</strong>. Your store is at 88%.</>, pillText: 'Your gap: 8 pts', pillVariant: 'gap' },
@@ -88,14 +41,102 @@ const previewPractices: Practice[] = [
   { icon: '🏆', iconColor: 'blue', title: 'Staff score floor', desc: <>Top-ranked stores have <strong className="font-semibold text-primary">no employee below a 70 score</strong>. You have 1 employee below that threshold.</>, pillText: 'Your gap: 1 employee', pillVariant: 'gap' },
 ]
 
-export default function TopStorePractices({ previewMode }: { previewMode?: boolean } = {}) {
+export default function TopStorePractices({ 
+  previewMode,
+  selectedStoreId,
+  period,
+}: { 
+  previewMode?: boolean
+  selectedStoreId?: string | null
+  period?: string
+} = {}) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingTopPractices] ?? true)
+  const { data: session } = useSession()
+  const token = session?.user?.token
+  
+  const [cardsData, setCardsData] = useState<BenchmarkingNetworkIntelligenceResponse['cards'] | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!token || !selectedStoreId || previewMode) return
+    let cancelled = false
+    setLoading(true)
+
+    fetchNetworkIntelligence(token, selectedStoreId, period)
+      .then((res) => {
+        if (!cancelled) {
+          setCardsData(res.cards)
+          setLoading(false)
+        }
+      })
+      .catch((err) => {
+        console.error(err)
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [token, selectedStoreId, period, previewMode])
+
   if (!previewMode && !visible) return null
 
-  const shownPractices = previewMode ? previewPractices.slice(0, 2) : practices
+  let shownPractices: Practice[] = []
+
+  if (previewMode) {
+    shownPractices = previewPractices.slice(0, 2)
+  } else if (cardsData) {
+    if (cardsData.checkout) {
+      shownPractices.push({
+        icon: '⚡', iconColor: 'green', title: cardsData.checkout.title,
+        desc: cardsData.checkout.description,
+        pillText: cardsData.checkout.your_gap,
+        pillVariant: cardsData.checkout.your_gap.toLowerCase().includes('slower') ? 'gap' : 'close'
+      })
+    }
+    if (cardsData.greeting) {
+      shownPractices.push({
+        icon: '👋', iconColor: 'green', title: cardsData.greeting.title,
+        desc: cardsData.greeting.description,
+        pillText: cardsData.greeting.your_gap,
+        pillVariant: cardsData.greeting.your_gap.toLowerCase().includes('less') ? 'gap' : 'close'
+      })
+    }
+    if (cardsData.dead_air) {
+      shownPractices.push({
+        icon: '🔄', iconColor: 'blue', title: cardsData.dead_air.title,
+        desc: cardsData.dead_air.description,
+        pillText: cardsData.dead_air.your_gap,
+        pillVariant: cardsData.dead_air.your_gap.toLowerCase().includes('more') ? 'gap' : 'close'
+      })
+    }
+    if (cardsData.coaching) {
+      shownPractices.push({
+        icon: '📈', iconColor: 'green', title: cardsData.coaching.title,
+        desc: cardsData.coaching.description,
+        pillText: cardsData.coaching.your_gap,
+        pillVariant: cardsData.coaching.your_gap.toLowerCase().includes('enough data') ? 'gap' : 'close'
+      })
+    }
+    if (cardsData.staff_floor) {
+      shownPractices.push({
+        icon: '🏆', iconColor: 'blue', title: cardsData.staff_floor.title,
+        desc: cardsData.staff_floor.description,
+        pillText: cardsData.staff_floor.your_gap,
+        pillVariant: cardsData.staff_floor.your_gap.toLowerCase().includes('enough data') ? 'gap' : 'close'
+      })
+    }
+  } else {
+    // Empty state while loading or no data
+    shownPractices = [
+      { icon: '⚡', iconColor: 'green', title: 'Checkout speed', desc: 'Loading network intelligence...', pillText: 'N/A', pillVariant: 'gap' },
+      { icon: '👋', iconColor: 'green', title: 'Greeting speed and consistency', desc: 'Loading network intelligence...', pillText: 'N/A', pillVariant: 'gap' },
+      { icon: '🔄', iconColor: 'blue', title: 'Zero dead air during transactions', desc: 'Loading network intelligence...', pillText: 'N/A', pillVariant: 'gap' },
+    ]
+  }
 
   return (
-    <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
+    <div className={`bg-surface border border-border rounded-[14px] overflow-hidden transition-opacity ${loading ? 'opacity-50' : ''}`}>
       <div className="flex items-center justify-between px-[22px] py-4 border-b border-border">
         <div>
           <div className="text-[13.5px] font-semibold">What Top-Ranked Stores Do Differently</div>
