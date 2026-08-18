@@ -2,7 +2,7 @@
 
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
-import { BenchmarkingStoreData } from '@/types/benchmarking'
+import { SelectedStoreBenchmarkingData } from '@/types/benchmarking'
 
 const rankHistory = [
   { month: 'Nov', width: '0%', color: '#E4DFD8', rank: 'N/A', accent: false },
@@ -34,7 +34,7 @@ const previewMetrics = [
 
 interface RankHeroProps {
   previewMode?: boolean
-  data?: BenchmarkingStoreData | null
+  data?: SelectedStoreBenchmarkingData | null
   loading?: boolean
 }
 
@@ -42,16 +42,25 @@ export default function RankHero({ previewMode, data, loading }: RankHeroProps =
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingRankHero] ?? true)
   if (!previewMode && !visible) return null
 
-  const history = previewMode ? previewRankHistory : rankHistory
+  let history = previewMode ? previewRankHistory : rankHistory
+  if (data?.rank_history && !loading) {
+    history = data.rank_history.map(item => ({
+      month: item.period.label.substring(0, 3), // "August 2026" -> "Aug"
+      width: item.rank ? `${100 - ((item.rank / (item.cohort_size || 1)) * 100)}%` : '0%',
+      color: item.rank && item.rank <= 3 ? '#1D5C3A' : '#E4DFD8',
+      rank: item.rank ? `#${item.rank}` : 'N/A',
+      accent: item.rank && item.rank <= 3 ? true : false,
+    }))
+  }
   
   // Combine real data with preview/default metrics layout
   const baseMetrics = previewMode ? previewMetrics : metrics
   const shownMetrics = baseMetrics.map(m => {
     if (data && !loading) {
-      if (m.label === 'Hospitality') return { ...m, val: data.hospitality ?? 0 }
-      if (m.label === 'Checkout Spd') return { ...m, val: data.checkout ?? 0 }
-      if (m.label === 'Time to Svc') return { ...m, val: data.time_to_svc ?? 0 }
-      if (m.label === 'Overall Score') return { ...m, val: data.overall ?? 0 }
+      if (m.label === 'Hospitality') return { ...m, val: data.hospitality ?? 0, rank: data.hospitality_rank ? `#${data.hospitality_rank} of ${data.hospitality_cohort_size}` : 'N/A' }
+      if (m.label === 'Checkout Spd') return { ...m, val: data.checkout ?? 0, rank: data.checkout_rank ? `#${data.checkout_rank} of ${data.checkout_cohort_size}` : 'N/A' }
+      if (m.label === 'Time to Svc') return { ...m, val: data.time_to_svc ?? 0, rank: data.time_to_svc_rank ? `#${data.time_to_svc_rank} of ${data.time_to_svc_cohort_size}` : 'N/A' }
+      if (m.label === 'Overall Score') return { ...m, val: data.overall ?? 0, rank: data.rank ? `#${data.rank} of ${data.cohort_size}` : 'N/A' }
     }
     return m
   })
@@ -65,13 +74,26 @@ export default function RankHero({ previewMode, data, loading }: RankHeroProps =
         style={{ background: 'linear-gradient(160deg, #1A1714 0%, #2C2820 100%)' }}
       >
         <div className="text-[10px] font-semibold uppercase tracking-[.12em] text-white/35">Your Rank</div>
-        <div className="font-mono text-[72px] font-medium text-white leading-none tracking-[-0.04em]">{previewMode ? '#3' : 'N/A'}</div>
-        <div className="font-mono text-[13px] text-white/35">{previewMode ? 'of 24 stores' : 'N/A'}</div>
+        <div className="font-mono text-[72px] font-medium text-white leading-none tracking-[-0.04em]">{data?.rank ? `#${data.rank}` : (previewMode ? '#3' : 'N/A')}</div>
+        <div className="font-mono text-[13px] text-white/35">{data?.cohort_size ? `of ${data.cohort_size} stores` : (previewMode ? 'of 24 stores' : 'N/A')}</div>
         <div
           className="flex items-center gap-[6px] rounded-full px-3 py-1"
           style={{ background: 'rgba(255,255,255,0.1)' }}
         >
-          <span className="font-mono text-[12px] font-semibold text-white/50">{previewMode ? '▲ up 6 since Nov' : 'N/A'}</span>
+          <span className="font-mono text-[12px] font-semibold text-white/50">{
+            data?.rank_history && data.rank_history.length > 0 && data.rank
+              ? (() => {
+                  const firstValid = data.rank_history.find(h => h.rank !== null)
+                  if (!firstValid) return 'N/A'
+                  const firstRank = firstValid.rank!
+                  const diff = firstRank - data.rank
+                  const monthStr = firstValid.period.label.substring(0, 3)
+                  if (diff > 0) return `▲ up ${diff} since ${monthStr}`
+                  if (diff < 0) return `▼ down ${Math.abs(diff)} since ${monthStr}`
+                  return `flat since ${monthStr}`
+                })()
+              : (previewMode ? '▲ up 6 since Nov' : 'N/A')
+          }</span>
         </div>
       </div>
 
@@ -82,9 +104,9 @@ export default function RankHero({ previewMode, data, loading }: RankHeroProps =
           <div className="h-7 bg-surface-alt rounded-lg overflow-hidden">
             <div
               className="h-full rounded-lg flex items-center pl-3"
-              style={{ width: previewMode ? '88%' : '0%', background: 'linear-gradient(90deg, #C8E6D6 0%, #1D5C3A 100%)' }}
+              style={{ width: data?.overall_percentile ? `${data.overall_percentile}%` : (previewMode ? '88%' : '0%'), background: 'linear-gradient(90deg, #C8E6D6 0%, #1D5C3A 100%)' }}
             >
-              <span className="font-mono text-[12px] font-bold text-white whitespace-nowrap">{previewMode ? 'Top 12%' : 'N/A'}</span>
+              <span className="font-mono text-[12px] font-bold text-white whitespace-nowrap">{data?.overall_percentile_display || (previewMode ? 'Top 12%' : 'N/A')}</span>
             </div>
           </div>
           <div className="flex justify-between mt-[5px]">

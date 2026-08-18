@@ -2,6 +2,7 @@
 
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
+import { SelectedStoreBenchmarkingData } from '@/types/benchmarking'
 
 interface StoreTrack {
   label: string
@@ -96,14 +97,63 @@ const deltaClass: Record<'up' | 'down' | 'flat', string> = {
   flat: 'text-muted',
 }
 
-export default function RankMovement({ previewMode }: { previewMode?: boolean } = {}) {
+interface RankMovementProps {
+  previewMode?: boolean
+  data?: SelectedStoreBenchmarkingData['rank_movement_board']
+  loading?: boolean
+}
+
+export default function RankMovement({ previewMode, data, loading }: RankMovementProps = {}) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingRankMovement] ?? true)
   if (!previewMode && !visible) return null
 
-  const shownTracks = previewMode ? previewTracks.filter((t) => t.isYours || t.label === '#1') : tracks
+  let shownTracks = previewMode ? previewTracks.filter((t) => t.isYours || t.label === '#1') : tracks
+
+  if (data && data.rows && !loading) {
+    shownTracks = data.rows.map(row => {
+      let currentColor = '#888'
+      if (row.is_top_performer) currentColor = '#B8860B'
+      else if (row.is_selected_store) currentColor = '#1D5C3A'
+      else if (row.is_nearest_competitor) currentColor = '#5A7A9A'
+      
+      let deltaStr = 'N/A'
+      let deltaVariant: 'up' | 'down' | 'flat' = 'flat'
+      
+      if (row.history.length > 0 && row.current_rank) {
+        const firstRank = row.history[0].rank
+        if (firstRank) {
+          const change = firstRank - row.current_rank
+          if (change > 0) {
+            deltaStr = `↑ ${change}`
+            deltaVariant = 'up'
+          } else if (change < 0) {
+            deltaStr = `↓ ${Math.abs(change)}`
+            deltaVariant = 'down'
+          } else {
+            deltaStr = 'N/A'
+            deltaVariant = 'flat'
+          }
+        }
+      }
+      
+      return {
+        label: row.is_selected_store ? 'You' : (row.current_rank ? `#${row.current_rank}` : 'N/A'),
+        isYours: row.is_selected_store,
+        months: row.history.map(h => ({
+          rank: h.rank ? `#${h.rank}` : 'N/A',
+          flex: h.rank ? 1 - (h.rank / 50) * 0.5 : 0.9, // rough visual proxy for flex size
+          color: currentColor
+        })),
+        currentRank: row.current_rank ? `#${row.current_rank}` : 'N/A',
+        currentColor,
+        delta: deltaStr,
+        deltaVariant
+      }
+    })
+  }
 
   return (
-    <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
+    <div className={`bg-surface border border-border rounded-[14px] overflow-hidden transition-opacity ${loading ? 'opacity-50' : ''}`}>
       <div className="px-[22px] py-4 border-b border-border">
         <div className="text-[13.5px] font-semibold">Month-over-Month Rank Movement</div>
         <div className="text-[11.5px] text-muted mt-[2px]">Your store vs. top 5 and nearest competitor</div>
@@ -133,12 +183,6 @@ export default function RankMovement({ previewMode }: { previewMode?: boolean } 
           </div>
         ))}
 
-        <div className="pt-3 border-t border-border text-[11.5px] text-muted leading-[1.6]">
-          <strong className="font-semibold text-secondary">Key takeaway:</strong>{' '}
-          {previewMode
-            ? 'Your store climbed from #14 to #3 over the last 4 months — the fastest-rising store in the network.'
-            : 'Rank movement data is not yet available for this period.'}
-        </div>
       </div>
     </div>
   )
