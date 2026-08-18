@@ -15,8 +15,8 @@ export const PYTHIA_2_API = {
     customerSegments: '/demographics/customer-segments',
   },
   benchmarking: {
-    // allStoreData: '/benchmarking/all_store_data',
-    // fetchStoreData: (storeId: string) => `/benchmarking/fetch_store_data?store_id=${storeId}`,
+    allStoreData: '/benchmarking/all_store_data',
+    networkIntelligence: '/benchmarking/network_intelligence',
   },
   coaching: {
     moments: '/coaching-moments',

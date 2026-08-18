@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
 import { BenchmarkingStoreData } from '@/types/benchmarking'
@@ -105,9 +106,20 @@ interface NetworkLeaderboardProps {
 export default function NetworkLeaderboard({ 
   previewMode, data, loading, selectedStoreId, onSelectStore 
 }: NetworkLeaderboardProps = {}) {
-  const [activeFilter, setActiveFilter] = useState('All Stores')
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  
+  const activeFilter = searchParams.get('filter') || 'All Stores'
+  
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingNetworkLeaderboard] ?? true)
   const currentStore = useUserStore((s) => s.currentStore)
+
+  const handleFilterSelect = (f: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('filter', f)
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
 
   if (!previewMode && !visible) return null
 
@@ -119,9 +131,9 @@ export default function NetworkLeaderboard({
       const isYours = d.store_id === currentStore?._id
       
       let rankVariant: RankVariant = 'regular'
-      if (index === 0) rankVariant = 'gold'
-      else if (index === 1) rankVariant = 'silver'
-      else if (index === 2) rankVariant = 'bronze'
+      if (d.rank === 1) rankVariant = 'gold'
+      else if (d.rank === 2) rankVariant = 'silver'
+      else if (d.rank === 3) rankVariant = 'bronze'
       else if (isYours) rankVariant = 'yours'
 
       const hospColor = (d.hospitality ?? 0) > 80 ? '#1D5C3A' : '#7EC8A0'
@@ -129,13 +141,24 @@ export default function NetworkLeaderboard({
       const ttsColor = (d.time_to_svc ?? 0) > 80 ? '#1D5C3A' : '#7EC8A0'
 
       let percentileVariant: PercentileVariant = 'top50'
-      if (index < data.length * 0.05) percentileVariant = 'top5'
-      else if (index < data.length * 0.1) percentileVariant = 'top10'
-      else if (index < data.length * 0.25) percentileVariant = 'top25'
+      if (d.overall_percentile_band === 'top_performer') percentileVariant = 'top5'
+      else if (d.overall_percentile_band === 'leading') percentileVariant = 'top10'
+      else if ((d.overall_percentile ?? 100) > 75) percentileVariant = 'top25'
+      
+      let movementStr = 'N/A'
+      if (d.trend_status === 'available' && d.mom_change !== null) {
+        movementStr = d.mom_change > 0 ? `+${d.mom_change}` : String(d.mom_change)
+      } else if (d.trend_status && d.trend_status !== 'available') {
+        movementStr = '-'
+      }
+
+      let movementVariant: MovementVariant = 'flat'
+      if (d.mom_change && d.mom_change > 0) movementVariant = 'up'
+      else if (d.mom_change && d.mom_change < 0) movementVariant = 'down'
 
       return {
         storeId: d.store_id,
-        rank: index + 1,
+        rank: d.rank ?? index + 1,
         rankVariant,
         name: isYours ? currentStore?.name || 'Your Store' : `Store #${d.store_id.slice(-4)}`,
         isYours,
@@ -147,9 +170,9 @@ export default function NetworkLeaderboard({
         checkoutColor,
         timeToSvc: d.time_to_svc ?? 0,
         ttsColor,
-        movement: String(d.mom_change ?? 'N/A'),
-        movementVariant: 'flat' as MovementVariant,
-        percentile: String(d.percentile ?? 'N/A'),
+        movement: movementStr,
+        movementVariant,
+        percentile: d.overall_percentile_display || 'N/A',
         percentileVariant
       }
     })
@@ -168,7 +191,7 @@ export default function NetworkLeaderboard({
         {FILTERS.map((f) => (
           <button
             key={f}
-            onClick={() => setActiveFilter(f)}
+            onClick={() => handleFilterSelect(f)}
             className={`px-3 py-[5px] rounded-full border font-sans text-[11.5px] font-medium cursor-pointer transition-all duration-150
               ${activeFilter === f
                 ? 'bg-primary text-white border-primary'
