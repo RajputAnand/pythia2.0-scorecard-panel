@@ -123,9 +123,16 @@ export default function NetworkLeaderboard({
 
   if (!previewMode && !visible) return null
 
+  // `data === undefined` means no live data was ever wired up (e.g. the Super
+  // Admin static mirror renders `<NetworkLeaderboard />` with no props) — show
+  // illustrative sample rows. `data` being a defined-but-empty array is a real
+  // "no stores matched this filter/scope" result and must NOT fall back to the
+  // same sample rows, or an empty result looks like fabricated live data.
+  const isLiveEmpty = !previewMode && data !== undefined && !loading && data.length === 0
+
   const displayRows = useMemo(() => {
     if (previewMode) return previewRows.filter((r) => r.rank === 1 || r.isYours)
-    if (!data || data.length === 0) return rows
+    if (data === undefined) return rows
 
     return data.map((d, index) => {
       const isYours = d.store_id === currentStore?._id
@@ -218,58 +225,68 @@ export default function NetworkLeaderboard({
           </tr>
         </thead>
         <tbody>
-          {displayRows.map((row) => (
-            <tr 
-              key={row.storeId} 
-              className={`cursor-pointer transition-colors ${selectedStoreId === row.storeId ? 'bg-surface-alt' : row.isYours ? 'bg-accent-light' : 'hover:bg-surface-alt/50'}`}
-              onClick={() => onSelectStore?.(row.storeId)}
-            >
-              <td className="pl-[22px] pr-[18px] py-[13px] border-b border-border align-middle">
-                <div className="flex items-center gap-[10px]">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-mono text-[12px] font-bold shrink-0 ${rankNumClass[row.rankVariant]}`}>
-                    {row.rank}
-                  </div>
-                </div>
-              </td>
-              <td className="px-[18px] py-[13px] border-b border-border align-middle">
-                <span className={`text-[13px] font-semibold ${row.isYours ? 'text-accent' : ''}`}>
-                  {row.name}
-                  {row.isYours && (
-                    <span className="ml-[6px] text-[10px] font-semibold px-[6px] py-px rounded bg-accent text-white">You</span>
-                  )}
-                </span>
-              </td>
-              <td className="px-[18px] py-[13px] border-b border-border align-middle">
-                <span className={`font-mono text-[14px] font-bold ${overallColor[row.overallVariant ?? 'regular']}`}>
-                  {row.overall}
-                </span>
-              </td>
-              <td className="px-[18px] py-[13px] border-b border-border align-middle">
-                <MetricCell value={row.hospitality} color={row.hospColor} />
-              </td>
-              <td className="px-[18px] py-[13px] border-b border-border align-middle">
-                <MetricCell value={row.checkout} color={row.checkoutColor} />
-              </td>
-              <td className="px-[18px] py-[13px] border-b border-border align-middle">
-                <MetricCell value={row.timeToSvc} color={row.ttsColor} />
-              </td>
-              <td className="px-[18px] py-[13px] border-b border-border align-middle">
-                <span className={`font-mono text-[11.5px] font-semibold ${movementClass[row.movementVariant]}`}>
-                  {row.movement}
-                </span>
-              </td>
-              <td className="pr-[22px] pl-[18px] py-[13px] border-b border-border align-middle text-right">
-                <span className={`font-mono text-[11px] font-bold px-2 py-[3px] rounded-full ${percentileClass[row.percentileVariant]}`}>
-                  {row.percentile}
-                </span>
+          {isLiveEmpty ? (
+            <tr>
+              <td colSpan={8} className="px-[22px] py-[36px] text-center text-[12.5px] text-muted">
+                No stores match the &ldquo;{activeFilter}&rdquo; filter for this period.
               </td>
             </tr>
-          ))}
-          <tr>
-            <td colSpan={8} className="px-[22px] py-[10px] text-[11.5px] text-muted bg-surface-alt text-center">
-              {previewMode ? '16 additional stores · below top 50%' : 'Additional stores · Score data N/A · Below top 50%'}
-            </td>
-          </tr>
+          ) : (
+            <>
+              {displayRows.map((row) => (
+                <tr
+                  key={row.storeId}
+                  className={`cursor-pointer transition-colors ${selectedStoreId === row.storeId ? 'bg-surface-alt' : row.isYours ? 'bg-accent-light' : 'hover:bg-surface-alt/50'}`}
+                  onClick={() => onSelectStore?.(row.storeId)}
+                >
+                  <td className="pl-[22px] pr-[18px] py-[13px] border-b border-border align-middle">
+                    <div className="flex items-center gap-[10px]">
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-mono text-[12px] font-bold shrink-0 ${rankNumClass[row.rankVariant]}`}>
+                        {row.rank}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-[18px] py-[13px] border-b border-border align-middle">
+                    <span className={`text-[13px] font-semibold ${row.isYours ? 'text-accent' : ''}`}>
+                      {row.name}
+                      {row.isYours && (
+                        <span className="ml-[6px] text-[10px] font-semibold px-[6px] py-px rounded bg-accent text-white">You</span>
+                      )}
+                    </span>
+                  </td>
+                  <td className="px-[18px] py-[13px] border-b border-border align-middle">
+                    <span className={`font-mono text-[14px] font-bold ${overallColor[row.overallVariant ?? 'regular']}`}>
+                      {row.overall}
+                    </span>
+                  </td>
+                  <td className="px-[18px] py-[13px] border-b border-border align-middle">
+                    <MetricCell value={row.hospitality} color={row.hospColor} />
+                  </td>
+                  <td className="px-[18px] py-[13px] border-b border-border align-middle">
+                    <MetricCell value={row.checkout} color={row.checkoutColor} />
+                  </td>
+                  <td className="px-[18px] py-[13px] border-b border-border align-middle">
+                    <MetricCell value={row.timeToSvc} color={row.ttsColor} />
+                  </td>
+                  <td className="px-[18px] py-[13px] border-b border-border align-middle">
+                    <span className={`font-mono text-[11.5px] font-semibold ${movementClass[row.movementVariant]}`}>
+                      {row.movement}
+                    </span>
+                  </td>
+                  <td className="pr-[22px] pl-[18px] py-[13px] border-b border-border align-middle text-right">
+                    <span className={`font-mono text-[11px] font-bold px-2 py-[3px] rounded-full ${percentileClass[row.percentileVariant]}`}>
+                      {row.percentile}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              <tr>
+                <td colSpan={8} className="px-[22px] py-[10px] text-[11.5px] text-muted bg-surface-alt text-center">
+                  {previewMode ? '16 additional stores · below top 50%' : 'Additional stores · Score data N/A · Below top 50%'}
+                </td>
+              </tr>
+            </>
+          )}
         </tbody>
       </table>
     </div>
