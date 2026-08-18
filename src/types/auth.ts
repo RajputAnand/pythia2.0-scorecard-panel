@@ -49,3 +49,52 @@ export interface RefreshResponse {
   token_type: string
   user: ApiAuthUser
 }
+
+/**
+ * Raw response from Pythia 1.0's own POST /auth/login (called via pythia1Client,
+ * not pythia2Client). Only ever carries a bearer token — no user profile. Backend's
+ * app/services/pythia1_client.py::login_p1() checks all four of these shapes for
+ * the token; mirror that here rather than assuming one fixed shape.
+ */
+export interface P1LoginResponse {
+  statusCode?: number
+  token?: string
+  accessToken?: string
+  data?: {
+    token?: string
+    accessToken?: string
+  }
+}
+
+/** The `role` object embedded in Pythia 1.0's GET /profile/ response. */
+export interface P1ProfileRole {
+  _id: string
+  name: string
+  slug: string
+  hierarchyLevel: number
+  permissions: string[]
+}
+
+/** The `data` payload of Pythia 1.0's GET /profile/ response. */
+export interface P1ProfileUser {
+  _id: string
+  firstName: string
+  lastName: string
+  email: string
+  role: P1ProfileRole
+  ownerGroupId: string
+  storeIds: string[]
+  isActive: boolean
+  points?: number
+}
+
+/**
+ * Raw response from Pythia 1.0's own GET /profile/ (called via pythia1Client).
+ * Fetched with the token from P1LoginResponse to get the actual user/role data —
+ * P1's /auth/login never returns this itself. Shape matches the docstring in
+ * app/services/pythia1_client.py::_map_p1_user() on the backend.
+ */
+export interface P1ProfileResponse {
+  statusCode: number
+  data: P1ProfileUser
+}
