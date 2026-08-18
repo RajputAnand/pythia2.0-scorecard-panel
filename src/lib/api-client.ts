@@ -96,8 +96,27 @@ function createClient(baseURL: string | undefined): AxiosInstance {
   })
 
   // Request interceptor — inject auth token from session when available.
-  // Replace the no-op body with: config.headers.Authorization = `Bearer ${token}`
-  client.interceptors.request.use((config) => {
+  client.interceptors.request.use(async (config) => {
+    try {
+      let token: string | undefined
+
+      if (typeof window !== 'undefined') {
+        const { getSession } = await import('next-auth/react')
+        const session = await getSession()
+        token = session?.user?.token as string | undefined
+      } else {
+        const { auth } = await import('@/auth')
+        const session = await auth()
+        token = session?.user?.token as string | undefined
+      }
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+    } catch (error) {
+      console.error('Error fetching session token for interceptor:', error)
+    }
+
     return config
   })
 
@@ -144,4 +163,5 @@ function createClient(baseURL: string | undefined): AxiosInstance {
   return client
 }
 
+export const pythia1Client = createClient(process.env.NEXT_PUBLIC_PYTHIA_1_API_URL)
 export const pythia2Client = createClient(process.env.NEXT_PUBLIC_PYTHIA_2_API_URL)
