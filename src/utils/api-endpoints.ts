@@ -5,6 +5,10 @@ export const PYTHIA_2_API = {
     refresh: '/auth/refresh',
     forgotPassword: '/auth/forgot-password',
     resetPassword: '/auth/reset-password',
+    // Pythia 1.0's own profile endpoint — called via pythia1Client (not
+    // pythia2Client) with the token from POST /auth/login, since Pythia 1.0's
+    // login response carries no user data of its own. See P1ProfileResponse.
+    p1Profile: '/profile/',
   },
   dashboard: {
     summary: '/dashboard/summary',
