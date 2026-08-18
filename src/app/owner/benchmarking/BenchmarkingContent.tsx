@@ -16,6 +16,7 @@ import RankMovement from '@/components/RankMovement/RankMovement'
 import Header from '@/components/shared/Header/Header'
 import headerStyles from '@/components/shared/Header/Header.module.css'
 import BenchmarkingMetricFilter from '@/components/BenchmarkingMetricFilter/BenchmarkingMetricFilter'
+import { downloadCsv } from '@/utils/common'
 
 export default function BenchmarkingContent() {
   const { data: session } = useSession()
@@ -81,15 +82,46 @@ export default function BenchmarkingContent() {
     }
   }, [token, selectedStoreId, period, sortBy, filterMode, currentStore?._id])
 
-  const subtitle = meta 
+  const subtitle = meta
     ? `${meta.period.label} · ${meta.scope.store_count} peer stores in network`
     : 'Loading...'
+
+  // No export endpoint exists yet — CSV of the currently loaded Network
+  // Leaderboard rows, reflecting whichever header metric sort (`sortByTab`)
+  // and leaderboard pill (`filterPill`) is active, since those already drive
+  // `allStoreData` via fetchAllStoreData above.
+  const handleExportReport = () => {
+    const headers = ['Rank', 'Store', 'Overall', 'Hospitality', 'Checkout', 'Time to Svc', 'MoM Change', 'Percentile']
+    const rows = allStoreData.map((d) => {
+      const isYours = d.store_id === currentStore?._id
+      return [
+        d.rank,
+        isYours ? currentStore?.name || 'Your Store' : `Store #${d.store_id.slice(-4)}`,
+        d.overall ?? '',
+        d.hospitality ?? '',
+        d.checkout ?? '',
+        d.time_to_svc ?? '',
+        d.mom_change ?? '',
+        d.overall_percentile_display || '',
+      ]
+    })
+
+    const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    const filename = `benchmarking-${slug(filterPill)}-${slug(sortByTab)}-${new Date().toISOString().slice(0, 10)}.csv`
+    downloadCsv(filename, headers, rows)
+  }
 
   return (
     <>
       <Header title="Competitor Benchmarking" subtitle={subtitle}>
         <BenchmarkingMetricFilter />
-        <button className={headerStyles.btnPrimary}>Export Report</button>
+        <button
+          className={`${headerStyles.btnPrimary} disabled:opacity-50 disabled:cursor-not-allowed`}
+          onClick={handleExportReport}
+          disabled={loading || allStoreData.length === 0}
+        >
+          Export Report
+        </button>
       </Header>
 
       <div className="grid px-[30px] py-[24px] gap-5">
