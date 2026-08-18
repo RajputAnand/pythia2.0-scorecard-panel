@@ -53,6 +53,15 @@ async function refreshAccessToken(): Promise<string | null> {
     refreshPromise = (async () => {
       const { getSession, signIn } = await import('next-auth/react')
       const session = await getSession()
+
+      // Manager auth is fully on Pythia 1.0 (see loginManagerViaP1 in
+      // src/actions/auth.ts) — there's no Pythia 2.0 refresh token to redeem.
+      // session.user.refreshToken for a manager just holds the same raw P1
+      // access token, and POST /auth/refresh can't look that up (it was never
+      // issued via Pythia 2.0's own _issue_token_pair). Skip straight to the
+      // login redirect instead of a call that can only fail.
+      if (session?.user?.role === 'manager') return null
+
       const currentRefreshToken = session?.user?.refreshToken
       if (!session || !currentRefreshToken) return null
 
