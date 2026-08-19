@@ -1,11 +1,10 @@
 'use client'
 
-import { useState } from 'react'
 import styles from './RoiHero.module.css'
 import { RoiStat } from '@/types/roi'
-import { ROI_STATS } from '@/lib/roi-data'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
+import type { RoiAttributionResponse } from '@/types/owner-roi'
 
 // Illustrative numbers for the Super Admin hover preview — the real
 // ROI_STATS stay at their live $0/N/A placeholders until the backend is
@@ -28,12 +27,56 @@ const pillVariantStyle: Record<string, React.CSSProperties> = {
   neutral: { background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' },
 }
 
-export default function RoiHero({ previewMode }: { previewMode?: boolean } = {}) {
-  const [allStats] = useState<RoiStat[]>(ROI_STATS)
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
+export default function RoiHero({ data, previewMode }: { data?: RoiAttributionResponse['hero']; previewMode?: boolean } = {}) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiHero] ?? true)
   if (!previewMode && !visible) return null
 
-  const stats = previewMode ? PREVIEW_STATS : allStats
+  let stats: RoiStat[] = PREVIEW_STATS
+
+  if (!previewMode && data) {
+    stats = [
+      {
+        label: 'Est. Revenue Impact',
+        value: data.revenue_impact.amount != null ? formatCurrency(data.revenue_impact.amount) : 'N/A',
+        valueVariant: (data.revenue_impact.amount ?? 0) >= 0 ? 'green' : 'amber',
+        pill: data.revenue_impact.percent_change != null ? `${data.revenue_impact.percent_change > 0 ? '+' : ''}${data.revenue_impact.percent_change}%` : 'N/A',
+        pillVariant: (data.revenue_impact.percent_change ?? 0) >= 0 ? 'up' : 'down',
+        sub: 'vs. prior period'
+      },
+      {
+        label: 'Team Score Avg',
+        value: (data.team_score.start_score != null && data.team_score.end_score != null) ? `${data.team_score.start_score.toFixed(1)} → ${data.team_score.end_score.toFixed(1)}` : 'N/A',
+        valueVariant: (data.team_score.change ?? 0) >= 0 ? 'green' : 'amber',
+        pill: data.team_score.change != null ? `${data.team_score.change > 0 ? '+' : ''}${data.team_score.change.toFixed(1)} pts` : 'N/A',
+        pillVariant: (data.team_score.change ?? 0) >= 0 ? 'up' : 'down',
+        sub: 'this period'
+      },
+      {
+        label: 'Pythia Platform Cost',
+        value: data.platform_cost.amount != null ? formatCurrency(Math.abs(data.platform_cost.amount)) : 'N/A',
+        valueVariant: 'amber',
+        pill: 'flat',
+        pillVariant: 'neutral',
+        sub: 'monthly subscription'
+      },
+      {
+        label: 'Net ROI',
+        value: data.net_roi.amount != null ? formatCurrency(data.net_roi.amount) : 'N/A',
+        valueVariant: (data.net_roi.amount ?? 0) >= 0 ? 'green' : 'amber',
+        pill: data.net_roi.multiplier != null ? `${data.net_roi.multiplier}x` : 'N/A',
+        pillVariant: (data.net_roi.multiplier ?? 0) >= 0 ? 'up' : 'down',
+        sub: 'after platform cost'
+      }
+    ]
+  }
 
   return (
     <div

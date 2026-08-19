@@ -43,7 +43,7 @@ export default function RestoreIdentityPanel({ identity, onRestored }: RestoreId
         {identity.trashed_at_utc && (
           <div className="flex justify-between gap-2 min-w-0">
             <span className="text-muted shrink-0">Trashed</span>
-            <span className="truncate">{new Date(identity.trashed_at_utc).toLocaleString()}</span>
+            <span className="truncate">{new Date(identity.trashed_at_utc).toLocaleString('en-US')}</span>
           </div>
         )}
       </div>

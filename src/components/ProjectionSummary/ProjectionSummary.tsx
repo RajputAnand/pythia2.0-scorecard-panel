@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from 'react'
 import styles from './ProjectionSummary.module.css'
 import { renderText } from '@/utils/common'
-import { PROJECTION_SUMMARY_DATA } from '@/lib/projection-summary-data'
-import type { ProjectionStat, ProjectionSummaryData } from '@/types/projection-summary'
+import type { ProjectionStat } from '@/types/projection-summary'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
+import type { RoiAttributionResponse } from '@/types/owner-roi'
+
+import { PROJECTION_SUMMARY_DATA } from '@/lib/projection-summary-data'
+import type { ProjectionSummaryData } from '@/types/projection-summary'
 
 const PREVIEW_STATS: ProjectionStat[] = [
   { eyebrow: 'If current trajectory holds', value: '$52,000', highlight: false, sub: 'Projected net revenue impact is **$52K** for this period' },
@@ -15,12 +17,37 @@ const PREVIEW_STATS: ProjectionStat[] = [
   { eyebrow: 'Annual ROI projection', value: '14.3x', highlight: true, sub: 'Annual ROI projection is **14.3x** for this period' },
 ]
 
-export default function ProjectionSummary({ previewMode }: { previewMode?: boolean } = {}) {
-  const [data] = useState<ProjectionSummaryData>(PROJECTION_SUMMARY_DATA)
+export default function ProjectionSummary({ data, previewMode }: { data?: RoiAttributionResponse['projection_summary']; previewMode?: boolean }) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiProjectionSummary] ?? true)
   if (!previewMode && !visible) return null
+  if (!previewMode && !data) return null
 
-  const stats = previewMode ? PREVIEW_STATS : data.stats
+  const stats: ProjectionStat[] = previewMode ? PREVIEW_STATS : [
+    { 
+      eyebrow: 'If current trajectory holds', 
+      value: data!.trajectory_next_period_amount != null ? `$${data!.trajectory_next_period_amount.toLocaleString('en-US')}` : 'N/A', 
+      highlight: false, 
+      sub: data!.trajectory_next_period_amount != null 
+        ? `Projected net revenue impact is **$${data!.trajectory_next_period_amount.toLocaleString('en-US')}** for this period` 
+        : 'Not enough data yet to project trajectory.' 
+    },
+    { 
+      eyebrow: 'Breakeven on platform', 
+      value: data!.breakeven_days != null ? `${data!.breakeven_days} days` : 'N/A', 
+      highlight: false, 
+      sub: data!.breakeven_days != null 
+        ? `Breakeven timeline is **${data!.breakeven_days} days**` 
+        : 'Not enough data yet to calculate breakeven.' 
+    },
+    { 
+      eyebrow: 'Annual ROI projection', 
+      value: data!.annual_roi_multiplier != null ? `${data!.annual_roi_multiplier.toFixed(1)}x` : 'N/A', 
+      highlight: true, 
+      sub: data!.annual_roi_multiplier != null 
+        ? `Annual ROI projection is **${data!.annual_roi_multiplier.toFixed(1)}x**` 
+        : 'Not enough data yet for annual projection.' 
+    },
+  ]
 
   return (
     <div
@@ -57,7 +84,7 @@ export default function ProjectionSummary({ previewMode }: { previewMode?: boole
         className="text-[10.5px] italic mt-[10px]"
         style={{ color: 'rgba(255,255,255,0.3)', gridColumn: `span ${stats.length}` }}
       >
-        {previewMode ? '* Sample projection for preview purposes only.' : data.footnote}
+        {previewMode ? '* Sample projection for preview purposes only.' : data!.assumption_note}
       </div>
     </div>
   )

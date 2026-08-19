@@ -52,7 +52,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
     const success = await redeemItem(item)
     if (success) {
       const remaining = useUserStore.getState().points ?? 0
-      showToast(`${item.emoji} ${item.name} redeemed! ${remaining.toLocaleString()} pts remaining`)
+      showToast(`${item.emoji} ${item.name} redeemed! ${remaining.toLocaleString('en-US')} pts remaining`)
     } else {
       showToast(`Failed to redeem "${item.name}". Please try again.`)
     }
@@ -72,7 +72,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
             </span>
           ) : (
             <span className="font-mono font-bold text-[22px]" style={{ color: '#F5C842' }}>
-              {points.toLocaleString()}
+              {points.toLocaleString('en-US')}
             </span>
           )}
           <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11.5px' }}>points available</span>
@@ -137,7 +137,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                 <span className="text-[24px]">{item.emoji}</span>
                 <p className="text-[12.5px] font-semibold leading-tight">{item.name}</p>
                 <p className="text-[11px] leading-snug text-muted">{item.desc}</p>
-                <p className="font-mono text-[12px] font-bold text-gold">{item.cost.toLocaleString()} pts</p>
+                <p className="font-mono text-[12px] font-bold text-gold">{item.cost.toLocaleString('en-US')} pts</p>
 
                 {/* Per-item action button — four exclusive states */}
                 {isRedeeming ? (
@@ -171,7 +171,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                     style={{ background: 'var(--color-surface-alt)' }}
                     disabled
                   >
-                    Need {needed.toLocaleString()} more
+                    Need {needed.toLocaleString('en-US')} more
                   </button>
                 )}
               </div>
