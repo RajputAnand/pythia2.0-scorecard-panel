@@ -234,7 +234,7 @@ export default function UnknownIdentityCarousel({
           {photo && (
             <div className="flex justify-between gap-2 min-w-0">
               <span className="text-muted shrink-0">Captured</span>
-              <span className="truncate">{new Date(photo.captured_at_utc).toLocaleString()}</span>
+              <span className="truncate">{new Date(photo.captured_at_utc).toLocaleString('en-US')}</span>
             </div>
           )}
         </div>

@@ -93,7 +93,7 @@ export default function Leaderboard({ data, previewMode }: { data: TeamRankingDa
                 {member.score}
               </div>
               <div className={`font-mono text-[11px] w-14 text-right flex flex-col leading-tight ${isYou ? 'text-amber font-semibold' : 'text-muted'}`}>
-                {`${member.points.toLocaleString()} pts`.split(' ').map((part, idx) => <span key={idx}>{part}</span>)}
+                {`${member.points.toLocaleString('en-US')} pts`.split(' ').map((part, idx) => <span key={idx}>{part}</span>)}
               </div>
             </div>
           )
