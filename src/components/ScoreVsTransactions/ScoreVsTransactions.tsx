@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from 'react'
 import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import { renderText } from '@/utils/common'
-import { SCORE_VS_TRANSACTIONS_DATA } from '@/lib/score-vs-transactions-data'
-import type { ScoreVsTransactionsData } from '@/types/score-vs-transactions'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
+import type { RoiChartData } from '@/types/owner-roi'
+import { mapRoiChartData } from '@/utils/roi-chart-mapper'
+
+import { SCORE_VS_TRANSACTIONS_DATA } from '@/lib/score-vs-transactions-data'
+import type { ScoreVsTransactionsData } from '@/types/score-vs-transactions'
 
 // Same chart geometry as SCORE_VS_TRANSACTIONS_DATA — just realistic labels
 // instead of the live "0"/"N/A" placeholders, for the Super Admin preview only.
@@ -45,27 +47,35 @@ const PREVIEW_DATA: ScoreVsTransactionsData = {
   insightText: 'Team score and monthly transactions are **strongly correlated (0.82)** — as coaching lifts hospitality and speed, transaction volume follows.',
 }
 
-export default function ScoreVsTransactions({ previewMode }: { previewMode?: boolean } = {}) {
-  const [realData] = useState<ScoreVsTransactionsData>(SCORE_VS_TRANSACTIONS_DATA)
-  const data = previewMode ? PREVIEW_DATA : realData
+export default function ScoreVsTransactions({ data, previewMode }: { data?: RoiChartData; previewMode?: boolean }) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiScoreVsTransactions] ?? true)
 
   if (!previewMode && !visible) return null
+  if (!previewMode && !data) return null
+
+  const chartData = previewMode ? PREVIEW_DATA : mapRoiChartData(
+    data!,
+    'Team Score vs. Transaction Volume',
+    'Monthly · Assigned Stores',
+    '#1D5C3A',
+    '#1E4D7A',
+    '📈'
+  )
 
   return (
     <div className="bg-surface border border-border rounded-2xl overflow-hidden">
       <div className="flex items-start justify-between border-b border-border px-5 pt-4 pb-3">
         <div>
-          <div className="font-semibold text-[13px]">{data.title}</div>
-          <div className="text-muted text-[11px] mt-0.5">{data.subtitle}</div>
+          <div className="font-semibold text-[13px]">{chartData.title}</div>
+          <div className="text-muted text-[11px] mt-0.5">{chartData.subtitle}</div>
         </div>
         <div className="font-bold rounded-[20px] whitespace-nowrap bg-accent-light text-accent text-[10px] px-[8px] py-[3px]">
-          {data.badge}
+          {chartData.badge}
         </div>
       </div>
       <div className="px-5 py-[18px]">
         <div className="flex gap-[14px] mb-[10px]">
-          {data.legend.map((item) => (
+          {chartData.legend.map((item) => (
             <div key={item.label} className="flex items-center gap-[5px] text-secondary text-[11px]">
               <div
                 className="w-5 h-0.5 rounded-[1px]"
@@ -80,17 +90,17 @@ export default function ScoreVsTransactions({ previewMode }: { previewMode?: boo
           ))}
         </div>
         <LineChartSvg
-          viewBox={data.viewBox}
-          gridLines={data.gridLines}
-          yLabels={data.yLabels}
-          series={data.series}
-          xLabels={data.xLabels}
-          verticalMarker={data.verticalMarker}
+          viewBox={chartData.viewBox}
+          gridLines={chartData.gridLines}
+          yLabels={chartData.yLabels}
+          series={chartData.series}
+          xLabels={chartData.xLabels}
+          verticalMarker={chartData.verticalMarker}
         />
         <div className="flex items-start gap-2 bg-surface-alt rounded-[9px] mt-3 px-[13px] py-[10px]">
-          <span className="text-[13px] shrink-0 mt-px">{data.insightEmoji}</span>
+          <span className="text-[13px] shrink-0 mt-px">{chartData.insightEmoji}</span>
           <p className="text-secondary text-[12px] leading-[1.5] [&_strong]:font-semibold [&_strong]:text-primary">
-            {renderText(data.insightText)}
+            {renderText(chartData.insightText)}
           </p>
         </div>
       </div>

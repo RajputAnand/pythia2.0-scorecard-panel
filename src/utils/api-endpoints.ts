@@ -18,6 +18,9 @@ export const PYTHIA_2_API = {
     allStoreData: '/benchmarking/all_store_data',
     networkIntelligence: '/benchmarking/network_intelligence',
   },
+  roi: {
+    attribution: '/roi/attribution',
+  },
   coaching: {
     moments: '/coaching-moments',
   },
