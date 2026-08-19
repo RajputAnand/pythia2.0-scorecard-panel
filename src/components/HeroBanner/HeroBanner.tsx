@@ -102,7 +102,7 @@ export default function HeroBanner({ data, weeklyStats }: { data: HeroBannerData
           style={{ background: 'rgba(184,134,11,0.25)', border: '1px solid rgba(184,134,11,0.4)' }}
         >
           <div className="font-mono font-bold leading-none text-[28px]" style={{ color: '#F5C842' }}>
-            {(points || 0).toLocaleString()}
+            {(points || 0).toLocaleString('en-US')}
           </div>
           <div
             className="uppercase tracking-[.09em] text-[10px] mt-[3px]"

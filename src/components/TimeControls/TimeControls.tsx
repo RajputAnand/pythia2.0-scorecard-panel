@@ -1,15 +1,44 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 
 const TIME_PERIODS = ['This Week', 'Month over Month', 'Quarter'] as const
 const VIEW_OPTIONS = ['Actuals + Projected', 'Actuals Only', 'Projected Only'] as const
 
 export default function TimeControls() {
-  const [period, setPeriod] = useState<string>('Month over Month')
-  const [view, setView] = useState<string>('Actuals + Projected')
-  const [dateFrom, setDateFrom] = useState('2025-11-01')
-  const [dateTo, setDateTo] = useState('2026-02-23')
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const period = searchParams.get('period') || 'Month over Month'
+  const view = searchParams.get('view') || 'Actuals + Projected'
+  
+  const initialDateFrom = searchParams.get('custom_start') || '2025-11-01'
+  const initialDateTo = searchParams.get('custom_end') || '2026-02-23'
+
+  const [dateFrom, setDateFrom] = useState(initialDateFrom)
+  const [dateTo, setDateTo] = useState(initialDateTo)
+
+  const updateParams = (updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString())
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null) {
+        params.delete(key)
+      } else {
+        params.set(key, value)
+      }
+    })
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
+  const handleApplyCustomDates = () => {
+    updateParams({
+      period: 'custom',
+      custom_start: dateFrom,
+      custom_end: dateTo,
+    })
+  }
 
   return (
     <div className="flex items-center gap-2 bg-surface border-b border-border px-[30px] h-[50px]">
@@ -21,7 +50,9 @@ export default function TimeControls() {
               ? 'bg-accent text-white border-accent'
               : 'border-border text-secondary bg-transparent hover:border-accent hover:text-accent'
           }`}
-          onClick={() => setPeriod(p)}
+          onClick={() => {
+            updateParams({ period: p, custom_start: null, custom_end: null })
+          }}
         >
           {p}
         </button>
@@ -43,7 +74,14 @@ export default function TimeControls() {
           value={dateTo}
           onChange={(e) => setDateTo(e.target.value)}
         />
-        <button className="border border-border rounded-lg bg-transparent text-secondary font-sans font-medium cursor-pointer transition-all duration-150 text-[11.5px] px-[11px] py-[5px] hover:bg-surface-alt">
+        <button 
+          className={`border rounded-lg font-sans font-medium cursor-pointer transition-all duration-150 text-[11.5px] px-[11px] py-[5px] ${
+            period === 'custom' 
+              ? 'bg-accent text-white border-accent' 
+              : 'border-border bg-transparent text-secondary hover:bg-surface-alt'
+          }`}
+          onClick={handleApplyCustomDates}
+        >
           Apply
         </button>
       </div>
@@ -57,7 +95,7 @@ export default function TimeControls() {
               className={`font-sans font-medium cursor-pointer transition-all duration-150 text-[11.5px] px-[12px] py-[5px] border-none ${
                 view === v ? 'bg-primary text-white' : 'bg-transparent text-muted'
               }`}
-              onClick={() => setView(v)}
+              onClick={() => updateParams({ view: v })}
             >
               {v}
             </button>

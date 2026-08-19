@@ -495,7 +495,7 @@ export default function Sidebar({ user }: { user: User }) {
           {(currentScore ?? user.score) != null && (
             <div className="ml-auto text-right shrink-0">
               <div className="font-mono font-bold text-accent text-[18px]">{currentScore ?? user.score}</div>
-              <div className="font-mono font-bold text-[11px]" style={{ color: '#F5C842' }}>{points.toLocaleString()} pts</div>
+              <div className="font-mono font-bold text-[11px]" style={{ color: '#F5C842' }}>{points.toLocaleString('en-US')} pts</div>
             </div>
           )}
         </div>
