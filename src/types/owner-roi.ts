@@ -102,6 +102,19 @@ export interface RoiRevenueImpactRow {
   projected_impact_status: 'available' | 'formula_not_defined'
 }
 
+export interface ShareRoiAttributionPdfParams {
+  token: string
+  toEmail: string
+  note?: string
+  senderName?: string
+  pdfFile: File
+}
+
+export interface ShareRoiAttributionPdfResponse {
+  success: boolean
+  message: string
+}
+
 export interface RoiCoachingEfficiencyRow {
   user_id: string
   name: string

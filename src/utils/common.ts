@@ -6,17 +6,23 @@ export class Utils {}
 
 /**
  * Extracts a user-facing message from a FastAPI error response.
- * 401/400s carry `detail` as a plain string; 422s carry `detail` as an array
- * of field errors (`{ msg, loc, type }`).
+ * The backend's global exception handlers (app/main.py) wrap every
+ * HTTPException into `{success: false, error: "..."}` — `detail` only
+ * survives as a plain string in FastAPI's own unhandled-route defaults, and
+ * as an array of field errors (`{ msg, loc, type }`) alongside `error` on a
+ * 422 validation failure. Check `error` first since it's what this backend
+ * actually returns for the common 400/401/403 case.
  */
 export function extractApiErrorMessage(err: unknown, fallback: string): string {
   if (axios.isAxiosError(err)) {
     const detail = err.response?.data?.detail
-    if (typeof detail === 'string') return detail
     if (Array.isArray(detail)) {
       const msg = detail.map((d: { msg?: string }) => d.msg).filter(Boolean).join(', ')
       if (msg) return msg
     }
+    const error = err.response?.data?.error
+    if (typeof error === 'string') return error
+    if (typeof detail === 'string') return detail
   }
   console.error('API error:', err)
   return fallback

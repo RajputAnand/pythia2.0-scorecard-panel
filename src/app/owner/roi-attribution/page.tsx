@@ -1,7 +1,7 @@
 import { unstable_rethrow } from 'next/navigation'
 import Header from '@/components/shared/Header/Header'
-import headerStyles from '@/components/shared/Header/Header.module.css'
 import ExportPdfButton from '@/components/shared/ExportPdfButton/ExportPdfButton'
+import ShareWithInvestorButton from '@/components/shared/ShareWithInvestorButton/ShareWithInvestorButton'
 import TimeControls from '@/components/TimeControls/TimeControls'
 import RoiHero from '@/components/RoiHero/RoiHero'
 import ScoreVsTransactions from '@/components/ScoreVsTransactions/ScoreVsTransactions'
@@ -70,7 +70,7 @@ export default async function RoiAttributionPage(props: {
     <>
       <Header title="ROI Attribution" subtitle={data?.meta?.period?.label ?? 'Loading...'}>
         <ExportPdfButton targetId="roi-report-content" fileName={`roi-attribution-${periodSlug}`} />
-        <button className={headerStyles.btnPrimary}>Share with Investor</button>
+        <ShareWithInvestorButton targetId="roi-report-content" fileName={`roi-attribution-${periodSlug}`} />
       </Header>
 
       <TimeControls />

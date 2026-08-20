@@ -24,6 +24,7 @@ export const PYTHIA_2_API = {
   },
   roi: {
     attribution: '/roi/attribution',
+    shareWithInvestor: '/roi/attribution/share',
   },
   coaching: {
     moments: '/coaching-moments',
