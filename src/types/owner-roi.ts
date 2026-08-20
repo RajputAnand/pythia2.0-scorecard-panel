@@ -122,6 +122,10 @@ export interface RoiCoachingEfficiencyRow {
   total_cost: number
   moments: number
   cost_per_moment: number
+  score_delta: number
+  score_delta_status: 'available' | 'not_available'
+  cost_per_score_point: number
+  cost_per_score_point_status: 'available' | 'not_available'
   issues_resolved: number
   issues_stalled: number
   status: 'good' | 'ok' | 'bad' | 'no_data'
