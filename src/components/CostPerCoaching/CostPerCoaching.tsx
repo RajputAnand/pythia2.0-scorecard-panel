@@ -24,13 +24,13 @@ import type { CostPerCoachingData } from '@/types/cost-per-coaching'
 
 const PREVIEW_DATA: CostPerCoachingData = {
   title: 'Cost Per Coaching Moment vs. Performance Gain',
-  subtitle: 'How efficiently is each coaching dollar converting to score improvement?',
+  subtitle: 'How efficiently is each coaching dollar converting to performance gain?',
   badge: 'Team avg: $4.20/moment',
   items: [
-    { name: 'Tara C.', cost: '$3.10', quality: 'good', gain: '+9 pts', gainType: 'up' },
-    { name: 'Marcus R.', cost: '$3.80', quality: 'good', gain: '+7 pts', gainType: 'up' },
-    { name: 'Devon W.', cost: '$4.50', quality: 'ok', gain: '+5 pts', gainType: 'up' },
-    { name: 'Sofia K.', cost: '$5.20', quality: 'ok', gain: '+3 pts', gainType: 'up' },
+    { name: 'Tara C.', cost: '$3.10', quality: 'good', gain: '+120 pts', gainType: 'up' },
+    { name: 'Marcus R.', cost: '$3.80', quality: 'good', gain: '+95 pts', gainType: 'up' },
+    { name: 'Devon W.', cost: '$4.50', quality: 'ok', gain: '+60 pts', gainType: 'up' },
+    { name: 'Sofia K.', cost: '$5.20', quality: 'ok', gain: '+40 pts', gainType: 'up' },
     { name: 'Jamie L.', cost: '$7.90', quality: 'bad', gain: '0 pts', gainType: 'flat' },
   ],
   insightEmoji: '💡',
@@ -85,22 +85,28 @@ export default function CostPerCoaching({
     return `$${val.toFixed(2)}`
   }
 
-  const formatGain = (val: number | null, status: string) => {
-    if (status === 'no_data' || val === null || val === undefined) return '0 pts'
+  // Score-based display (first_score -> current_score) is the intended long-term
+  // metric, but score_delta_status is only "available" for the handful of
+  // employees whose coaching_signals have been bootstrapped/synced so far — most
+  // rows would show "No score data yet". Falling back to points_gained until
+  // score data is populated broadly across the frontend; swap back to
+  // formatGain(row.score_delta, row.score_delta_status) once that's true.
+  const formatGain = (val: number) => {
+    if (val === null || val === undefined) return 'No data yet'
     const sign = val > 0 ? '+' : ''
     return `${sign}${val} pts`
   }
 
   const items = coachingData!.map(row => {
-    const isUp = row.points_gained !== null && row.points_gained > 0
-    const isDown = row.points_gained !== null && row.points_gained < 0
-    
+    const isUp = row.points_gained > 0
+    const isDown = row.points_gained < 0
+
     return {
       name: row.name,
       cost: formatCost(row.cost_per_moment, row.status),
       quality: row.status === 'good' ? 'good' : (row.status === 'ok' ? 'ok' : 'bad'),
-      gain: formatGain(row.points_gained, row.status),
-      gainType: isUp ? 'up' : (isDown ? 'down' : 'flat') as 'up' | 'flat' | 'down'
+      gain: formatGain(row.points_gained),
+      gainType: isUp ? 'up' : (isDown ? 'down' : 'flat') as 'up' | 'flat' | 'down',
     }
   })
 
@@ -115,7 +121,7 @@ export default function CostPerCoaching({
   )
 
   return (
-    <Panel title="Cost Per Coaching Moment vs. Performance Gain" subtitle="How efficiently is each coaching dollar converting to score improvement?" badge={badge}>
+    <Panel title="Cost Per Coaching Moment vs. Performance Gain" subtitle="How efficiently is each coaching dollar converting to performance gain?" badge={badge}>
       <div className="grid gap-[10px]" style={{ gridTemplateColumns: `repeat(${Math.max(1, items.length)}, 1fr)` }}>
         {items.map((item, index) => (
           <div key={index} className="bg-surface-alt rounded-[10px] flex flex-col gap-[5px] px-[14px] py-[12px]">
