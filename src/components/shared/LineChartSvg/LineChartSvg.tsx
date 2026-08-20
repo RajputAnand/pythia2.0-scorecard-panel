@@ -35,7 +35,7 @@ export default function LineChartSvg({
               strokeDasharray={verticalMarker.strokeDasharray ?? '3,3'}
             />
             <text
-              x={verticalMarker.x + 3} y={verticalMarker.labelY ?? 12}
+              x={verticalMarker.labelX ?? verticalMarker.x + 3} y={verticalMarker.labelY ?? 12}
               fontSize="8" fill="#B0A89E" fontFamily="DM Mono"
             >
               {verticalMarker.label}
