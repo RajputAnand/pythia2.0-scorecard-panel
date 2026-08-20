@@ -3,7 +3,7 @@
 import styles from './RevenueImpactTable.module.css'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
-import type { RoiAttributionResponse } from '@/types/owner-roi'
+import type { RoiAttributionResponse, RoiAttributionParams } from '@/types/owner-roi'
 
 const METRIC_COLORS: Record<string, string> = {
   team_score: '#1D5C3A',
@@ -43,11 +43,16 @@ const PREVIEW_DATA: RevenueImpactData = {
   netRoiRow: { label: 'Net ROI', outcome: '14.3x return on platform spend', actual: '$17,200', projected: '$20,600' },
 }
 
-export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAttributionResponse['revenue_impact_table']; previewMode?: boolean }) {
+export default function RevenueImpactTable({ data, previewMode, view = 'both' }: { data?: RoiAttributionResponse['revenue_impact_table']; previewMode?: boolean; view?: RoiAttributionParams['view'] }) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiRevenueImpactTable] ?? true)
 
   if (!previewMode && !visible) return null
   if (!previewMode && !data) return null
+
+  // 'both' (the default) shows both columns; 'actual'/'projected' each drop the
+  // other column entirely rather than just graying out its values.
+  const showActual = view !== 'projected'
+  const showProjected = view !== 'actual'
 
   if (previewMode) {
     return (
@@ -154,8 +159,8 @@ export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAt
               <th>Metric Improved</th>
               <th>Score Change</th>
               <th>Business Outcome</th>
-              <th>Actual Impact</th>
-              <th>Projected (next 4 mo)</th>
+              {showActual && <th>Actual Impact</th>}
+              {showProjected && <th>Projected (next 4 mo)</th>}
             </tr>
           </thead>
           <tbody>
@@ -178,14 +183,18 @@ export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAt
                     </div>
                   </td>
                   <td className="text-secondary text-[12px]">{row.business_outcome}</td>
-                  <td>
-                    <span className="font-mono font-bold text-[13px] text-accent">{formatDollar(row.actual_impact)}</span>
-                    <span className="font-semibold rounded-[4px] bg-accent-light text-accent text-[9.5px] px-[5px] py-px ml-1">Actual</span>
-                  </td>
-                  <td>
-                    <span className="font-mono font-bold text-[13px] text-cobalt">{formatDollar(row.projected_impact)}</span>
-                    <span className="font-semibold rounded-[4px] bg-cobalt-light text-cobalt text-[9.5px] px-[5px] py-px ml-1">Proj</span>
-                  </td>
+                  {showActual && (
+                    <td>
+                      <span className="font-mono font-bold text-[13px] text-accent">{formatDollar(row.actual_impact)}</span>
+                      <span className="font-semibold rounded-[4px] bg-accent-light text-accent text-[9.5px] px-[5px] py-px ml-1">Actual</span>
+                    </td>
+                  )}
+                  {showProjected && (
+                    <td>
+                      <span className="font-mono font-bold text-[13px] text-cobalt">{formatDollar(row.projected_impact)}</span>
+                      <span className="font-semibold rounded-[4px] bg-cobalt-light text-cobalt text-[9.5px] px-[5px] py-px ml-1">Proj</span>
+                    </td>
+                  )}
                 </tr>
               )
             })}
@@ -198,14 +207,18 @@ export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAt
               </td>
               <td>—</td>
               <td className="text-secondary text-[12px]">Software subscription</td>
-              <td>
-                <span className="font-mono font-bold text-[13px] text-amber">{formatDollar(data!.platform_cost_row.actual_cost)}</span>
-                <span className="font-semibold rounded-[4px] bg-amber-light text-amber text-[9.5px] px-[5px] py-px ml-1">Cost</span>
-              </td>
-              <td>
-                <span className="font-mono font-bold text-[13px] text-amber">{formatDollar(data!.platform_cost_row.projected_cost)}</span>
-                <span className="font-semibold rounded-[4px] bg-amber-light text-amber text-[9.5px] px-[5px] py-px ml-1">Cost</span>
-              </td>
+              {showActual && (
+                <td>
+                  <span className="font-mono font-bold text-[13px] text-amber">{formatDollar(data!.platform_cost_row.actual_cost)}</span>
+                  <span className="font-semibold rounded-[4px] bg-amber-light text-amber text-[9.5px] px-[5px] py-px ml-1">Cost</span>
+                </td>
+              )}
+              {showProjected && (
+                <td>
+                  <span className="font-mono font-bold text-[13px] text-amber">{formatDollar(data!.platform_cost_row.projected_cost)}</span>
+                  <span className="font-semibold rounded-[4px] bg-amber-light text-amber text-[9.5px] px-[5px] py-px ml-1">Cost</span>
+                </td>
+              )}
             </tr>
 
             {/* Net ROI row */}
@@ -215,12 +228,16 @@ export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAt
               </td>
               <td>—</td>
               <td className="text-accent font-medium text-[12px]">{data!.net_roi_row.note}</td>
-              <td>
-                <span className="font-mono font-bold text-[15px] text-accent">{formatDollar(data!.net_roi_row.actual_amount)}</span>
-              </td>
-              <td>
-                <span className="font-mono font-bold text-[15px] text-cobalt">{formatDollar(data!.net_roi_row.projected_amount)}</span>
-              </td>
+              {showActual && (
+                <td>
+                  <span className="font-mono font-bold text-[15px] text-accent">{formatDollar(data!.net_roi_row.actual_amount)}</span>
+                </td>
+              )}
+              {showProjected && (
+                <td>
+                  <span className="font-mono font-bold text-[15px] text-cobalt">{formatDollar(data!.net_roi_row.projected_amount)}</span>
+                </td>
+              )}
             </tr>
           </tbody>
         </table>

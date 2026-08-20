@@ -24,17 +24,16 @@ export default async function RoiAttributionPage(props: {
   let data: RoiAttributionResponse | null = null
   let error: string | null = null
 
+  const viewMap: Record<string, RoiAttributionParams['view']> = {
+    'Actuals + Projected': 'both',
+    'Actuals Only': 'actual',
+    'Projected Only': 'projected',
+  }
+  const viewParam = typeof searchParams.view === 'string' ? searchParams.view : undefined
+  const viewKey: RoiAttributionParams['view'] = (viewParam && viewMap[viewParam]) || 'both'
+
   if (token) {
     try {
-      const viewMap: Record<string, RoiAttributionParams['view']> = {
-        'Actuals + Projected': 'both',
-        'Actuals Only': 'actual',
-        'Projected Only': 'projected',
-      }
-      
-      const viewParam = typeof searchParams.view === 'string' ? searchParams.view : undefined
-      const viewKey = viewParam && viewMap[viewParam] ? viewMap[viewParam] : 'both'
-
       const periodMap: Record<string, RoiAttributionParams['period_type']> = {
         'This Week': 'week',
         'Month over Month': 'month',
@@ -87,13 +86,14 @@ export default async function RoiAttributionPage(props: {
             <RoiHero data={data.hero} />
 
             <div className="grid grid-cols-2 gap-4">
-              <ScoreVsTransactions data={data.charts.score_vs_transactions} />
-              <HospitalityVsDwell data={data.charts.hospitality_vs_dwell} />
+              <ScoreVsTransactions data={data.charts.score_vs_transactions} view={viewKey} />
+              <HospitalityVsDwell data={data.charts.hospitality_vs_dwell} view={viewKey} />
             </div>
 
-            <CheckoutSpeed data={data.charts.checkout_vs_throughput} />
-            <RevenueImpactTable 
-              data={data.revenue_impact_table} 
+            <CheckoutSpeed data={data.charts.checkout_vs_throughput} view={viewKey} />
+            <RevenueImpactTable
+              data={data.revenue_impact_table}
+              view={viewKey}
             />
             <CostPerCoaching 
               coachingData={data.coaching_efficiency} 
