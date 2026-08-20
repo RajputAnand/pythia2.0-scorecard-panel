@@ -1,11 +1,13 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation'
 import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import { renderText } from '@/utils/common'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
-import type { RoiChartData, RoiAttributionParams } from '@/types/owner-roi'
+import type { RoiChartData } from '@/types/owner-roi'
 import { mapRoiChartData } from '@/utils/roi-chart-mapper'
+import { resolveRoiView } from '@/utils/roi-view'
 
 import { CHECKOUT_SPEED_DATA } from '@/lib/checkout-speed-data'
 import type { CheckoutSpeedData } from '@/types/checkout-speed'
@@ -39,8 +41,10 @@ const PREVIEW_DATA: CheckoutSpeedData = {
   ],
 }
 
-export default function CheckoutSpeed({ data, previewMode, view = 'both' }: { data?: RoiChartData; previewMode?: boolean; view?: RoiAttributionParams['view'] }) {
+export default function CheckoutSpeed({ data, previewMode }: { data?: RoiChartData; previewMode?: boolean }) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiCheckoutSpeed] ?? true)
+  const searchParams = useSearchParams()
+  const view = resolveRoiView(searchParams.get('view'))
 
   if (!previewMode && !visible) return null
   if (!previewMode && !data) return null

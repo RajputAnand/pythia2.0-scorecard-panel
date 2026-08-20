@@ -44,6 +44,20 @@ export default function TimeControls() {
     })
   }
 
+  // Unlike period/date range, View never changes what data is needed — the backend
+  // always returns the full actual+projected payload, and every consumer (the charts,
+  // RevenueImpactTable) already applies the actual/projected filter client-side via
+  // its own useSearchParams() read (see utils/roi-view.ts). So this updates the URL
+  // for shareability using the native History API instead of router.push — per
+  // Next.js's own docs, pushState/replaceState "integrate into the Next.js Router,
+  // allowing you to sync with usePathname and useSearchParams" without the
+  // server-navigation (and backend refetch) a router.push would trigger.
+  const handleViewSelect = (v: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('view', v)
+    window.history.replaceState(null, '', `${pathname}?${params.toString()}`)
+  }
+
   return (
     <div className="flex items-center gap-2 bg-surface border-b border-border px-[30px] h-[50px]">
       {TIME_PERIODS.map((p) => (
@@ -90,15 +104,14 @@ export default function TimeControls() {
 
       <div className="flex items-center gap-2 ml-auto">
         <span className="text-muted text-[11.5px]">View:</span>
-        <div className={`flex border border-border rounded-lg overflow-hidden transition-opacity duration-150 ${isPending ? 'opacity-60' : ''}`}>
+        <div className="flex border border-border rounded-lg overflow-hidden">
           {VIEW_OPTIONS.map((v) => (
             <button
               key={v}
-              disabled={isPending}
-              className={`font-sans font-medium cursor-pointer transition-all duration-150 text-[11.5px] px-[12px] py-[5px] border-none disabled:cursor-not-allowed ${
+              className={`font-sans font-medium cursor-pointer transition-all duration-150 text-[11.5px] px-[12px] py-[5px] border-none ${
                 view === v ? 'bg-primary text-white' : 'bg-transparent text-muted'
               }`}
-              onClick={() => updateParams({ view: v })}
+              onClick={() => handleViewSelect(v)}
             >
               {v}
             </button>
