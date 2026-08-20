@@ -31,3 +31,24 @@
 .table td:last-child {
   text-align: right;
 }
+
+/* Business Outcome (3rd column) is the only column with genuinely variable-length
+   content — give it the width hint so it absorbs whatever space the Score/dollar
+   columns don't need. Without this, auto table layout dumps unclaimed width as a
+   blank gap in front of the right-aligned last column, which becomes very visible
+   whenever a dollar column is hidden by the View filter (see RevenueImpactTable.tsx). */
+.table th:nth-child(3),
+.table td:nth-child(3) {
+  width: 100%;
+}
+
+.table th:nth-child(1),
+.table td:nth-child(1),
+.table th:nth-child(2),
+.table td:nth-child(2),
+.table th:nth-child(4),
+.table td:nth-child(4),
+.table th:nth-child(5),
+.table td:nth-child(5) {
+  white-space: nowrap;
+}
