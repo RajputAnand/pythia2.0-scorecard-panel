@@ -104,30 +104,13 @@ function createClient(baseURL: string | undefined): AxiosInstance {
     },
   })
 
-  // Request interceptor — inject auth token from session when available.
-  client.interceptors.request.use(async (config) => {
-    try {
-      let token: string | undefined
-
-      if (typeof window !== 'undefined') {
-        const { getSession } = await import('next-auth/react')
-        const session = await getSession()
-        token = session?.user?.token as string | undefined
-      } else {
-        const { auth } = await import('@/auth')
-        const session = await auth()
-        token = session?.user?.token as string | undefined
-      }
-
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-      }
-    } catch (error) {
-      console.error('Error fetching session token for interceptor:', error)
-    }
-
-    return config
-  })
+  // No request interceptor: every query function in src/queries/ (and
+  // src/actions/auth.ts) already resolves its own token and passes it
+  // explicitly as `{ headers: { Authorization: `Bearer ${token}` } }` per-call
+  // (see AGENTS.md's HTTP Client section). A request interceptor here would
+  // only ever re-fetch the session (client: getSession(), server: auth()) and
+  // overwrite that header with the same token — a redundant async lookup on
+  // every single API call in the app, not a fallback anything relies on.
 
   // Response interceptor — on 401, try a silent token refresh + one retry
   // before giving up and redirecting to login. Refresh is client-side only:
