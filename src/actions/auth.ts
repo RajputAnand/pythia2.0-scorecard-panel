@@ -3,7 +3,7 @@
 import { signIn, signOut } from "@/auth"
 import { AuthError } from "next-auth"
 import { User } from "@/types/user"
-import { pythia1Client } from "@/lib/api-client"
+import { pythia1Client, pythia2Client } from "@/lib/api-client"
 import { PYTHIA_2_API } from "@/utils/api-endpoints"
 import { extractApiErrorMessage } from "@/utils/common"
 import type { ForgotPasswordResult, ResetPasswordResult, LoginResponse, P1LoginResponse, P1ProfileResponse } from "@/types/auth"
@@ -104,31 +104,28 @@ export async function login(_prev: string | null | undefined, formData: FormData
     let result: LoginResponse
     try {
       const payload = {
-        email: identifier,
+        userid_email_or_mobile: identifier,
         password,
         role: requiredRole,
       }
-      const { data } = await pythia1Client.post<LoginResponse>(PYTHIA_2_API.auth.login, payload)
+      const { data } = await pythia2Client.post<LoginResponse>(PYTHIA_2_API.auth.login, payload)
       result = data
     } catch (err: any) {
       return extractApiErrorMessage(err, 'Unable to connect to the login server. Please try again later.')
     }
 
-    // @ts-ignore
-    if (result.statusCode !== 200) {
+    if (!result.success) {
       return 'Invalid email or password.'
     }
 
-    // @ts-ignore
-    const apiUser = result.data.user
-    // @ts-ignore
-    const token = result.data.token
-    
-    const roleSlug = apiUser.role?.slug?.toLowerCase() || ''
-    const firstName = apiUser.firstName || ''
-    const lastName = apiUser.lastName || ''
-    const userId = apiUser._id
-    const jobTitle = apiUser.role?.name || roleSlug
+    const apiUser = result.user
+    const token = result.access_token
+
+    const roleSlug = apiUser.role_name?.toLowerCase() || ''
+    const firstName = apiUser.first_name || ''
+    const lastName = apiUser.last_name || ''
+    const userId = apiUser.user_id
+    const jobTitle = apiUser.role_name || roleSlug
 
     await signIn('credentials', {
       email: identifier,
@@ -140,7 +137,7 @@ export async function login(_prev: string | null | undefined, formData: FormData
         role: roleSlug,
         token: token,
         pythia2Token: token,
-        refreshToken: token, // New API doesn't provide a refresh token, using token
+        refreshToken: result.refresh_token,
         initials: `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'UR',
         score: roleSlug === 'employee' ? 0 : undefined,
         jobTitle: jobTitle,
@@ -172,7 +169,7 @@ export async function logout(user: User) {
 // Always returns success (anti-enumeration by design) unless the request itself fails.
 export async function forgotPassword(email: string): Promise<ForgotPasswordResult> {
   try {
-    const { data } = await pythia1Client.post(PYTHIA_2_API.auth.forgotPassword, { identifier: email })
+    const { data } = await pythia2Client.post(PYTHIA_2_API.auth.forgotPassword, { identifier: email })
     return { success: data.success, message: data.message || 'If an account exists, a password reset email has been sent.' }
   } catch (err) {
     return { success: false, message: extractApiErrorMessage(err, 'Unable to connect to the server. Please try again later.') }
@@ -181,7 +178,7 @@ export async function forgotPassword(email: string): Promise<ForgotPasswordResul
 
 export async function resetPassword(token: string, newPassword: string): Promise<ResetPasswordResult> {
   try {
-    const { data } = await pythia1Client.post(PYTHIA_2_API.auth.resetPassword, { token, new_password: newPassword })
+    const { data } = await pythia2Client.post(PYTHIA_2_API.auth.resetPassword, { token, new_password: newPassword })
 
     if (data.success) {
       return { success: true, message: data.message || 'Password reset successfully.' }
