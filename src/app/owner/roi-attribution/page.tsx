@@ -1,6 +1,7 @@
 import { unstable_rethrow } from 'next/navigation'
 import Header from '@/components/shared/Header/Header'
 import headerStyles from '@/components/shared/Header/Header.module.css'
+import ExportPdfButton from '@/components/shared/ExportPdfButton/ExportPdfButton'
 import TimeControls from '@/components/TimeControls/TimeControls'
 import RoiHero from '@/components/RoiHero/RoiHero'
 import ScoreVsTransactions from '@/components/ScoreVsTransactions/ScoreVsTransactions'
@@ -60,16 +61,21 @@ export default async function RoiAttributionPage(props: {
     }
   }
 
+  const periodSlug = (data?.meta?.period?.label ?? 'report')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
   return (
     <>
       <Header title="ROI Attribution" subtitle={data?.meta?.period?.label ?? 'Loading...'}>
-        <button className={headerStyles.btnGhost}>Export PDF</button>
+        <ExportPdfButton targetId="roi-report-content" fileName={`roi-attribution-${periodSlug}`} />
         <button className={headerStyles.btnPrimary}>Share with Investor</button>
       </Header>
 
       <TimeControls />
 
-      <div className="grid px-[30px] py-[24px] gap-5">
+      <div id="roi-report-content" className="grid px-[30px] py-[24px] gap-5">
         {error ? (
           <div className="bg-surface border border-border rounded-lg p-6 text-red-400">
             {error}
