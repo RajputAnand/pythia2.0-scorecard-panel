@@ -156,7 +156,7 @@ export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAt
           Based on standard formulas
         </div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto mt-3">
         <table className={styles.table}>
           <thead>
             <tr>
