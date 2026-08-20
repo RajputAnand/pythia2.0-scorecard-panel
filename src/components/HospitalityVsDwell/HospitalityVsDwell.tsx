@@ -1,11 +1,13 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation'
 import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import { renderText } from '@/utils/common'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
-import type { RoiChartData, RoiAttributionParams } from '@/types/owner-roi'
+import type { RoiChartData } from '@/types/owner-roi'
 import { mapRoiChartData } from '@/utils/roi-chart-mapper'
+import { resolveRoiView } from '@/utils/roi-view'
 
 import { HOSPITALITY_VS_DWELL_DATA } from '@/lib/hospitality-vs-dwell-data'
 import type { HospitalityVsDwellData } from '@/types/hospitality-vs-dwell'
@@ -38,8 +40,10 @@ const PREVIEW_DATA: HospitalityVsDwellData = {
   insightText: 'Higher **hospitality scores** track with longer **average dwell time** — engaged customers browse and buy more before leaving.',
 }
 
-export default function HospitalityVsDwell({ data, previewMode, view = 'both' }: { data?: RoiChartData; previewMode?: boolean; view?: RoiAttributionParams['view'] }) {
+export default function HospitalityVsDwell({ data, previewMode }: { data?: RoiChartData; previewMode?: boolean }) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiHospitalityVsDwell] ?? true)
+  const searchParams = useSearchParams()
+  const view = resolveRoiView(searchParams.get('view'))
 
   if (!previewMode && !visible) return null
   if (!previewMode && !data) return null
