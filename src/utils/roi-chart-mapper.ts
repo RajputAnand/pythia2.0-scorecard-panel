@@ -103,6 +103,29 @@ export function mapRoiChartData(
     return { path: `M ${cx1} ${cy1} L ${cx2} ${cy2}`, strokeWidth: 2, strokeDasharray: '5,4' }
   }
 
+  const getLabelY = (
+    val: number,
+    min: number,
+    max: number,
+    otherVal: number | null,
+    otherMin: number,
+    otherMax: number,
+    isSeriesA: boolean
+  ) => {
+    const cy = scaleY(val, min, max)
+    let yOffset = isSeriesA ? -10 : 20
+    if (otherVal !== null) {
+      const otherCy = scaleY(otherVal, otherMin, otherMax)
+      // cy is pixels from top. Larger cy = lower on screen.
+      if (isSeriesA) {
+        yOffset = cy > otherCy ? 20 : -10
+      } else {
+        yOffset = cy >= otherCy ? 20 : -10
+      }
+    }
+    return cy + yOffset
+  }
+
   const getLabels = (
     points: (number | null)[],
     min: number,
@@ -115,27 +138,13 @@ export function mapRoiChartData(
   ) => {
     return points.map((val, i) => {
       if (val === null) return null
-      const cy = scaleY(val, min, max)
-      const otherVal = otherPoints[i]
-
-      let yOffset = isSeriesA ? -10 : 20
-      if (otherVal !== null) {
-        const otherCy = scaleY(otherVal, otherMin, otherMax)
-        // cy is pixels from top. Larger cy = lower on screen.
-        if (isSeriesA) {
-          yOffset = cy > otherCy ? 20 : -10
-        } else {
-          yOffset = cy >= otherCy ? 20 : -10
-        }
-      }
 
       const isProjected = i === points.length - 1 && hasProjected
-
       let formattedVal = formatFn ? formatFn(val) : val.toLocaleString('en-US', { maximumFractionDigits: 1 })
 
       return {
         x: X_POINTS[i] - 5,
-        y: cy + yOffset,
+        y: getLabelY(val, min, max, otherPoints[i], otherMin, otherMax, isSeriesA),
         value: formattedVal,
         ...(isProjected ? { opacity: 0.6 } : {}),
       }
@@ -148,6 +157,29 @@ export function mapRoiChartData(
       return (val / 1000).toFixed(1) + 'k'
     }
     return val.toLocaleString('en-US', { maximumFractionDigits: 1 })
+  }
+
+  // The last historical point (just before the projected one) sits right next to the
+  // vertical marker line — its value label can land in the same spot as the marker's
+  // "Projected →" text. Push the marker label right (past that label's text) and, if the
+  // label is riding high near the default marker height, up as well, so the two never collide.
+  const getMarkerLabelPosition = () => {
+    const defaultLabelX = 345 + 3
+    const defaultLabelY = 12
+    const lastHistoricalIdx = pointsA.length - 2
+    if (lastHistoricalIdx < 0) return { labelX: defaultLabelX, labelY: defaultLabelY }
+
+    const valA = pointsA[lastHistoricalIdx]
+    const valB = pointsB[lastHistoricalIdx]
+    const adjacentLabelYs: number[] = []
+    if (valA !== null) adjacentLabelYs.push(getLabelY(valA, absMinA, absMaxA, valB, absMinB, absMaxB, true))
+    if (valB !== null) adjacentLabelYs.push(getLabelY(valB, absMinB, absMaxB, valA, absMinA, absMaxA, false))
+
+    const topmostAdjacentY = adjacentLabelYs.length ? Math.min(...adjacentLabelYs) : defaultLabelY
+    return {
+      labelX: X_POINTS[lastHistoricalIdx] + 25,
+      labelY: Math.max(8, Math.min(defaultLabelY, topmostAdjacentY - 9)),
+    }
   }
 
   const badgeText = apiData.correlation_status === 'available' && apiData.correlation_r !== null
@@ -195,7 +227,9 @@ export function mapRoiChartData(
         extension: getExtensionPath(pointsB, absMinB, absMaxB),
       },
     ],
-    verticalMarker: hasProjected ? { x: 345, height: 140, label: 'Projected \u2192', labelY: 12, strokeDasharray: '4,3' } : { x: -100, height: 0, label: '' },
+    verticalMarker: hasProjected
+      ? { x: 345, height: 140, label: 'Projected \u2192', ...getMarkerLabelPosition(), strokeDasharray: '4,3' }
+      : { x: -100, height: 0, label: '' },
     xLabels,
     insightEmoji,
     insightText: apiData.callout || 'Correlation data is not available yet.',

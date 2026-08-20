@@ -55,6 +55,7 @@ export interface ChartVerticalMarker {
   x: number
   height: number
   label: string
+  labelX?: number
   labelY?: number
   strokeDasharray?: string
 }
