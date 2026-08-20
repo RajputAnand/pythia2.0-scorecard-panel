@@ -11,7 +11,7 @@ import type { RoiAttributionResponse } from '@/types/owner-roi'
 const PREVIEW_STATS: RoiStat[] = [
   { label: 'Est. Revenue Impact', value: '$18,400', valueVariant: 'green', pill: '+12%', pillVariant: 'up', sub: 'vs. prior period' },
   { label: 'Team Score Avg', value: '76 → 84', valueVariant: 'green', pill: '+8 pts', pillVariant: 'up', sub: 'this period' },
-  { label: 'Pythia Platform Cost', value: '$1,200', valueVariant: 'amber', pill: '$1,200/mo', pillVariant: 'neutral', sub: 'prorated for 30 days' },
+  { label: 'Pythia Platform Cost', value: '$1,200', valueVariant: 'amber', pill: 'flat', pillVariant: 'neutral', sub: 'monthly subscription' },
   { label: 'Net ROI', value: '$17,200', valueVariant: 'green', pill: '14.3x', pillVariant: 'up', sub: 'after platform cost' },
 ]
 
@@ -59,14 +59,16 @@ export default function RoiHero({ data, previewMode }: { data?: RoiAttributionRe
         sub: 'this period'
       },
       {
+        // The flat rate as configured on the backend (settings.pythia_platform_cost_monthly),
+        // not platform_cost.amount — that field prorates the rate by the selected period's
+        // day count, which made this card show a moving number ($406 for a 31-day month,
+        // etc.) for what's meant to be a constant subscription price.
         label: 'Pythia Platform Cost',
-        value: data.platform_cost.amount != null ? formatCurrency(Math.abs(data.platform_cost.amount)) : 'N/A',
+        value: data.platform_cost.monthly_rate != null ? formatCurrency(data.platform_cost.monthly_rate) : 'N/A',
         valueVariant: 'amber',
-        pill: data.platform_cost.monthly_rate != null ? `${formatCurrency(data.platform_cost.monthly_rate)}/mo` : 'flat',
+        pill: 'flat',
         pillVariant: 'neutral',
-        sub: data.platform_cost.period_days != null
-          ? `prorated for ${data.platform_cost.period_days} day${data.platform_cost.period_days === 1 ? '' : 's'}`
-          : 'monthly subscription'
+        sub: 'monthly subscription'
       },
       {
         label: 'Net ROI',

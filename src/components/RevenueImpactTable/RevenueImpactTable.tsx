@@ -1,9 +1,11 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation'
 import styles from './RevenueImpactTable.module.css'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
-import type { RoiAttributionResponse, RoiAttributionParams } from '@/types/owner-roi'
+import type { RoiAttributionResponse } from '@/types/owner-roi'
+import { resolveRoiView } from '@/utils/roi-view'
 
 const METRIC_COLORS: Record<string, string> = {
   team_score: '#1D5C3A',
@@ -43,8 +45,10 @@ const PREVIEW_DATA: RevenueImpactData = {
   netRoiRow: { label: 'Net ROI', outcome: '14.3x return on platform spend', actual: '$17,200', projected: '$20,600' },
 }
 
-export default function RevenueImpactTable({ data, previewMode, view = 'both' }: { data?: RoiAttributionResponse['revenue_impact_table']; previewMode?: boolean; view?: RoiAttributionParams['view'] }) {
+export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAttributionResponse['revenue_impact_table']; previewMode?: boolean }) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiRevenueImpactTable] ?? true)
+  const searchParams = useSearchParams()
+  const view = resolveRoiView(searchParams.get('view'))
 
   if (!previewMode && !visible) return null
   if (!previewMode && !data) return null

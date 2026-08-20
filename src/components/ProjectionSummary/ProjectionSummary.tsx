@@ -1,11 +1,13 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation'
 import styles from './ProjectionSummary.module.css'
 import { renderText } from '@/utils/common'
 import type { ProjectionStat } from '@/types/projection-summary'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
 import type { RoiAttributionResponse } from '@/types/owner-roi'
+import { resolveRoiView } from '@/utils/roi-view'
 
 import { PROJECTION_SUMMARY_DATA } from '@/lib/projection-summary-data'
 import type { ProjectionSummaryData } from '@/types/projection-summary'
@@ -19,8 +21,16 @@ const PREVIEW_STATS: ProjectionStat[] = [
 
 export default function ProjectionSummary({ data, previewMode }: { data?: RoiAttributionResponse['projection_summary']; previewMode?: boolean }) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiProjectionSummary] ?? true)
+  const searchParams = useSearchParams()
+  const view = resolveRoiView(searchParams.get('view'))
+
   if (!previewMode && !visible) return null
   if (!previewMode && !data) return null
+  // This panel is entirely forward-looking (trajectory, breakeven, annual ROI) — the
+  // backend used to zero these fields out for 'actual' view; now that the frontend
+  // always fetches the full 'both' payload and filters client-side, the equivalent is
+  // hiding the whole panel rather than showing forward-looking numbers under "Actuals Only".
+  if (!previewMode && view === 'actual') return null
 
   const stats: ProjectionStat[] = previewMode ? PREVIEW_STATS : [
     { 
