@@ -85,33 +85,6 @@ const EMPLOYEE_NAV: NavSection[] = [
 
 const OWNER_NAV: NavSection[] = [
   {
-    section: 'Navigate',
-    items: [
-      {
-        label: 'Dashboard',
-        href: '#owner-dashboard',
-        icon: (
-          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-          </svg>
-        ),
-      },
-      {
-        label: 'Employees',
-        href: '#owner-employee',
-        icon: (
-          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4" />
-            <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-          </svg>
-        ),
-      },
-    ],
-  },
-  {
     section: 'Owner Tools',
     items: [
       {
