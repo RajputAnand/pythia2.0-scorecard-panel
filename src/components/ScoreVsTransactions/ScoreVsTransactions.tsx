@@ -4,7 +4,7 @@ import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import { renderText } from '@/utils/common'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
-import type { RoiChartData } from '@/types/owner-roi'
+import type { RoiChartData, RoiAttributionParams } from '@/types/owner-roi'
 import { mapRoiChartData } from '@/utils/roi-chart-mapper'
 
 import { SCORE_VS_TRANSACTIONS_DATA } from '@/lib/score-vs-transactions-data'
@@ -47,7 +47,7 @@ const PREVIEW_DATA: ScoreVsTransactionsData = {
   insightText: 'Team score and monthly transactions are **strongly correlated (0.82)** — as coaching lifts hospitality and speed, transaction volume follows.',
 }
 
-export default function ScoreVsTransactions({ data, previewMode }: { data?: RoiChartData; previewMode?: boolean }) {
+export default function ScoreVsTransactions({ data, previewMode, view = 'both' }: { data?: RoiChartData; previewMode?: boolean; view?: RoiAttributionParams['view'] }) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiScoreVsTransactions] ?? true)
 
   if (!previewMode && !visible) return null
@@ -59,7 +59,8 @@ export default function ScoreVsTransactions({ data, previewMode }: { data?: RoiC
     'Monthly · Assigned Stores',
     '#1D5C3A',
     '#1E4D7A',
-    '📈'
+    '📈',
+    view
   )
 
   return (

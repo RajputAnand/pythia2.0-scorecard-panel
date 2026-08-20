@@ -23,9 +23,20 @@ export function mapRoiChartData(
   subtitle: string,
   colorA: string,
   colorB: string,
-  insightEmoji: string
+  insightEmoji: string,
+  view: 'both' | 'actual' | 'projected' = 'both'
 ): ScoreVsTransactionsData {
-  const hasProjected = apiData.metric_a_projected !== null && apiData.metric_b_projected !== null
+  // The API always sends a real (non-null) projected point object — even in 'actual'
+  // view it just zeroes the point's value rather than nulling the object (see
+  // roi_service.py's _apply_view_filter) — so "should we draw a projected point at
+  // all" has to fold in the view filter, not just check the object's presence.
+  const hasProjectedData = apiData.metric_a_projected !== null && apiData.metric_b_projected !== null
+  const hasProjected = hasProjectedData && view !== 'actual'
+  // 'projected' view keeps the historical points in the data (the dashed extension
+  // still needs the last historical point as its start coordinate) but hides their
+  // solid line/dots/labels, showing only the projected point and the dashed segment
+  // leading into it.
+  const isProjectedOnly = view === 'projected'
 
   const pointsA: (number | null)[] = apiData.metric_a_series.map((p) => p.value)
   if (hasProjected) pointsA.push(apiData.metric_a_projected!.value)
@@ -53,6 +64,7 @@ export function mapRoiChartData(
   const getDots = (points: (number | null)[], min: number, max: number, color: string) => {
     return points.map((val, i) => {
       if (val === null) return null
+      if (isProjectedOnly && i < points.length - 1) return null
       const cy = scaleY(val, min, max)
       const isProjected = i === points.length - 1 && hasProjected
       return {
@@ -65,6 +77,8 @@ export function mapRoiChartData(
   }
 
   const getPath = (points: (number | null)[], min: number, max: number) => {
+    if (isProjectedOnly) return ''
+
     // Return path only for historical points
     const historicalPoints = hasProjected ? points.slice(0, points.length - 1) : points
     const validSegments: string[] = []
@@ -138,6 +152,7 @@ export function mapRoiChartData(
   ) => {
     return points.map((val, i) => {
       if (val === null) return null
+      if (isProjectedOnly && i < points.length - 1) return null
 
       const isProjected = i === points.length - 1 && hasProjected
       let formattedVal = formatFn ? formatFn(val) : val.toLocaleString('en-US', { maximumFractionDigits: 1 })

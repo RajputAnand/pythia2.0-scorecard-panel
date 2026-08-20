@@ -4,7 +4,7 @@ import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import { renderText } from '@/utils/common'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
-import type { RoiChartData } from '@/types/owner-roi'
+import type { RoiChartData, RoiAttributionParams } from '@/types/owner-roi'
 import { mapRoiChartData } from '@/utils/roi-chart-mapper'
 
 import { HOSPITALITY_VS_DWELL_DATA } from '@/lib/hospitality-vs-dwell-data'
@@ -38,7 +38,7 @@ const PREVIEW_DATA: HospitalityVsDwellData = {
   insightText: 'Higher **hospitality scores** track with longer **average dwell time** — engaged customers browse and buy more before leaving.',
 }
 
-export default function HospitalityVsDwell({ data, previewMode }: { data?: RoiChartData; previewMode?: boolean }) {
+export default function HospitalityVsDwell({ data, previewMode, view = 'both' }: { data?: RoiChartData; previewMode?: boolean; view?: RoiAttributionParams['view'] }) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiHospitalityVsDwell] ?? true)
 
   if (!previewMode && !visible) return null
@@ -54,7 +54,8 @@ export default function HospitalityVsDwell({ data, previewMode }: { data?: RoiCh
     'Monthly · Assigned Stores',
     '#1D5C3A',
     '#5C3A8C',
-    '⏱'
+    '⏱',
+    view
   )
 
   return (

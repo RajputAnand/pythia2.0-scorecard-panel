@@ -4,7 +4,7 @@ import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import { renderText } from '@/utils/common'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
-import type { RoiChartData } from '@/types/owner-roi'
+import type { RoiChartData, RoiAttributionParams } from '@/types/owner-roi'
 import { mapRoiChartData } from '@/utils/roi-chart-mapper'
 
 import { CHECKOUT_SPEED_DATA } from '@/lib/checkout-speed-data'
@@ -39,7 +39,7 @@ const PREVIEW_DATA: CheckoutSpeedData = {
   ],
 }
 
-export default function CheckoutSpeed({ data, previewMode }: { data?: RoiChartData; previewMode?: boolean }) {
+export default function CheckoutSpeed({ data, previewMode, view = 'both' }: { data?: RoiChartData; previewMode?: boolean; view?: RoiAttributionParams['view'] }) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiCheckoutSpeed] ?? true)
 
   if (!previewMode && !visible) return null
@@ -51,7 +51,8 @@ export default function CheckoutSpeed({ data, previewMode }: { data?: RoiChartDa
     'Monthly average · Assigned Stores',
     '#C47F18',
     '#1E4D7A',
-    '⚡'
+    '⚡',
+    view
   )
 
   const insights = previewMode ? PREVIEW_DATA.insights : [
