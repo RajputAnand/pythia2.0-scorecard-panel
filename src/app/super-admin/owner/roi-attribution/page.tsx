@@ -1,6 +1,6 @@
 import Header from '@/components/shared/Header/Header'
-import headerStyles from '@/components/shared/Header/Header.module.css'
 import ExportPdfButton from '@/components/shared/ExportPdfButton/ExportPdfButton'
+import ShareWithInvestorButton from '@/components/shared/ShareWithInvestorButton/ShareWithInvestorButton'
 import TimeControls from '@/components/TimeControls/TimeControls'
 import RoiHero from '@/components/RoiHero/RoiHero'
 import ScoreVsTransactions from '@/components/ScoreVsTransactions/ScoreVsTransactions'
@@ -23,7 +23,7 @@ export default function SuperAdminRoiAttributionPage() {
     <>
       <Header title="ROI Attribution" subtitle="Super Admin">
         <ExportPdfButton targetId="roi-report-content" fileName="roi-attribution-super-admin" />
-        <button className={headerStyles.btnPrimary}>Share with Investor</button>
+        <ShareWithInvestorButton targetId="roi-report-content" fileName="roi-attribution-super-admin" />
       </Header>
 
       <TimeControls />
