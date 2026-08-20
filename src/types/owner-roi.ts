@@ -61,7 +61,7 @@ export interface RoiAttributionResponse {
   }
   coaching_efficiency: RoiCoachingEfficiencyRow[]
   coaching_efficiency_summary: {
-    team_avg_cost_per_point: number
+    team_avg_cost_per_moment: number
     insight: string | null
   }
   projection_summary: {
@@ -120,7 +120,8 @@ export interface RoiCoachingEfficiencyRow {
   name: string
   points_gained: number
   total_cost: number
-  cost_per_point: number
+  moments: number
+  cost_per_moment: number
   issues_resolved: number
   issues_stalled: number
   status: 'good' | 'ok' | 'bad' | 'no_data'

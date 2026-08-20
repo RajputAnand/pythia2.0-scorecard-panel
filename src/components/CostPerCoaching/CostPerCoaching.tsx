@@ -25,7 +25,7 @@ import type { CostPerCoachingData } from '@/types/cost-per-coaching'
 const PREVIEW_DATA: CostPerCoachingData = {
   title: 'Cost Per Coaching Moment vs. Performance Gain',
   subtitle: 'How efficiently is each coaching dollar converting to score improvement?',
-  badge: 'Team avg: $4.20/1k pts',
+  badge: 'Team avg: $4.20/moment',
   items: [
     { name: 'Tara C.', cost: '$3.10', quality: 'good', gain: '+9 pts', gainType: 'up' },
     { name: 'Marcus R.', cost: '$3.80', quality: 'good', gain: '+7 pts', gainType: 'up' },
@@ -34,7 +34,7 @@ const PREVIEW_DATA: CostPerCoachingData = {
     { name: 'Jamie L.', cost: '$7.90', quality: 'bad', gain: '0 pts', gainType: 'flat' },
   ],
   insightEmoji: '💡',
-  insightText: "**Tara C.** is converting coaching dollars into score gains most efficiently on the team — **$3.10 per 1,000 points**, well under the team average.",
+  insightText: "**Tara C.** is converting coaching dollars into score gains most efficiently on the team — **$3.10 per coaching moment**, well under the team average.",
 }
 
 export default function CostPerCoaching({ 
@@ -65,7 +65,7 @@ export default function CostPerCoaching({
             <div key={item.name} className="bg-surface-alt rounded-[10px] flex flex-col gap-[5px] px-[14px] py-[12px]">
               <div className="font-semibold text-secondary text-[11px]">{item.name}</div>
               <div className={`font-mono font-semibold text-[17px] ${itemCostClass[item.quality]}`}>{item.cost}</div>
-              <div className="text-muted text-[10px] leading-[1.4]">per 1,000 points gained</div>
+              <div className="text-muted text-[10px] leading-[1.4]">per coaching moment</div>
               <div className={`text-[10.5px] font-semibold ${itemGainClass[item.gainType]}`}>{item.gain}</div>
             </div>
           ))}
@@ -80,13 +80,9 @@ export default function CostPerCoaching({
     )
   }
 
-  // Displayed per 1,000 points rather than per single point — this system awards
-  // ~75-100 points per scored interaction, so points_gained routinely reaches the
-  // tens of thousands per month. A literal $/point ratio rounds to $0.00 at 2
-  // decimals; per-1,000-points keeps the same real cost data in a readable range.
   const formatCost = (val: number | null, status: string) => {
     if (status === 'no_data' || val === null || val === undefined) return 'N/A'
-    return `$${(val * 1000).toFixed(2)}`
+    return `$${val.toFixed(2)}`
   }
 
   const formatGain = (val: number | null, status: string) => {
@@ -101,15 +97,15 @@ export default function CostPerCoaching({
     
     return {
       name: row.name,
-      cost: formatCost(row.cost_per_point, row.status),
+      cost: formatCost(row.cost_per_moment, row.status),
       quality: row.status === 'good' ? 'good' : (row.status === 'ok' ? 'ok' : 'bad'),
       gain: formatGain(row.points_gained, row.status),
       gainType: isUp ? 'up' : (isDown ? 'down' : 'flat') as 'up' | 'flat' | 'down'
     }
   })
 
-  const formattedBadge = summary!.team_avg_cost_per_point
-    ? `Team avg: $${(summary!.team_avg_cost_per_point * 1000).toFixed(2)}/1k pts`
+  const formattedBadge = summary!.team_avg_cost_per_moment
+    ? `Team avg: $${summary!.team_avg_cost_per_moment.toFixed(2)}/moment`
     : 'Team avg: N/A'
 
   const badge = (
@@ -127,7 +123,7 @@ export default function CostPerCoaching({
             <div className={`font-mono font-semibold text-[17px] ${itemCostClass[item.quality]}`}>
               {item.cost}
             </div>
-            <div className="text-muted text-[10px] leading-[1.4]">per 1,000 points gained</div>
+            <div className="text-muted text-[10px] leading-[1.4]">per coaching moment</div>
             <div className={`text-[10.5px] font-semibold ${itemGainClass[item.gainType]}`}>
               {item.gain}
             </div>
