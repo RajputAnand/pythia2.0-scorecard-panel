@@ -187,6 +187,16 @@ const MANAGER_NAV: NavSection[] = [
           </svg>
         ),
       },
+      {
+        label: 'Video Identities',
+        href: '/manager/video-identities',
+        icon: (
+          <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <rect x="2" y="5" width="15" height="14" rx="2" />
+            <path d="M17 9l5-3v12l-5-3" />
+          </svg>
+        ),
+      },
     ],
   },
 ]

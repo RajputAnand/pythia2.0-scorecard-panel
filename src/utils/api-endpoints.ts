@@ -46,6 +46,11 @@ export const PYTHIA_2_API = {
     trash: (identityId: string) => `/unknown-identities/${identityId}/trash`,
     restore: (identityId: string) => `/unknown-identities/${identityId}/restore`,
   },
+  videoIdentities: {
+    list: '/video-identities',
+    stats: '/video-identities/stats',
+    presign: '/video-identities/presign',
+  },
   managerCoaching: {
     signals: '/manager-coaching/signals',
     signal: (planId: string) => `/manager-coaching/signals/${planId}`,
