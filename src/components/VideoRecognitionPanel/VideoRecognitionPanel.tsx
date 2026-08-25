@@ -174,18 +174,7 @@ function MediaLightbox({ state, onClose }: { state: MediaModalState; onClose: ()
             </MediaFrame>
           ) : (
             <div className="flex flex-col items-center gap-3">
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => goTo(activeIndex - 1)}
-                  aria-label="Previous photo"
-                  className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-border bg-surface text-secondary hover:text-primary hover:border-accent transition-colors duration-150 cursor-pointer"
-                >
-                  <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <polyline points="15 18 9 12 15 6" />
-                  </svg>
-                </button>
-
+              <div className="relative flex items-center justify-center">
                 <MediaFrame loaded={loadedUrls.has(urls[activeIndex])}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -202,11 +191,22 @@ function MediaLightbox({ state, onClose }: { state: MediaModalState; onClose: ()
 
                 <button
                   type="button"
+                  onClick={() => goTo(activeIndex - 1)}
+                  aria-label="Previous photo"
+                  className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-black/60 text-white shadow-[0_2px_8px_rgba(0,0,0,0.35)] backdrop-blur-sm transition-colors duration-150 hover:bg-black/80 cursor-pointer"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => goTo(activeIndex + 1)}
                   aria-label="Next photo"
-                  className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full border border-border bg-surface text-secondary hover:text-primary hover:border-accent transition-colors duration-150 cursor-pointer"
+                  className="absolute right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-black/60 text-white shadow-[0_2px_8px_rgba(0,0,0,0.35)] backdrop-blur-sm transition-colors duration-150 hover:bg-black/80 cursor-pointer"
                 >
-                  <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <polyline points="9 18 15 12 9 6" />
                   </svg>
                 </button>
