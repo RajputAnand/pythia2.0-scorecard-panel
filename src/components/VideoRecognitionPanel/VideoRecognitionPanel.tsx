@@ -83,10 +83,33 @@ interface MediaModalState {
   error: boolean
 }
 
+// Wraps a `<video>`/`<img>` so the modal holds a fixed placeholder size (and
+// shows a spinner) until the media element itself fires loaded/loadeddata —
+// resolving the presigned URL only means the *link* is ready, not that the
+// browser has finished downloading the file, so rendering the element at its
+// natural size immediately made the modal flash small/collapsed first.
+function MediaFrame({ loaded, children }: { loaded: boolean; children: React.ReactNode }) {
+  return (
+    <div className={`relative flex items-center justify-center ${loaded ? '' : 'h-56 w-56'}`}>
+      {!loaded && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <span className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />
+        </div>
+      )}
+      {children}
+    </div>
+  )
+}
+
 function MediaLightbox({ state, onClose }: { state: MediaModalState; onClose: () => void }) {
   const label = state.type === 'video' ? 'video' : 'photo'
   const [activeIndex, setActiveIndex] = useState(0)
+  const [loadedUrls, setLoadedUrls] = useState<Set<string>>(new Set())
   const urls = state.urls ?? []
+
+  function markLoaded(url: string) {
+    setLoadedUrls((prev) => (prev.has(url) ? prev : new Set(prev).add(url)))
+  }
 
   function goTo(index: number) {
     setActiveIndex((index + urls.length) % urls.length)
@@ -122,10 +145,33 @@ function MediaLightbox({ state, onClose }: { state: MediaModalState; onClose: ()
               <span className="text-[12.5px]">{state.type === 'video' ? 'Video unavailable' : 'Photo unavailable'}</span>
             </div>
           ) : state.type === 'video' ? (
-            <video src={urls[0]} controls autoPlay className="max-h-[70vh] max-w-full rounded-[10px]" />
+            <MediaFrame loaded={loadedUrls.has(urls[0])}>
+              <video
+                src={urls[0]}
+                controls
+                autoPlay
+                onLoadedData={() => markLoaded(urls[0])}
+                className={
+                  loadedUrls.has(urls[0])
+                    ? 'max-h-[70vh] max-w-full rounded-[10px]'
+                    : 'absolute inset-0 h-full w-full object-contain opacity-0'
+                }
+              />
+            </MediaFrame>
           ) : urls.length === 1 ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={urls[0]} alt="Captured detection" className="max-h-[70vh] max-w-full rounded-[10px] object-contain" />
+            <MediaFrame loaded={loadedUrls.has(urls[0])}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={urls[0]}
+                alt="Captured detection"
+                onLoad={() => markLoaded(urls[0])}
+                className={
+                  loadedUrls.has(urls[0])
+                    ? 'max-h-[70vh] max-w-full rounded-[10px] object-contain'
+                    : 'absolute inset-0 h-full w-full object-contain opacity-0'
+                }
+              />
+            </MediaFrame>
           ) : (
             <div className="flex flex-col items-center gap-3">
               <div className="flex items-center gap-3">
@@ -140,12 +186,19 @@ function MediaLightbox({ state, onClose }: { state: MediaModalState; onClose: ()
                   </svg>
                 </button>
 
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={urls[activeIndex]}
-                  alt={`Captured detection ${activeIndex + 1} of ${urls.length}`}
-                  className="max-h-[65vh] max-w-full rounded-[10px] object-contain"
-                />
+                <MediaFrame loaded={loadedUrls.has(urls[activeIndex])}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={urls[activeIndex]}
+                    alt={`Captured detection ${activeIndex + 1} of ${urls.length}`}
+                    onLoad={() => markLoaded(urls[activeIndex])}
+                    className={
+                      loadedUrls.has(urls[activeIndex])
+                        ? 'max-h-[65vh] max-w-full rounded-[10px] object-contain'
+                        : 'absolute inset-0 h-full w-full object-contain opacity-0'
+                    }
+                  />
+                </MediaFrame>
 
                 <button
                   type="button"
