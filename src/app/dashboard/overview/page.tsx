@@ -8,11 +8,11 @@ import { extractApiErrorMessage } from '@/utils/common'
 
 export default async function OverviewPage() {
   let overview: OverviewPageData | null = null
-  try {
-    overview = await fetchOverview()
-  } catch (err) {
-    console.log(err)
-    // non-fatal — OverviewContent renders an empty state when null
+  const [overviewResult] = await Promise.allSettled([fetchOverview()])
+  if (overviewResult.status === 'rejected') {
+    console.log(overviewResult.reason)
+  } else {
+    overview = overviewResult.value
   }
 
   const session = await auth()
@@ -24,21 +24,24 @@ export default async function OverviewPage() {
   if (session?.user?.pythia2Token) {
     const token = session.user.pythia2Token
 
-    try {
-      initialSummary = await fetchDashboardSummary({ token, weekOffset: 0 })
-    } catch (err) {
-      unstable_rethrow(err) // let a session-expiry redirect from the client propagate
-      initialError = extractApiErrorMessage(err, 'Unable to load your dashboard. Please try again.')
+    const [summaryResult, coachingResult] = await Promise.allSettled([
+      fetchDashboardSummary({ token, weekOffset: 0 }),
+      fetchCoachingMoments(token),
+    ])
+
+    if (summaryResult.status === 'rejected') {
+      unstable_rethrow(summaryResult.reason)
+      initialError = extractApiErrorMessage(summaryResult.reason, 'Unable to load your dashboard. Please try again.')
+    } else {
+      initialSummary = summaryResult.value
     }
 
-    try {
-      const coaching = await fetchCoachingMoments(token)
-      coachingMoments = coaching.items
-      coachingGenerationInProgress = coaching.generationInProgress
-    } catch (err) {
-      unstable_rethrow(err) // let a session-expiry redirect from the client propagate
-      console.log(err)
-      // non-fatal — CoachingMoments renders an empty list when empty
+    if (coachingResult.status === 'rejected') {
+      unstable_rethrow(coachingResult.reason)
+      console.log(coachingResult.reason)
+    } else {
+      coachingMoments = coachingResult.value.items
+      coachingGenerationInProgress = coachingResult.value.generationInProgress
     }
   }
 
