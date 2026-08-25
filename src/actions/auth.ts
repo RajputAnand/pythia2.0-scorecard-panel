@@ -8,14 +8,14 @@ import { PYTHIA_2_API } from "@/utils/api-endpoints"
 import { extractApiErrorMessage } from "@/utils/common"
 import type { ForgotPasswordResult, ResetPasswordResult, LoginResponse, P1LoginResponse, P1ProfileResponse } from "@/types/auth"
 
-// Manager auth is fully on Pythia 1.0: no Pythia 2.0 JWT is ever issued or
-// accepted for this role (see PYTHIA1_AUTH_HANDOFF.md and dependencies_p1.py's
-// get_current_p1_user, which is the only auth path manager-facing backend
+// Manager and Owner auth are fully on Pythia 1.0: no Pythia 2.0 JWT is ever issued or
+// accepted for these roles (see PYTHIA1_AUTH_HANDOFF.md and dependencies_p1.py's
+// get_current_p1_user, which is the only auth path manager/owner-facing backend
 // routes accept). Pythia 1.0's own POST /auth/login only returns a bearer
 // token — no profile data — so a second GET /profile/ call is required to get
 // the user's name/role/points, mirroring app/services/pythia1_client.py's
 // login_p1() + get_profile_p1() on the backend.
-async function loginManagerViaP1(identifier: string, password: string): Promise<string | null> {
+async function loginViaP1(identifier: string, password: string, expectedRole: string): Promise<string | null> {
   let loginData: P1LoginResponse
   try {
     const { data } = await pythia1Client.post<P1LoginResponse>(PYTHIA_2_API.auth.login, {
@@ -39,11 +39,11 @@ async function loginManagerViaP1(identifier: string, password: string): Promise<
     })
     profile = data.data
   } catch (err) {
-    return extractApiErrorMessage(err, 'Unable to verify manager account. Please try again later.')
+    return extractApiErrorMessage(err, 'Unable to verify account. Please try again later.')
   }
 
   const roleSlug = profile.role?.slug?.toLowerCase() || ''
-  if (roleSlug !== 'manager') {
+  if (roleSlug !== expectedRole) {
     const actualRole = profile.role?.name || roleSlug || 'a different role'
     return `This account is registered as '${actualRole}'. Please switch to the '${actualRole}' login.`
   }
@@ -64,7 +64,7 @@ async function loginManagerViaP1(identifier: string, password: string): Promise<
         pythia2Token: token,
         // Pythia 1.0 has no refresh-token concept of its own; api-client.ts's
         // response interceptor skips the P2 refresh attempt entirely for
-        // manager sessions on a 401, so this value is never actually sent.
+        // P1 sessions on a 401, so this value is never actually sent.
         refreshToken: token,
         initials: `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'UR',
         jobTitle: profile.role?.name || roleSlug,
@@ -95,10 +95,10 @@ export async function login(_prev: string | null | undefined, formData: FormData
       return 'Invalid role.'
     }
 
-    // Manager is fully migrated to Pythia 1.0 auth — see loginManagerViaP1's
-    // docstring. Every other role's login is unchanged for now.
-    if (requiredRole === 'manager') {
-      return loginManagerViaP1(identifier, password)
+    // Manager and Owner are fully migrated to Pythia 1.0 auth — see loginViaP1's
+    // docstring. Other roles' logins are unchanged for now.
+    if (requiredRole === 'manager' || requiredRole === 'owner') {
+      return loginViaP1(identifier, password, requiredRole)
     }
 
     let result: LoginResponse

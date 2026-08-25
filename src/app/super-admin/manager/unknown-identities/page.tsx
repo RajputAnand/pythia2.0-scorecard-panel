@@ -1,3 +1,4 @@
+import { unstable_rethrow } from 'next/navigation'
 import Header from '@/components/shared/Header/Header'
 import UnknownIdentitiesPanel from '@/components/UnknownIdentitiesPanel/UnknownIdentitiesPanel'
 import { fetchUnknownIdentities } from '@/queries/unknown-identities'
@@ -19,11 +20,11 @@ export default async function SuperAdminUnknownIdentitiesPage() {
 
   let initialData: ApiResponseV2Paginated<UnknownIdentity[]> | null = null
   if (token) {
-    try {
-      initialData = await fetchUnknownIdentities({ token, skip: 0, limit: 50 })
-    } catch {
-      // non-fatal — UnknownIdentitiesPanel renders an error state with retry
-    }
+    const [unknownIdentitiesResult] = await Promise.allSettled([
+      fetchUnknownIdentities({ token, skip: 0, limit: 50 }),
+    ])
+    if (unknownIdentitiesResult.status === 'rejected') unstable_rethrow(unknownIdentitiesResult.reason)
+    if (unknownIdentitiesResult.status === 'fulfilled') initialData = unknownIdentitiesResult.value
   }
 
   return (
