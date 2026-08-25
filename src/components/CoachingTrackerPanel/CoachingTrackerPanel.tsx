@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import CoachingEmpDrilldown from '@/components/CoachingEmpDrilldown/CoachingEmpDrilldown'
 import StalledPlansModal from '@/components/StalledPlansModal/StalledPlansModal'
@@ -44,6 +44,16 @@ export default function CoachingTrackerPanel({ initialEmployees }: Props) {
   const [isLoadingDetail, setIsLoadingDetail] = useState(true)
   const [isDetailError, setIsDetailError] = useState(false)
   const [detailRetryToken, setDetailRetryToken] = useState(0)
+
+  const drilldownRef = useRef<HTMLDivElement>(null)
+
+  const handleEmployeeClick = (id: string) => {
+    setActiveId(id)
+    // Small delay to ensure state updates and component renders before scrolling
+    setTimeout(() => {
+      drilldownRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }, 50)
+  }
 
   const [isStalledPlansOpen, setIsStalledPlansOpen] = useState(false)
 
@@ -123,14 +133,13 @@ export default function CoachingTrackerPanel({ initialEmployees }: Props) {
         <div className="px-[22px] py-[18px] text-[12.5px] text-muted">No employees found for your store(s).</div>
       ) : (
         <>
-          <div className="flex gap-2 px-[22px] py-[14px] border-b border-border overflow-x-auto">
+          <div className="flex flex-wrap gap-2 px-[22px] py-[14px] border-b border-border">
             {initialEmployees.map((emp) => (
               <button
                 key={emp.user_id}
-                onClick={() => setActiveId(emp.user_id)}
-                className={`flex items-center gap-2 px-[14px] py-[7px] rounded-[30px] border cursor-pointer transition-all duration-150 whitespace-nowrap select-none font-sans ${
-                  activeId === emp.user_id ? 'bg-primary border-primary' : 'bg-surface border-border hover:border-accent'
-                }`}
+                onClick={() => handleEmployeeClick(emp.user_id)}
+                className={`flex items-center gap-2 px-[14px] py-[7px] rounded-[30px] border cursor-pointer transition-all duration-150 whitespace-nowrap select-none font-sans ${activeId === emp.user_id ? 'bg-primary border-primary' : 'bg-surface border-border hover:border-accent'
+                  }`}
               >
                 <span className={`text-[12.5px] font-medium ${activeId === emp.user_id ? 'text-white' : 'text-secondary'}`}>
                   {emp.name}
@@ -141,21 +150,23 @@ export default function CoachingTrackerPanel({ initialEmployees }: Props) {
           </div>
 
           {/* Active Employee Drilldown */}
-          {isLoadingDetail && <DrilldownSkeleton />}
-          {!isLoadingDetail && isDetailError && (
-            <div className="flex flex-col items-center justify-center gap-2 py-14">
-              <p className="text-[12.5px] font-semibold">Failed to load coaching history</p>
-              <button
-                className="rounded-[8px] border-0 bg-accent px-4 py-2 text-[12px] font-semibold text-white hover:opacity-85 cursor-pointer"
-                onClick={() => setDetailRetryToken((n) => n + 1)}
-              >
-                Retry
-              </button>
-            </div>
-          )}
-          {!isLoadingDetail && !isDetailError && detail && activeEmployee && (
-            <CoachingEmpDrilldown employee={activeEmployee} detail={detail} />
-          )}
+          <div ref={drilldownRef} className="scroll-mt-4">
+            {isLoadingDetail && <DrilldownSkeleton />}
+            {!isLoadingDetail && isDetailError && (
+              <div className="flex flex-col items-center justify-center gap-2 py-14">
+                <p className="text-[12.5px] font-semibold">Failed to load coaching history</p>
+                <button
+                  className="rounded-[8px] border-0 bg-accent px-4 py-2 text-[12px] font-semibold text-white hover:opacity-85 cursor-pointer"
+                  onClick={() => setDetailRetryToken((n) => n + 1)}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+            {!isLoadingDetail && !isDetailError && detail && activeEmployee && (
+              <CoachingEmpDrilldown employee={activeEmployee} detail={detail} />
+            )}
+          </div>
         </>
       )}
 

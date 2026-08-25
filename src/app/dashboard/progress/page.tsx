@@ -11,11 +11,14 @@ export default async function ProgressPage() {
   let initialError: string | null = null
 
   if (session?.user?.pythia2Token) {
-    try {
-      initialSummary = await fetchDashboardSummary({ token: session.user.pythia2Token, weekOffset: 1 })
-    } catch (err) {
-      unstable_rethrow(err) // let a session-expiry redirect from the client propagate
-      initialError = extractApiErrorMessage(err, 'Unable to load your progress. Please try again.')
+    const [summaryResult] = await Promise.allSettled([
+      fetchDashboardSummary({ token: session.user.pythia2Token, weekOffset: 1 })
+    ])
+    if (summaryResult.status === 'rejected') {
+      unstable_rethrow(summaryResult.reason)
+      initialError = extractApiErrorMessage(summaryResult.reason, 'Unable to load your progress. Please try again.')
+    } else {
+      initialSummary = summaryResult.value
     }
   }
 
