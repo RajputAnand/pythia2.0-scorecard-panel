@@ -14,14 +14,15 @@ export default async function CoachingPage() {
   let coachingMoments: CoachingMoment[] = []
   let coachingGenerationInProgress = false
   if (session?.user?.pythia2Token) {
-    try {
-      const coaching = await fetchCoachingMoments(session.user.pythia2Token)
-      coachingMoments = coaching.items
-      coachingGenerationInProgress = coaching.generationInProgress
-    } catch (err) {
-      unstable_rethrow(err) // let a session-expiry redirect from the client propagate
-      console.log(err)
-      // non-fatal — CoachingMoments renders an empty list when empty
+    const [coachingResult] = await Promise.allSettled([
+      fetchCoachingMoments(session.user.pythia2Token)
+    ])
+    if (coachingResult.status === 'rejected') {
+      unstable_rethrow(coachingResult.reason)
+      console.log(coachingResult.reason)
+    } else {
+      coachingMoments = coachingResult.value.items
+      coachingGenerationInProgress = coachingResult.value.generationInProgress
     }
   }
 

@@ -1,3 +1,4 @@
+import { unstable_rethrow } from 'next/navigation'
 import Header from '@/components/shared/Header/Header'
 import EmployeeListPanel from '@/components/EmployeeListPanel/EmployeeListPanel'
 import { fetchEmployees } from '@/queries/employees'
@@ -16,11 +17,11 @@ export default async function ManagerEmployeesPage() {
 
   let initialData: ApiResponseV2Paginated<ApiEmployee[]> | null = null
   if (token) {
-    try {
-      initialData = await fetchEmployees({ token, skip: 0, limit: 15 })
-    } catch {
-      // non-fatal — EmployeeListPanel renders an error state with retry
-    }
+    const [employeesResult] = await Promise.allSettled([
+      fetchEmployees({ token, skip: 0, limit: 15 }),
+    ])
+    if (employeesResult.status === 'rejected') unstable_rethrow(employeesResult.reason)
+    if (employeesResult.status === 'fulfilled') initialData = employeesResult.value
   }
 
   return (

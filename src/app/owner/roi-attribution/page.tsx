@@ -25,7 +25,7 @@ export default async function RoiAttributionPage(props: {
   let error: string | null = null
 
   if (token) {
-    try {
+
       const periodMap: Record<string, RoiAttributionParams['period_type']> = {
         'This Week': 'week',
         'Month over Month': 'month',
@@ -43,18 +43,23 @@ export default async function RoiAttributionPage(props: {
       // entirely client-side (each chart/table reads it straight off the URL,
       // see utils/roi-view.ts) so switching it never triggers a refetch of
       // this endpoint's ~40-query backend aggregation.
-      data = await fetchRoiAttribution({
-        token,
-        period_type: periodKey,
-        custom_start: typeof searchParams.custom_start === 'string' ? searchParams.custom_start : undefined,
-        custom_end: typeof searchParams.custom_end === 'string' ? searchParams.custom_end : undefined,
-        view: 'both',
-      })
-    } catch (e: any) {
-      unstable_rethrow(e)
-      console.error(e)
-      error = e.response?.data?.message || e.message || 'Failed to load ROI data'
-    }
+      const [roiResult] = await Promise.allSettled([
+        fetchRoiAttribution({
+          token,
+          period_type: periodKey,
+          custom_start: typeof searchParams.custom_start === 'string' ? searchParams.custom_start : undefined,
+          custom_end: typeof searchParams.custom_end === 'string' ? searchParams.custom_end : undefined,
+          view: 'both',
+        })
+      ])
+      
+      if (roiResult.status === 'rejected') {
+        unstable_rethrow(roiResult.reason)
+        console.error(roiResult.reason)
+        error = roiResult.reason?.response?.data?.message || roiResult.reason?.message || 'Failed to load ROI data'
+      } else {
+        data = roiResult.value
+      }
   }
 
   const periodSlug = (data?.meta?.period?.label ?? 'report')
