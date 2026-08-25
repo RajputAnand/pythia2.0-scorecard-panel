@@ -367,9 +367,9 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
   }
 
   const statCards = [
-    { key: 'videos', icon: '🎥', iconBg: 'bg-cobalt-light', label: 'Videos Reviewed', value: stats?.total_videos ?? '—', valueColor: 'text-cobalt' },
-    { key: 'identified', icon: '🪪', iconBg: 'bg-accent-light', label: 'Identities Matched', value: stats?.identities_matched ?? '—', valueColor: 'text-accent' },
-    { key: 'unmatched', icon: '⚠️', iconBg: 'bg-amber-light', label: 'Unmatched', value: stats?.unmatched ?? '—', valueColor: 'text-amber' },
+    { key: 'videos', icon: '🎥', iconBg: 'bg-cobalt-light', label: 'Videos Received', value: stats?.total_videos ?? '—', valueColor: 'text-cobalt' },
+    { key: 'identified', icon: '🪪', iconBg: 'bg-accent-light', label: 'Employees Identified', value: stats?.identities_matched ?? '—', valueColor: 'text-accent' },
+    { key: 'unmatched', icon: '⚠️', iconBg: 'bg-amber-light', label: 'Employees Unidentified', value: stats?.unmatched ?? '—', valueColor: 'text-amber' },
     {
       key: 'similarity',
       icon: '🎯',
