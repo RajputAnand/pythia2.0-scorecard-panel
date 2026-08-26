@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { fetchVideoIdentities, fetchVideoIdentityStats, presignVideoIdentityKeys } from '@/queries/video-identities'
 import { getAvatarColor, getInitialsFromDisplayName } from '@/utils/common'
+import DatePicker from '@/components/shared/DatePicker/DatePicker'
 import type { ApiResponseV2Paginated } from '@/types/api'
 import type {
   VideoIdentityEntry,
@@ -244,6 +245,8 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [renderedSearch, setRenderedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<VideoIdentityStatus | 'all'>('all')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
 
   const [entries, setEntries] = useState<VideoIdentityEntry[]>(initialData?.data ?? [])
   const [total, setTotal] = useState(initialData?.meta.total ?? 0)
@@ -276,6 +279,8 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
       limit: PAGE_SIZE,
       status: statusFilter === 'all' ? undefined : statusFilter,
       search: debouncedSearch,
+      startDate: dateFrom,
+      endDate: dateTo,
     })
       .then((response) => {
         if (requestId !== requestIdRef.current) return
@@ -288,22 +293,23 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
       .finally(() => {
         if (requestId === requestIdRef.current) setIsLoading(false)
       })
-  }, [token, statusFilter, debouncedSearch])
+  }, [token, statusFilter, debouncedSearch, dateFrom, dateTo])
 
-  // Reruns whenever the filter/search actually changes. Skips only the very
-  // first run when server-fetched initialData already matches the default (no
-  // filter, no search) state — must NOT also skip a later return to that same
-  // default state (e.g. filter → All), or entries is left showing the stale
-  // filtered list, which Load More would then append fresh unfiltered results
-  // onto, producing overlapping/duplicate entries.
+  // Reruns whenever the filter/search/date range actually changes. Skips only
+  // the very first run when server-fetched initialData already matches the
+  // default (no filter, no search, no date range) state — must NOT also skip a
+  // later return to that same default state (e.g. filter → All), or entries is
+  // left showing the stale filtered list, which Load More would then append
+  // fresh unfiltered results onto, producing overlapping/duplicate entries.
   const hasFetchedRef = useRef(false)
   useEffect(() => {
-    const isInitialDefaultView = !hasFetchedRef.current && statusFilter === 'all' && debouncedSearch === '' && initialData
+    const isInitialDefaultView =
+      !hasFetchedRef.current && statusFilter === 'all' && debouncedSearch === '' && !dateFrom && !dateTo && initialData
     hasFetchedRef.current = true
     if (isInitialDefaultView) return
     loadFirstPage()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, statusFilter, debouncedSearch])
+  }, [token, statusFilter, debouncedSearch, dateFrom, dateTo])
 
   useEffect(() => {
     if (!token || initialStats) return
@@ -326,6 +332,8 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
       limit: PAGE_SIZE,
       status: statusFilter === 'all' ? undefined : statusFilter,
       search: debouncedSearch,
+      startDate: dateFrom,
+      endDate: dateTo,
     })
       .then((response) => {
         if (requestId !== requestIdRef.current) return
@@ -430,6 +438,24 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
               </button>
             )
           })}
+        </div>
+        <div className="bg-border shrink-0 w-px h-5" />
+        <div className="flex items-center gap-[6px]">
+          <DatePicker ariaLabel="Filter start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
+          <span className="text-muted text-[11px]">to</span>
+          <DatePicker ariaLabel="Filter end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
+          {(dateFrom || dateTo) && (
+            <button
+              type="button"
+              onClick={() => {
+                setDateFrom('')
+                setDateTo('')
+              }}
+              className="cursor-pointer text-[11px] font-medium text-muted hover:text-accent"
+            >
+              Clear dates
+            </button>
+          )}
         </div>
       </div>
 
