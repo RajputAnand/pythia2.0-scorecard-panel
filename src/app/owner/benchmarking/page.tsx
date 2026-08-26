@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import BenchmarkingContent from './BenchmarkingContent'
+import BenchmarkingContent from '@/components/BenchmarkingContent/BenchmarkingContent'
 
 export default async function BenchmarkingPage() {
   return (

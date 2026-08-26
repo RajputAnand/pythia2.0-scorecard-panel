@@ -1,35 +1,19 @@
-import Header from '@/components/shared/Header/Header'
-import headerStyles from '@/components/shared/Header/Header.module.css'
-import BenchmarkingMetricFilter from '@/components/BenchmarkingMetricFilter/BenchmarkingMetricFilter'
-import RankHero from '@/components/RankHero/RankHero'
-import NetworkLeaderboard from '@/components/NetworkLeaderboard/NetworkLeaderboard'
-import StoreComparison from '@/components/StoreComparison/StoreComparison'
-import TopStorePractices from '@/components/TopStorePractices/TopStorePractices'
-import RankMovement from '@/components/RankMovement/RankMovement'
+import { Suspense } from 'react'
+import BenchmarkingContent from '@/components/BenchmarkingContent/BenchmarkingContent'
 
 export const metadata = {
   title: 'Pythia — Benchmarking (Super Admin)',
   description: 'Super Admin read-only mirror of the Owner Benchmarking page.',
 }
 
-// Read-only mirror of /owner/benchmarking for the Super Admin panel — same
-// components as the owner page. No `previewMode` here on purpose — each
-// component should still hide itself if its KPI is toggled off for owners.
+// Read-only mirror of /owner/benchmarking for the Super Admin panel.
+// BenchmarkingContent is self-contained (fetches with the caller's own
+// session token via useSession, same as the owner page), so the mirror just
+// renders it directly rather than reassembling its cards from scratch.
 export default function SuperAdminBenchmarkingPage() {
   return (
-    <>
-      <Header title="Competitor Benchmarking" subtitle="Super Admin · Feb 2026 · 24 peer stores in network">
-        <BenchmarkingMetricFilter />
-        <button className={headerStyles.btnPrimary}>Export Report</button>
-      </Header>
-
-      <div className="grid px-[30px] py-[24px] gap-5">
-        <RankHero />
-        <NetworkLeaderboard />
-        <StoreComparison />
-        <TopStorePractices />
-        <RankMovement />
-      </div>
-    </>
+    <Suspense fallback={<div className="h-[500px]" />}>
+      <BenchmarkingContent subtitlePrefix="Super Admin" />
+    </Suspense>
   )
 }

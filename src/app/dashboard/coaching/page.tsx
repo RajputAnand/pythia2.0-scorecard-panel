@@ -30,7 +30,6 @@ export default async function CoachingPage() {
     <>
       <Header title="Coaching" subtitle={getWeekSubtitle(currentDate)}>
         <button className={headerStyles.btnGhost}>View Last Week</button>
-        <button className={headerStyles.btnAccent}>📣 Share My Score</button>
       </Header>
 
       <div className="grid px-[30px] py-[24px] gap-5">
