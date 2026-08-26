@@ -1,5 +1,4 @@
 import { HeroBannerData } from "./hero-banner";
-import { ShiftSummaryData } from "./shift";
 
 export interface WeeklyStats {
   overall_score: number;
@@ -94,7 +93,6 @@ export interface DashboardSummaryResponse {
 
 export interface OverviewPageData {
   heroBanner: HeroBannerData;
-  shiftSummary: ShiftSummaryData;
 }
 
 export interface CoachingMoment {

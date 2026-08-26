@@ -12,6 +12,7 @@ export const PYTHIA_2_API = {
   },
   dashboard: {
     summary: '/dashboard/summary',
+    shiftSummaryHighlights: '/dashboard/shift-summary/highlights',
   },
   demographics: {
     ageDistribution: '/demographics/age-distribution',

@@ -5,13 +5,15 @@ import { useUserStore } from '@/store/userStore'
 import Header from '@/components/shared/Header/Header'
 import WeekNavButtons from '@/components/shared/WeekNavButtons/WeekNavButtons'
 import HeroBanner from '@/components/HeroBanner/HeroBanner'
-// import ShiftSummary from '@/components/ShiftSummary/ShiftSummary'
+import ShiftSummary from '@/components/ShiftSummary/ShiftSummary'
 import CoachingMoments from '@/components/CoachingMoments/CoachingMoments'
 import ProgressChart from '@/components/ProgressChart/ProgressChart'
 import Leaderboard from '@/components/Leaderboard/Leaderboard'
 import SwagStore from '@/components/SwagStore/SwagStore'
 import { useDashboardSummary } from '@/hooks/useDashboardSummary'
+import { useShiftHighlights } from '@/hooks/useShiftHighlights'
 import type { CoachingMoment, DashboardSummaryResponse, OverviewPageData } from '@/types/overview'
+import type { ShiftHighlight } from '@/types/shift'
 
 function OverviewEmpty({ message }: { message?: string | null }) {
   return (
@@ -41,12 +43,16 @@ export default function OverviewContent({
   initialError,
   coachingMoments,
   coachingGenerationInProgress,
+  initialShiftHighlights,
+  initialShiftHighlightsGenerating,
 }: {
   overview: OverviewPageData | null
   initialSummary: DashboardSummaryResponse | null
   initialError: string | null
   coachingMoments: CoachingMoment[]
   coachingGenerationInProgress: boolean
+  initialShiftHighlights: ShiftHighlight[]
+  initialShiftHighlightsGenerating: boolean
 }) {
   const { summary, error, loading, weekOffset, weekLabel, goToPreviousWeek, goToNextWeek } = useDashboardSummary({
     initialSummary,
@@ -54,6 +60,12 @@ export default function OverviewContent({
     initialWeekOffset: 0,
   })
   const setCurrentScore = useUserStore((s) => s.setCurrentScore)
+  const { items: shiftHighlights, generationInProgress: shiftHighlightsGenerating } = useShiftHighlights({
+    shiftStart: summary?.today.shift_start,
+    shiftStatus: summary?.today.data.shift_status,
+    initialItems: initialShiftHighlights,
+    initialGenerationInProgress: initialShiftHighlightsGenerating,
+  })
 
   useEffect(() => {
     if (summary?.weekly.data.overall_score != null) {
@@ -76,7 +88,11 @@ export default function OverviewContent({
           <div className="grid gap-5">
             <HeroBanner data={overview.heroBanner} weeklyStats={summary.weekly.data} />
 
-            {/* <ShiftSummary data={overview.shiftSummary} shiftSummary={summary.today.data} /> */}
+            <ShiftSummary
+              shiftSummary={summary.today.data}
+              highlights={shiftHighlights}
+              highlightsGenerating={shiftHighlightsGenerating}
+            />
             <div className="grid grid-cols-2 items-start gap-[18px]">
               <CoachingMoments items={coachingMoments} generationInProgress={coachingGenerationInProgress} />  
               <Leaderboard data={summary.leaderboard.data} />
