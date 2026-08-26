@@ -8,13 +8,15 @@ import { PYTHIA_2_API } from "@/utils/api-endpoints"
 import { extractApiErrorMessage } from "@/utils/common"
 import type { ForgotPasswordResult, ResetPasswordResult, LoginResponse, P1LoginResponse, P1ProfileResponse } from "@/types/auth"
 
-// Manager and Owner auth are fully on Pythia 1.0: no Pythia 2.0 JWT is ever issued or
-// accepted for these roles (see PYTHIA1_AUTH_HANDOFF.md and dependencies_p1.py's
+// Manager and Owner auth are normally fully on Pythia 1.0: no Pythia 2.0 JWT is ever
+// issued or accepted for these roles (see PYTHIA1_AUTH_HANDOFF.md and dependencies_p1.py's
 // get_current_p1_user, which is the only auth path manager/owner-facing backend
 // routes accept). Pythia 1.0's own POST /auth/login only returns a bearer
 // token — no profile data — so a second GET /profile/ call is required to get
 // the user's name/role/points, mirroring app/services/pythia1_client.py's
 // login_p1() + get_profile_p1() on the backend.
+// TEMPORARILY UNUSED — see the commented-out call site in login() below.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function loginViaP1(identifier: string, password: string, expectedRole: string): Promise<string | null> {
   let loginData: P1LoginResponse
   try {
@@ -95,11 +97,12 @@ export async function login(_prev: string | null | undefined, formData: FormData
       return 'Invalid role.'
     }
 
-    // Manager and Owner are fully migrated to Pythia 1.0 auth — see loginViaP1's
-    // docstring. Other roles' logins are unchanged for now.
-    if (requiredRole === 'manager' || requiredRole === 'owner') {
-      return loginViaP1(identifier, password, requiredRole)
-    }
+    // TEMPORARY: Manager/Owner auth is normally fully on Pythia 1.0 (see loginViaP1's
+    // docstring) — this bypass routes them through the Pythia 2.0 login below instead.
+    // Revert by restoring the two lines below.
+    // if (requiredRole === 'manager' || requiredRole === 'owner') {
+    //   return loginViaP1(identifier, password, requiredRole)
+    // }
 
     let result: LoginResponse
     try {
