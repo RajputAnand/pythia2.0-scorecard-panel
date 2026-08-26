@@ -1,6 +1,5 @@
 import { unstable_rethrow } from 'next/navigation'
 import Header from '@/components/shared/Header/Header'
-import headerStyles from '@/components/shared/Header/Header.module.css'
 import CoachingWinStrip from '@/components/CoachingWinStrip/CoachingWinStrip'
 import CoachingTrackerPanel from '@/components/CoachingTrackerPanel/CoachingTrackerPanel'
 import { fetchCoachingSummary, fetchCoachingEmployees } from '@/queries/manager-coaching'
@@ -36,10 +35,7 @@ export default async function CoachingTrackerPage() {
 
   return (
     <>
-      <Header title="Coaching Effectiveness Tracker">
-        <button className={headerStyles.btnGhost}>Export</button>
-        <button className={headerStyles.btnPrimary}>All Time View</button>
-      </Header>
+      <Header title="Coaching Effectiveness Tracker" />
 
       <div className="px-[30px] py-[26px] flex flex-col gap-5">
         <CoachingWinStrip summary={summary} />

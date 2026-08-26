@@ -9,7 +9,6 @@ export default function SwagPage() {
     <>
       <Header title="Swag Store" subtitle={getWeekSubtitle(currentDate)}>
         <button className={headerStyles.btnGhost}>View Last Week</button>
-        <button className={headerStyles.btnAccent}>📣 Share My Score</button>
       </Header>
 
       <div className="grid px-[30px] py-[24px] gap-5">
