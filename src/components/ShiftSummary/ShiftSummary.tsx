@@ -2,9 +2,11 @@
 
 import Panel from "@/components/shared/Panel/Panel";
 import styles from "./ShiftSummary.module.css";
-import { ShiftSummaryData } from "@/types/shift";
+import { ShiftHighlight } from "@/types/shift";
 import { renderText } from "@/utils/common";
 import { TodayShiftSummary } from "@/types/overview";
+import { useAdminConfigStore } from "@/store/adminConfigStore";
+import { KPI_IDS } from "@/lib/admin-config-data";
 
 const metricValClass: Record<string, string> = {
   good: "text-accent",
@@ -17,6 +19,12 @@ const metricChangeClass: Record<string, string> = {
   up: "text-accent",
   down: "text-danger",
   flat: "text-muted",
+};
+
+const highlightBandColor: Record<ShiftHighlight["band"], string> = {
+  good: "var(--color-accent)",
+  warn: "var(--color-amber)",
+  bad: "var(--color-danger)",
 };
 
 function MetricCard({
@@ -46,15 +54,22 @@ function MetricCard({
 }
 
 export default function ShiftSummary({
-  data,
   shiftSummary,
+  highlights,
+  highlightsGenerating,
+  previewMode,
 }: {
-  data: ShiftSummaryData;
   shiftSummary: TodayShiftSummary;
+  highlights: ShiftHighlight[];
+  highlightsGenerating: boolean;
+  previewMode?: boolean;
 }) {
+  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.employeeShiftSummary] ?? true);
+  if (!previewMode && !visible) return null;
+
   if (shiftSummary.shift_status === "no_data") {
     return (
-      <Panel title={data.title} subtitle={data.subtitle}>
+      <Panel title="Today's Shift Summary" subtitle={shiftSummary.shift_date_display}>
         <div className="flex flex-col items-center justify-center gap-2 py-8">
           <span className="text-[28px]">🕐</span>
           <p className="text-[12.5px] font-semibold">No shift data yet</p>
@@ -63,6 +78,8 @@ export default function ShiftSummary({
       </Panel>
     );
   }
+
+  const subtitle = `${shiftSummary.shift_date_display} · ${shiftSummary.shift_time_range}`;
 
   const scoreDiff = shiftSummary.overall_score_delta;
   const scoreDiffLabel =
@@ -110,7 +127,7 @@ export default function ShiftSummary({
     );
 
   return (
-    <Panel title={data.title} subtitle={data.subtitle} badge={badge}>
+    <Panel title="Today's Shift Summary" subtitle={subtitle} badge={badge}>
       <div
         className="grid gap-[10px]"
         style={{ gridTemplateColumns: "1fr 1fr" }}
@@ -145,33 +162,45 @@ export default function ShiftSummary({
         />
       </div>
 
-      <div className="flex flex-col border border-border rounded-[10px] overflow-hidden mt-[14px]">
-        {data.timeline.map((event) => (
-          <div
-            key={event.time}
-            className="flex items-start gap-[10px] border-b border-border px-[14px] py-[10px] last:border-b-0"
-          >
-            <div className="font-mono text-muted shrink-0 text-[10.5px] w-[38px] mt-px">
-              {event.time}
-            </div>
+      {highlights.length > 0 ? (
+        <div className="flex flex-col border border-border rounded-[10px] overflow-hidden mt-[14px]">
+          {highlights.map((event, idx) => (
             <div
-              className="rounded-full shrink-0 w-2 h-2 mt-1"
-              style={{ background: event.dotColor }}
-            />
-            <div
-              className={`${styles.eventText} text-secondary leading-snug flex-1 text-[12px]`}
+              key={`${event.time}-${idx}`}
+              className="flex items-start gap-[10px] border-b border-border px-[14px] py-[10px] last:border-b-0"
             >
-              {renderText(event.text)}
+              <div className="font-mono text-muted shrink-0 text-[10.5px] w-[38px] mt-px">
+                {event.time}
+              </div>
+              <div
+                className="rounded-full shrink-0 w-2 h-2 mt-1"
+                style={{ background: highlightBandColor[event.band] }}
+              />
+              <div
+                className={`${styles.eventText} text-secondary leading-snug flex-1 text-[12px]`}
+              >
+                {renderText(event.text)}
+              </div>
+              <div
+                className="font-mono font-bold shrink-0 text-[12px]"
+                style={{ color: highlightBandColor[event.band] }}
+              >
+                {event.score}
+              </div>
             </div>
-            <div
-              className="font-mono font-bold shrink-0 text-[12px]"
-              style={{ color: event.scoreColor }}
-            >
-              {event.score}
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : highlightsGenerating ? (
+        <div className="flex flex-col items-center justify-center gap-2 py-8 mt-[14px] border border-border rounded-[10px]">
+          <span className="text-[24px]">⏳</span>
+          <p className="text-[12.5px] font-semibold">Generating your shift timeline…</p>
+          <p className="text-[11.5px] text-muted">Check back shortly — this only takes a moment.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center gap-2 py-8 mt-[14px] border border-border rounded-[10px]">
+          <p className="text-[11.5px] text-muted">Your shift timeline will appear here once you&apos;ve served a few customers.</p>
+        </div>
+      )}
     </Panel>
   );
 }

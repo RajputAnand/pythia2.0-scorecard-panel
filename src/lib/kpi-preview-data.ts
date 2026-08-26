@@ -1,7 +1,8 @@
 import type { ManagerDashboardEmployeeRow, ManagerDashboardSummary, ManagerDashboardTrendWeek } from '@/types/manager-dashboard'
 import type { CoachingSummary } from '@/types/coaching-plan'
-import type { CoachingMoment, ProgressOverTimeData, TeamRankingData, WeeklyStats } from '@/types/overview'
+import type { CoachingMoment, ProgressOverTimeData, TeamRankingData, TodayShiftSummary, WeeklyStats } from '@/types/overview'
 import type { HeroBannerData } from '@/types/hero-banner'
+import type { ShiftHighlight } from '@/types/shift'
 
 // Illustrative sample data for the Super Admin "live preview" hover — not
 // real activity, just realistic-looking numbers so an admin can see how a
@@ -95,6 +96,28 @@ export const PREVIEW_COACHING_MOMENTS: CoachingMoment[] = [
     callout_type: 'compliment',
     tip_type: 'recognition',
   },
+]
+
+export const PREVIEW_SHIFT_SUMMARY: TodayShiftSummary = {
+  shift_date: '2026-02-25',
+  shift_status: 'complete',
+  overall_score: 87,
+  customers_served: 142,
+  avg_checkout_seconds: 31,
+  points_earned: 124,
+  shift_date_display: 'Wed Feb 25',
+  shift_time_range: '11a – 7p',
+  overall_score_delta: 3,
+  customers_served_delta: 12,
+  checkout_target_seconds: 25,
+  is_best_shift_this_week: true,
+}
+
+export const PREVIEW_SHIFT_HIGHLIGHTS: ShiftHighlight[] = [
+  { time: '11:04', score: 92, band: 'good', text: '**Strong start** — greeted first 8 customers within 2s. Score 92 in the opening hour.' },
+  { time: '12:40', score: 74, band: 'warn', text: '**Lunch rush** — checkout slowed to 38s avg under volume. Expected; score dipped temporarily.' },
+  { time: '2:15', score: 89, band: 'good', text: '**Recovered well after rush** — back to 29s checkout. Your best window today.' },
+  { time: '6:30', score: 86, band: 'good', text: '**Evening close strong** — score 86 for the final hour.' },
 ]
 
 export const PREVIEW_EMPLOYEE_ROWS: ManagerDashboardEmployeeRow[] = [
