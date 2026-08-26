@@ -22,7 +22,6 @@ export default function WeekNavButtons({ weekOffset, loading, onPrevious, onNext
           View Last Week
         </button>
       )}
-      <button className={headerStyles.btnAccent}>📣 Share My Score</button>
     </>
   )
 }
