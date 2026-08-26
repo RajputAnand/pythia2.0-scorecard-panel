@@ -1,24 +1,21 @@
-export interface MetricData {
-  label: string
-  value: string
-  change: string
-  changeClass: 'up' | 'down' | 'flat'
-  valueClass: 'good' | 'great' | 'ok' | 'gold'
-}
-
-export interface TimelineEvent {
+export interface ShiftHighlight {
   time: string
-  dotColor: string
-  scoreColor: string
-  score: string
+  score: number
+  band: 'good' | 'warn' | 'bad'
   /** Use **text** for bold segments */
   text: string
 }
 
-export interface ShiftSummaryData {
-  title: string
-  subtitle: string
-  shiftComplete: boolean
-  metrics: MetricData[]
-  timeline: TimelineEvent[]
+// Raw shape of GET /dashboard/shift-summary/highlights.
+export interface ShiftHighlightsResponse {
+  success: boolean
+  events: ShiftHighlight[]
+  cached: boolean
+  generation_in_progress: boolean
+  generated_at: string | null
+}
+
+export interface ShiftHighlightsResult {
+  items: ShiftHighlight[]
+  generationInProgress: boolean
 }

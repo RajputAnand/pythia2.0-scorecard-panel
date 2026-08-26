@@ -1,9 +1,10 @@
 import { unstable_rethrow } from 'next/navigation'
 import OverviewContent from '@/components/OverviewContent/OverviewContent'
 import { fetchOverview } from '@/queries/overview'
-import { fetchCoachingMoments, fetchDashboardSummary } from '@/queries/scorecard'
+import { fetchCoachingMoments, fetchDashboardSummary, fetchShiftHighlights } from '@/queries/scorecard'
 import { auth } from '@/auth'
 import type { CoachingMoment, DashboardSummaryResponse, OverviewPageData } from '@/types/overview'
+import type { ShiftHighlight } from '@/types/shift'
 import { extractApiErrorMessage } from '@/utils/common'
 
 export default async function OverviewPage() {
@@ -20,6 +21,8 @@ export default async function OverviewPage() {
   let initialError: string | null = null
   let coachingMoments: CoachingMoment[] = []
   let coachingGenerationInProgress = false
+  let initialShiftHighlights: ShiftHighlight[] = []
+  let initialShiftHighlightsGenerating = false
 
   if (session?.user?.pythia2Token) {
     const token = session.user.pythia2Token
@@ -43,6 +46,19 @@ export default async function OverviewPage() {
       coachingMoments = coachingResult.value.items
       coachingGenerationInProgress = coachingResult.value.generationInProgress
     }
+
+    const shiftStart = initialSummary?.today?.shift_start
+    const shiftStatus = initialSummary?.today?.data.shift_status
+    if (shiftStart && shiftStatus && shiftStatus !== 'no_data') {
+      try {
+        const highlightsResult = await fetchShiftHighlights({ token, shiftStart, shiftStatus })
+        initialShiftHighlights = highlightsResult.items
+        initialShiftHighlightsGenerating = highlightsResult.generationInProgress
+      } catch (err) {
+        unstable_rethrow(err)
+        console.log(err)
+      }
+    }
   }
 
   return (
@@ -52,6 +68,8 @@ export default async function OverviewPage() {
       initialError={initialError}
       coachingMoments={coachingMoments}
       coachingGenerationInProgress={coachingGenerationInProgress}
+      initialShiftHighlights={initialShiftHighlights}
+      initialShiftHighlightsGenerating={initialShiftHighlightsGenerating}
     />
   )
 }

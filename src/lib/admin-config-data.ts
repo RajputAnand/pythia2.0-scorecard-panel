@@ -8,6 +8,7 @@ import type { AdminRole, KpiRegistryEntry, PageRegistryEntry } from '@/types/adm
 export const KPI_IDS = {
   // Employee · Overview
   employeeHeroMetrics: 'employeeOverview.heroMetrics',
+  employeeShiftSummary: 'employeeOverview.shiftSummary',
   employeeProgressChart: 'employeeOverview.progressChart',
   employeeLeaderboard: 'employeeOverview.leaderboard',
   employeeCoachingMoments: 'employeeOverview.coachingMoments',
@@ -88,6 +89,7 @@ const OWNER_MARKETING = { role: 'owner' as const, page: 'Marketing Loop', pageHr
 export const KPI_REGISTRY: KpiRegistryEntry[] = [
   // Employee · Overview
   { id: KPI_IDS.employeeHeroMetrics, label: 'Hero Metrics Strip', description: 'Streak, score, and team-rank chips at the top of the overview page.', type: 'panel', ...EMPLOYEE_OVERVIEW },
+  { id: KPI_IDS.employeeShiftSummary, label: "Today's Shift Summary", description: "Shift metric cards and an AI-narrated timeline of the employee's current or most recent shift.", type: 'panel', ...EMPLOYEE_OVERVIEW },
   { id: KPI_IDS.employeeProgressChart, label: 'Progress Over Time Chart', description: "Line chart tracking the employee's score trend across recent weeks.", type: 'graph', ...EMPLOYEE_OVERVIEW },
   { id: KPI_IDS.employeeLeaderboard, label: 'Team Leaderboard', description: 'Team ranking panel shown on the employee overview and leaderboard pages.', type: 'panel', ...EMPLOYEE_OVERVIEW },
   { id: KPI_IDS.employeeCoachingMoments, label: 'Coaching Moments', description: "List of the employee's recent coaching moments and feedback.", type: 'panel', ...EMPLOYEE_OVERVIEW },
