@@ -245,8 +245,22 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [renderedSearch, setRenderedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<VideoIdentityStatus | 'all'>('all')
+
+  // Raw picker values, applied to the query only once the range is "complete"
+  // (both ends set, or both cleared) — see the effect below. Otherwise picking
+  // just a start date would fire a from-only fetch before the user has had a
+  // chance to pick an end date.
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [appliedDateFrom, setAppliedDateFrom] = useState('')
+  const [appliedDateTo, setAppliedDateTo] = useState('')
+
+  useEffect(() => {
+    const isComplete = (!dateFrom && !dateTo) || (dateFrom && dateTo)
+    if (!isComplete) return
+    setAppliedDateFrom(dateFrom)
+    setAppliedDateTo(dateTo)
+  }, [dateFrom, dateTo])
 
   const [entries, setEntries] = useState<VideoIdentityEntry[]>(initialData?.data ?? [])
   const [total, setTotal] = useState(initialData?.meta.total ?? 0)
@@ -279,8 +293,8 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
       limit: PAGE_SIZE,
       status: statusFilter === 'all' ? undefined : statusFilter,
       search: debouncedSearch,
-      startDate: dateFrom,
-      endDate: dateTo,
+      startDate: appliedDateFrom,
+      endDate: appliedDateTo,
     })
       .then((response) => {
         if (requestId !== requestIdRef.current) return
@@ -293,7 +307,7 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
       .finally(() => {
         if (requestId === requestIdRef.current) setIsLoading(false)
       })
-  }, [token, statusFilter, debouncedSearch, dateFrom, dateTo])
+  }, [token, statusFilter, debouncedSearch, appliedDateFrom, appliedDateTo])
 
   // Reruns whenever the filter/search/date range actually changes. Skips only
   // the very first run when server-fetched initialData already matches the
@@ -304,12 +318,17 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
   const hasFetchedRef = useRef(false)
   useEffect(() => {
     const isInitialDefaultView =
-      !hasFetchedRef.current && statusFilter === 'all' && debouncedSearch === '' && !dateFrom && !dateTo && initialData
+      !hasFetchedRef.current &&
+      statusFilter === 'all' &&
+      debouncedSearch === '' &&
+      !appliedDateFrom &&
+      !appliedDateTo &&
+      initialData
     hasFetchedRef.current = true
     if (isInitialDefaultView) return
     loadFirstPage()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, statusFilter, debouncedSearch, dateFrom, dateTo])
+  }, [token, statusFilter, debouncedSearch, appliedDateFrom, appliedDateTo])
 
   useEffect(() => {
     if (!token || initialStats) return
@@ -332,8 +351,8 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
       limit: PAGE_SIZE,
       status: statusFilter === 'all' ? undefined : statusFilter,
       search: debouncedSearch,
-      startDate: dateFrom,
-      endDate: dateTo,
+      startDate: appliedDateFrom,
+      endDate: appliedDateTo,
     })
       .then((response) => {
         if (requestId !== requestIdRef.current) return
@@ -373,6 +392,8 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
       })
       .catch(() => setMediaModal({ type: 'images', urls: null, loading: false, error: true }))
   }
+
+  const hasActiveFilters = search !== '' || statusFilter !== 'all' || dateFrom !== '' || dateTo !== ''
 
   const statCards = [
     { key: 'videos', icon: '🎥', iconBg: 'bg-cobalt-light', label: 'Videos Received', value: stats?.total_videos ?? '—', valueColor: 'text-cobalt' },
@@ -444,19 +465,25 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
           <DatePicker ariaLabel="Filter start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
           <span className="text-muted text-[11px]">to</span>
           <DatePicker ariaLabel="Filter end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
-          {(dateFrom || dateTo) && (
-            <button
-              type="button"
-              onClick={() => {
-                setDateFrom('')
-                setDateTo('')
-              }}
-              className="cursor-pointer text-[11px] font-medium text-muted hover:text-accent"
-            >
-              Clear dates
-            </button>
-          )}
         </div>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearch('')
+              setStatusFilter('all')
+              setDateFrom('')
+              setDateTo('')
+            }}
+            className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-sans font-medium text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent hover:text-accent"
+          >
+            <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+            Clear filter
+          </button>
+        )}
       </div>
 
       {/* Video list */}
