@@ -6,12 +6,15 @@ import {
   PREVIEW_PROGRESS_DATA,
   PREVIEW_TEAM_RANKING,
   PREVIEW_COACHING_MOMENTS,
+  PREVIEW_SHIFT_SUMMARY,
+  PREVIEW_SHIFT_HIGHLIGHTS,
   PREVIEW_EMPLOYEE_ROWS,
   PREVIEW_TREND_WEEKS,
   PREVIEW_UNKNOWN_IDENTITIES_COUNT,
 } from '@/lib/kpi-preview-data'
 
 import { Metric } from '@/components/HeroBanner/HeroBanner'
+import ShiftSummary from '@/components/ShiftSummary/ShiftSummary'
 import SwagStore from '@/components/SwagStore/SwagStore'
 import ManagerDashboardKpiStrip from '@/components/ManagerDashboardKpiStrip/ManagerDashboardKpiStrip'
 import CoachingWinStrip from '@/components/CoachingWinStrip/CoachingWinStrip'
@@ -84,9 +87,18 @@ const unknownIdentitiesPreview = <UnknownIdentitiesAlertCard count={PREVIEW_UNKN
 const progressChartPreview = <ProgressChart data={PREVIEW_PROGRESS_DATA} previewMode />
 const leaderboardPreview = <Leaderboard data={{ ...PREVIEW_TEAM_RANKING, members: PREVIEW_TEAM_RANKING.members.slice(0, 2) }} previewMode />
 const coachingMomentsPreview = <CoachingMoments items={PREVIEW_COACHING_MOMENTS} previewMode />
+const shiftSummaryPreview = (
+  <ShiftSummary
+    shiftSummary={PREVIEW_SHIFT_SUMMARY}
+    highlights={PREVIEW_SHIFT_HIGHLIGHTS}
+    highlightsGenerating={false}
+    previewMode
+  />
+)
 
 const KPI_PREVIEW_RENDERERS: Record<string, (id: string) => ReactNode> = {
   [KPI_IDS.employeeHeroMetrics]: () => heroMetricsPreview,
+  [KPI_IDS.employeeShiftSummary]: () => shiftSummaryPreview,
   [KPI_IDS.employeeProgressChart]: () => progressChartPreview,
   [KPI_IDS.employeeLeaderboard]: () => leaderboardPreview,
   [KPI_IDS.employeeCoachingMoments]: () => coachingMomentsPreview,
