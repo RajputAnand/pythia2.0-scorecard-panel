@@ -9,6 +9,8 @@ interface FetchVideoIdentitiesParams {
   limit?: number
   status?: VideoIdentityStatus
   search?: string
+  startDate?: string
+  endDate?: string
 }
 
 export async function fetchVideoIdentities({
@@ -17,6 +19,8 @@ export async function fetchVideoIdentities({
   limit = 50,
   status,
   search,
+  startDate,
+  endDate,
 }: FetchVideoIdentitiesParams): Promise<ApiResponseV2Paginated<VideoIdentityEntry[]>> {
   const { data } = await pythia2Client.get<ApiResponseV2Paginated<VideoIdentityEntry[]>>(
     PYTHIA_2_API.videoIdentities.list,
@@ -27,6 +31,8 @@ export async function fetchVideoIdentities({
         limit,
         status,
         search: search || undefined,
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
       },
     }
   )
