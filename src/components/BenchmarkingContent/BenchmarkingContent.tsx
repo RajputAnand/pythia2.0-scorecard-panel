@@ -18,7 +18,12 @@ import headerStyles from '@/components/shared/Header/Header.module.css'
 import BenchmarkingMetricFilter from '@/components/BenchmarkingMetricFilter/BenchmarkingMetricFilter'
 import { downloadCsv } from '@/utils/common'
 
-export default function BenchmarkingContent() {
+interface BenchmarkingContentProps {
+  /** Super Admin mirror only — prefixes the Header subtitle so it's clear this is the read-only mirror, not the real owner page. */
+  subtitlePrefix?: string
+}
+
+export default function BenchmarkingContent({ subtitlePrefix }: BenchmarkingContentProps = {}) {
   const { data: session } = useSession()
   const token = session?.user?.token
   const { currentStore } = useUserStore()
@@ -83,7 +88,7 @@ export default function BenchmarkingContent() {
   }, [token, selectedStoreId, period, sortBy, filterMode, currentStore?._id])
 
   const subtitle = meta
-    ? `${meta.period.label} · ${meta.scope.store_count} peer stores in network`
+    ? `${subtitlePrefix ? `${subtitlePrefix} · ` : ''}${meta.period.label} · ${meta.scope.store_count} peer stores in network`
     : 'Loading...'
 
   // No export endpoint exists yet — CSV of the currently loaded Network
