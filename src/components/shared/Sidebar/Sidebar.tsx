@@ -24,6 +24,10 @@ type NavItem = {
 }
 type NavSection = { section: string; items: NavItem[] }
 
+/** Super Admin's Sidebar is split into swappable views (mirroring the owner's
+ * Owner/Manager toggle) instead of listing every mirror page at once. */
+type SuperAdminView = 'admin' | 'manager' | 'employee' | 'owner'
+
 const EMPLOYEE_NAV: NavSection[] = [
   {
     section: 'My Dashboard',
@@ -201,7 +205,8 @@ const MANAGER_NAV: NavSection[] = [
   },
 ]
 
-const SUPERADMIN_NAV: NavSection[] = [
+const SUPERADMIN_NAV_BY_VIEW: Record<SuperAdminView, NavSection[]> = {
+  admin: [
   {
     section: 'Super Admin',
     items: [
@@ -228,6 +233,8 @@ const SUPERADMIN_NAV: NavSection[] = [
       },
     ],
   },
+  ],
+  manager: [
   {
     section: 'Manager View',
     items: [
@@ -300,6 +307,8 @@ const SUPERADMIN_NAV: NavSection[] = [
       },
     ],
   },
+  ],
+  employee: [
   {
     section: 'Employee View',
     items: [
@@ -318,6 +327,8 @@ const SUPERADMIN_NAV: NavSection[] = [
       },
     ],
   },
+  ],
+  owner: [
   {
     section: 'Owner View',
     items: [
@@ -358,13 +369,13 @@ const SUPERADMIN_NAV: NavSection[] = [
       },
     ],
   },
-]
+  ],
+}
 
 const NAV_BY_ROLE: Record<string, NavSection[]> = {
   employee: EMPLOYEE_NAV,
   owner: OWNER_NAV,
   manager: MANAGER_NAV,
-  superadmin: SUPERADMIN_NAV,
 }
 
 const VIEW_DEFAULT_ROUTES: Record<UserRole, string> = {
@@ -374,6 +385,63 @@ const VIEW_DEFAULT_ROUTES: Record<UserRole, string> = {
   superadmin: '/super-admin/kpi-visibility',
 }
 
+const SUPERADMIN_VIEW_DEFAULT_ROUTES: Record<SuperAdminView, string> = {
+  admin: '/super-admin/kpi-visibility',
+  manager: '/super-admin/manager/dashboard',
+  employee: '/super-admin/employee/overview',
+  owner: '/super-admin/owner/roi-attribution',
+}
+
+const SUPERADMIN_VIEW_OPTIONS: { id: SuperAdminView; label: string; icon: ReactNode }[] = [
+  {
+    id: 'admin',
+    label: 'Admin',
+    icon: (
+      <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path d="M12 2l8 4v6c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'manager',
+    label: 'Manager View',
+    icon: (
+      <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    id: 'employee',
+    label: 'Employee View',
+    icon: (
+      <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+      </svg>
+    ),
+  },
+  {
+    id: 'owner',
+    label: 'Owner View',
+    icon: (
+      <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      </svg>
+    ),
+  },
+]
+
+function superAdminViewFromPath(pathname: string): SuperAdminView {
+  if (pathname.startsWith('/super-admin/manager')) return 'manager'
+  if (pathname.startsWith('/super-admin/employee')) return 'employee'
+  if (pathname.startsWith('/super-admin/owner')) return 'owner'
+  return 'admin'
+}
+
 export default function Sidebar({ user }: { user: User }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -381,6 +449,9 @@ export default function Sidebar({ user }: { user: User }) {
     if (user.role !== 'owner') return user.role
     return pathname.startsWith('/manager') ? 'manager' : 'owner'
   })
+  const [superAdminView, setSuperAdminView] = useState<SuperAdminView>(() =>
+    user.role === 'superadmin' ? superAdminViewFromPath(pathname) : 'admin',
+  )
   const [isPending, startTransition] = useTransition()
 
   const currentScore = useUserStore((s) => s.currentScore)
@@ -401,9 +472,22 @@ export default function Sidebar({ user }: { user: User }) {
     fetchPageVisibility(user.token)
   }, [fetchPageVisibility, user.token])
 
+  // Keep the Super Admin view chip in sync with the URL on back/forward or any
+  // navigation that lands outside the currently-selected view — adjusting state
+  // during render (React's "derive from prop change" pattern) rather than in an
+  // effect, so the switch is applied before paint with no cascading render.
+  const [prevPathname, setPrevPathname] = useState(pathname)
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname)
+    if (user.role === 'superadmin') setSuperAdminView(superAdminViewFromPath(pathname))
+  }
+
+  const roleSections =
+    user.role === 'superadmin' ? SUPERADMIN_NAV_BY_VIEW[superAdminView] : NAV_BY_ROLE[activeView]
+
   // Drop nav items whose page has been turned off by the Super Admin, and
   // drop any section left with no items as a result.
-  const navSections = NAV_BY_ROLE[activeView]
+  const navSections = roleSections
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => {
@@ -418,6 +502,14 @@ export default function Sidebar({ user }: { user: User }) {
     setActiveView(view)
     startTransition(() => {
       router.push(VIEW_DEFAULT_ROUTES[view])
+    })
+  }
+
+  function handleSuperAdminViewToggle(view: SuperAdminView) {
+    if (user.role !== 'superadmin' || view === superAdminView) return
+    setSuperAdminView(view)
+    startTransition(() => {
+      router.push(SUPERADMIN_VIEW_DEFAULT_ROUTES[view])
     })
   }
 
@@ -492,7 +584,22 @@ export default function Sidebar({ user }: { user: User }) {
             </div>
           )}
         </div>
-      ) : user.role === 'superadmin' ? null : (
+      ) : user.role === 'superadmin' ? (
+        <div className="mx-3 pt-4 border-t border-border mb-4">
+          <div className="text-muted uppercase tracking-[.08em] text-[10px] mb-2 px-[2px]">Current View</div>
+          {SUPERADMIN_VIEW_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              className={`${styles.toggleBtn} ${superAdminView === option.id ? styles.toggleBtnActive : ''} ${isPending ? 'opacity-60' : ''}`}
+              onClick={() => handleSuperAdminViewToggle(option.id)}
+              disabled={isPending}
+            >
+              {option.icon}
+              {option.label}
+            </button>
+          ))}
+        </div>
+      ) : (
         <>
           {user.role === 'owner' && (
             <div className="mx-3 pt-4 border-t border-border mb-4">
