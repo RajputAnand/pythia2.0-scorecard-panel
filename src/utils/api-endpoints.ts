@@ -86,5 +86,9 @@ export const PYTHIA_2_API = {
     recommendationsGenerate: '/staffing/recommendations/generate',
     recommendationApply: (id: string) => `/staffing/recommendations/${id}/apply`,
     recommendationDismiss: (id: string) => `/staffing/recommendations/${id}/dismiss`,
+    demos: '/super-admin/demos',
+    manualSend: '/super-admin/manual-send',
+    bulkTrigger: '/super-admin/bulk-trigger',
+    sentStatus: '/super-admin/sent-status',
   },
 } as const
