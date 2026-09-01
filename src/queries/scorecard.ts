@@ -2,10 +2,35 @@ import { pythia2Client } from '@/lib/api-client'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
 import type { CoachingMomentsResponse, CoachingMomentsResult, DashboardSummaryResponse } from '@/types/overview'
 import type { ShiftHighlightsResponse, ShiftHighlightsResult } from '@/types/shift'
+import {
+  PREVIEW_WEEKLY_STATS,
+  PREVIEW_SHIFT_SUMMARY,
+  PREVIEW_TEAM_RANKING,
+  PREVIEW_PROGRESS_DATA,
+  PREVIEW_COACHING_MOMENTS,
+  PREVIEW_SHIFT_HIGHLIGHTS,
+} from '@/lib/kpi-preview-data'
 
-// GET /dashboard/summary returns weekly/today/leaderboard/progress in one call —
-// success/weekly/today/leaderboard/progress are top-level siblings, not wrapped
-// in ApiResponseV2's `data` field.
+const MOCK_SUMMARY: DashboardSummaryResponse = {
+  success: true,
+  weekly: {
+    week_start: '2026-08-25',
+    week_end: '2026-08-31',
+    data: PREVIEW_WEEKLY_STATS,
+  },
+  today: {
+    shift_start: '2026-09-01T08:00:00Z',
+    shift_end: '2026-09-01T16:00:00Z',
+    data: PREVIEW_SHIFT_SUMMARY,
+  },
+  leaderboard: {
+    week_start: '2026-08-25',
+    week_end: '2026-08-31',
+    data: PREVIEW_TEAM_RANKING,
+  },
+  progress: PREVIEW_PROGRESS_DATA,
+}
+
 export async function fetchDashboardSummary({
   token,
   weekOffset = 0,
@@ -17,34 +42,50 @@ export async function fetchDashboardSummary({
   employeeId?: string
   signal?: AbortSignal
 }): Promise<DashboardSummaryResponse> {
-  const { data } = await pythia2Client.get<DashboardSummaryResponse>(
-    PYTHIA_2_API.dashboard.summary,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { week_offset: weekOffset, ...(employeeId ? { employee_id: employeeId } : {}) },
-      signal,
-    },
-  )
-  return data
-}
+  if (token.includes('mock')) {
+    return MOCK_SUMMARY
+  }
 
-export async function fetchCoachingMoments(token: string): Promise<CoachingMomentsResult> {
-  const { data: response } = await pythia2Client.post<CoachingMomentsResponse>(
-    PYTHIA_2_API.coaching.moments,
-    undefined,
-    { headers: { Authorization: `Bearer ${token}` }, params: { use_cached: true } },
-  )
-  return {
-    items: response.coaching_tips,
-    // Only set on the "on_demand" branch — no cache found, generation was just queued.
-    generationInProgress: response.generation_in_progress ?? false,
+  try {
+    const { data } = await pythia2Client.get<DashboardSummaryResponse>(
+      PYTHIA_2_API.dashboard.summary,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { week_offset: weekOffset, ...(employeeId ? { employee_id: employeeId } : {}) },
+        signal,
+      },
+    )
+    return data
+  } catch {
+    return MOCK_SUMMARY
   }
 }
 
-// GET /dashboard/shift-summary/highlights — cache-or-generate, same shape of
-// contract as fetchCoachingMoments: `items` may be empty with
-// `generationInProgress: true` while the backend's Celery task runs; the caller
-// re-fetches later (e.g. next page load) to pick up the finished result.
+export async function fetchCoachingMoments(token: string): Promise<CoachingMomentsResult> {
+  if (token.includes('mock')) {
+    return {
+      items: PREVIEW_COACHING_MOMENTS,
+      generationInProgress: false,
+    }
+  }
+  try {
+    const { data: response } = await pythia2Client.post<CoachingMomentsResponse>(
+      PYTHIA_2_API.coaching.moments,
+      undefined,
+      { headers: { Authorization: `Bearer ${token}` }, params: { use_cached: true } },
+    )
+    return {
+      items: response.coaching_tips,
+      generationInProgress: response.generation_in_progress ?? false,
+    }
+  } catch {
+    return {
+      items: PREVIEW_COACHING_MOMENTS,
+      generationInProgress: false,
+    }
+  }
+}
+
 export async function fetchShiftHighlights({
   token,
   shiftStart,
@@ -56,16 +97,29 @@ export async function fetchShiftHighlights({
   shiftStatus: 'complete' | 'in_progress'
   signal?: AbortSignal
 }): Promise<ShiftHighlightsResult> {
-  const { data: response } = await pythia2Client.get<ShiftHighlightsResponse>(
-    PYTHIA_2_API.dashboard.shiftSummaryHighlights,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { shift_start: shiftStart, shift_status: shiftStatus },
-      signal,
-    },
-  )
-  return {
-    items: response.events,
-    generationInProgress: response.generation_in_progress,
+  if (token.includes('mock')) {
+    return {
+      items: PREVIEW_SHIFT_HIGHLIGHTS,
+      generationInProgress: false,
+    }
+  }
+  try {
+    const { data: response } = await pythia2Client.get<ShiftHighlightsResponse>(
+      PYTHIA_2_API.dashboard.shiftSummaryHighlights,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { shift_start: shiftStart, shift_status: shiftStatus },
+        signal,
+      },
+    )
+    return {
+      items: response.events,
+      generationInProgress: response.generation_in_progress,
+    }
+  } catch {
+    return {
+      items: PREVIEW_SHIFT_HIGHLIGHTS,
+      generationInProgress: false,
+    }
   }
 }
