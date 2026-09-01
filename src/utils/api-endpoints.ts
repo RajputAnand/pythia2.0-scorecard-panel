@@ -6,9 +6,6 @@ export const PYTHIA_2_API = {
     refresh: '/auth/refresh',
     forgotPassword: '/auth/forgot-password',
     resetPassword: '/auth/reset-password',
-    // Pythia 1.0's own profile endpoint — called via pythia1Client (not
-    // pythia2Client) with the token from POST /auth/login, since Pythia 1.0's
-    // login response carries no user data of its own. See P1ProfileResponse.
     p1Profile: '/profile/',
   },
   dashboard: {
@@ -69,6 +66,10 @@ export const PYTHIA_2_API = {
   superAdmin: {
     fieldConfig: '/super-admin/field-config',
     fieldConfigForRole: (roleName: string) => `/super-admin/field-config/${roleName}`,
+    demos: '/super-admin/demos',
+    manualSend: '/super-admin/manual-send',
+    bulkTrigger: '/super-admin/bulk-trigger',
+    sentStatus: '/super-admin/sent-status',
   },
   deviceHealth: {
     list: '/device-states',
@@ -87,10 +88,30 @@ export const PYTHIA_2_API = {
     recommendationsGenerate: '/staffing/recommendations/generate',
     recommendationApply: (id: string) => `/staffing/recommendations/${id}/apply`,
     recommendationDismiss: (id: string) => `/staffing/recommendations/${id}/dismiss`,
-    demos: '/super-admin/demos',
-    manualSend: '/super-admin/manual-send',
-    bulkTrigger: '/super-admin/bulk-trigger',
-    sentStatus: '/super-admin/sent-status',
+  },
+  tenants: {
+    list: '/tenants',
+    create: '/tenants',
+    detail: (tenantId: string) => `/tenants/${tenantId}`,
+    status: (tenantId: string) => `/tenants/${tenantId}/status`,
+    checklist: (tenantId: string) => `/tenants/${tenantId}/checklist`,
+  },
+  stores: {
+    list: '/stores',
+    create: '/stores',
+    bulkCreate: '/stores/bulk',
+    detail: (storeId: string) => `/stores/${storeId}`,
+    heartbeat: (storeId: string) => `/stores/${storeId}/heartbeat`,
+    pairingCode: (storeId: string) => `/stores/${storeId}/pairing-code`,
+  },
+  owners: {
+    list: '/owners',
+    create: '/owners',
+    archived: '/owners/archived',
+    detail: (userId: string) => `/owners/${userId}`,
+    credentials: (userId: string) => `/owners/${userId}/credentials`,
+    archive: (userId: string) => `/owners/${userId}/archive`,
+    unarchive: (userId: string) => `/owners/${userId}/unarchive`,
   },
   tenants: {
     list: '/super-admin/tenants',
