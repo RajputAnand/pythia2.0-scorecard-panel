@@ -840,12 +840,18 @@ export function fakeCreateOwner(params: CreateOwnerParams): Promise<CreateOwnerR
 }
 
 export function fakeGetOwnerCredentials(userId: string): Promise<OwnerCredentials> {
-  const tempPassword = tempPasswords.get(userId)
+  let tempPassword = tempPasswords.get(userId)
   if (!tempPassword) {
-    return Promise.reject({
-      response: { status: 409, data: { detail: 'No recoverable temporary password on file. Password has already been set.' } },
-      isAxiosError: true,
-    })
+    const owner = owners.find((o) => o.user_id === userId)
+    if (owner?.must_change_password || owner?.status === 'invited') {
+      tempPassword = 'own-temp-' + Math.random().toString(36).slice(2, 6)
+      tempPasswords.set(userId, tempPassword)
+    } else {
+      return Promise.reject({
+        response: { status: 409, data: { detail: 'No recoverable temporary password on file. Password has already been set.' } },
+        isAxiosError: true,
+      })
+    }
   }
   return delay({ user_id: userId, temp_password: tempPassword })
 }

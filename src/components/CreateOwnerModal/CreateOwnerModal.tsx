@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createOwner } from '@/queries/owners'
 import { createOwnerSchema, type CreateOwnerSchema } from '@/schemas/tenant'
 import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
+import Select from '@/components/shared/Select/Select'
 import MultiSelect from '@/components/shared/MultiSelect/MultiSelect'
 import CredentialsReveal from '@/components/shared/CredentialsReveal/CredentialsReveal'
 import { extractApiErrorMessage } from '@/utils/common'
@@ -147,6 +148,7 @@ export default function CreateOwnerModal({
                   Tenant / Company *
                 </label>
                 <Select
+                  value={selectedTenantId}
                   options={tenants.map((t) => ({ label: `${t.name} (${t.code})`, value: t.id }))}
                   onChange={(val) => setSelectedTenantId(String(val))}
                   ariaLabel="Select tenant"
@@ -157,6 +159,10 @@ export default function CreateOwnerModal({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[11.5px] font-medium text-secondary uppercase tracking-[.07em]">
+                    Stores Scope
+                  </span>
+                  <label className="flex items-center gap-1.5 text-[12px] text-secondary cursor-pointer">
+                    <input
                       type="checkbox"
                       checked={assignAll}
                       onChange={(e) => setAssignAll(e.target.checked)}
