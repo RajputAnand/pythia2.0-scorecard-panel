@@ -39,4 +39,10 @@ export const PYTHIA_2_API = {
     leaderboard: '/manager-dashboard/leaderboard',
     trend: '/manager-dashboard/trend',
   },
+  superAdmin: {
+    demos: '/super-admin/demos',
+    manualSend: '/super-admin/manual-send',
+    bulkTrigger: '/super-admin/bulk-trigger',
+    sentStatus: '/super-admin/sent-status',
+  },
 } as const

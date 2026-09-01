@@ -8,6 +8,7 @@ export const ROLE_DEFAULT_ROUTES: Record<UserRole, string> = {
   employee: '/dashboard/overview',
   owner: '/owner/roi-attribution',
   manager: '/manager/coaching-tracker',
+  superadmin: '/super-admin/post-demo-recaps',
 }
 
 /** Each role's dedicated login page (see proxy.ts's unauthenticated redirect rules). */
@@ -15,4 +16,5 @@ export const ROLE_LOGIN_ROUTES: Record<UserRole, string> = {
   employee: '/login/employee',
   owner: '/login/owner',
   manager: '/login/manager',
+  superadmin: '/login/superadmin',
 }
