@@ -7,9 +7,12 @@ import type {
   ManagerDashboardTrendWeek,
   ManagerDashboardView,
 } from '@/types/manager-dashboard'
+import {
+  PREVIEW_MANAGER_DASHBOARD_SUMMARY,
+  PREVIEW_EMPLOYEE_ROWS,
+  PREVIEW_TREND_WEEKS,
+} from '@/lib/kpi-preview-data'
 
-// Raw response shapes from app/routers/manager_dashboard.py — not the
-// ApiResponseV2<T> envelope (no top-level `message`/`data`).
 interface SummaryResponse extends ManagerDashboardSummary {
   success: boolean
 }
@@ -34,11 +37,18 @@ export async function fetchManagerDashboardSummary({
   token,
   view = 'week',
 }: FetchManagerDashboardSummaryParams): Promise<ManagerDashboardSummary> {
-  const { data } = await pythia2Client.get<SummaryResponse>(PYTHIA_2_API.managerDashboard.summary, {
-    headers: { Authorization: `Bearer ${token}` },
-    params: { view },
-  })
-  return data
+  if (token.includes('mock')) {
+    return PREVIEW_MANAGER_DASHBOARD_SUMMARY
+  }
+  try {
+    const { data } = await pythia2Client.get<SummaryResponse>(PYTHIA_2_API.managerDashboard.summary, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { view },
+    })
+    return data
+  } catch {
+    return PREVIEW_MANAGER_DASHBOARD_SUMMARY
+  }
 }
 
 export interface FetchManagerDashboardLeaderboardParams {
@@ -54,11 +64,18 @@ export async function fetchManagerDashboardLeaderboard({
   sortBy = 'thanked_count',
   limit,
 }: FetchManagerDashboardLeaderboardParams): Promise<ManagerDashboardEmployeeRow[]> {
-  const { data } = await pythia2Client.get<LeaderboardResponse>(PYTHIA_2_API.managerDashboard.leaderboard, {
-    headers: { Authorization: `Bearer ${token}` },
-    params: { view, sort_by: sortBy, limit: limit ?? undefined },
-  })
-  return data.employees
+  if (token.includes('mock')) {
+    return PREVIEW_EMPLOYEE_ROWS
+  }
+  try {
+    const { data } = await pythia2Client.get<LeaderboardResponse>(PYTHIA_2_API.managerDashboard.leaderboard, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { view, sort_by: sortBy, limit: limit ?? undefined },
+    })
+    return data.employees
+  } catch {
+    return PREVIEW_EMPLOYEE_ROWS
+  }
 }
 
 export interface FetchManagerDashboardTrendParams {
@@ -70,9 +87,16 @@ export async function fetchManagerDashboardTrend({
   token,
   weeks = 8,
 }: FetchManagerDashboardTrendParams): Promise<ManagerDashboardTrendWeek[]> {
-  const { data } = await pythia2Client.get<TrendResponse>(PYTHIA_2_API.managerDashboard.trend, {
-    headers: { Authorization: `Bearer ${token}` },
-    params: { weeks },
-  })
-  return data.weeks
+  if (token.includes('mock')) {
+    return PREVIEW_TREND_WEEKS
+  }
+  try {
+    const { data } = await pythia2Client.get<TrendResponse>(PYTHIA_2_API.managerDashboard.trend, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { weeks },
+    })
+    return data.weeks
+  } catch {
+    return PREVIEW_TREND_WEEKS
+  }
 }

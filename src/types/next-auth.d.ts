@@ -15,6 +15,9 @@ declare module "next-auth" {
     score?: number
     jobTitle?: string
     points: number
+    tenantId?: string
+    tenantName?: string
+    tenantCode?: string
   }
 }
 
@@ -28,5 +31,8 @@ declare module "next-auth/jwt" {
     score?: number
     jobTitle?: string
     points?: number
+    tenantId?: string
+    tenantName?: string
+    tenantCode?: string
   }
 }

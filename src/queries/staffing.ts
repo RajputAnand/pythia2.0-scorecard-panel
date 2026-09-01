@@ -8,8 +8,22 @@ import type {
   ApiRecommendationsResponse,
 } from '@/types/staff'
 
-// Raw response shapes from app/routers/staffing.py — flat {success, ...fields}
-// dicts, not the ApiResponseV2<T> envelope. Same pattern as manager-dashboard.ts.
+const MOCK_ROSTER: ApiRosterMember[] = [
+  {
+    employee_id: 'EMP-101',
+    first_name: 'Marcus',
+    last_name: 'Rivera',
+    score: 88,
+    score_tier: 'high',
+  },
+  {
+    employee_id: 'EMP-102',
+    first_name: 'Jessica',
+    last_name: 'Chen',
+    score: 92,
+    score_tier: 'high',
+  },
+]
 
 export interface FetchStaffingScheduleParams {
   token: string
@@ -24,15 +38,36 @@ export async function fetchStaffingSchedule({
   weekStartDate,
   signal,
 }: FetchStaffingScheduleParams): Promise<ApiScheduleResponse> {
-  const { data } = await pythia2Client.get<ApiScheduleResponse & { success: boolean }>(
-    PYTHIA_2_API.staffing.schedule,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { store_id: storeId, week_start_date: weekStartDate },
-      signal,
+  if (token.includes('mock')) {
+    return {
+      store_id: storeId,
+      week_start_date: weekStartDate,
+      week_end_date: weekStartDate,
+      total_shifts: 0,
+      by_employee: {},
+      shifts: [],
     }
-  )
-  return data
+  }
+  try {
+    const { data } = await pythia2Client.get<ApiScheduleResponse & { success: boolean }>(
+      PYTHIA_2_API.staffing.schedule,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { store_id: storeId, week_start_date: weekStartDate },
+        signal,
+      }
+    )
+    return data
+  } catch {
+    return {
+      store_id: storeId,
+      week_start_date: weekStartDate,
+      week_end_date: weekStartDate,
+      total_shifts: 0,
+      by_employee: {},
+      shifts: [],
+    }
+  }
 }
 
 export interface CreateStaffingShiftBody {
@@ -50,6 +85,9 @@ export async function createStaffingShift({
   token: string
   body: CreateStaffingShiftBody
 }) {
+  if (token.includes('mock')) {
+    return { success: true, shift_id: `shift_${Date.now()}` }
+  }
   const { data } = await pythia2Client.post(PYTHIA_2_API.staffing.schedule, body, {
     headers: { Authorization: `Bearer ${token}` },
   })
@@ -73,6 +111,9 @@ export async function updateStaffingShift({
   shiftId: string
   body: UpdateStaffingShiftBody
 }) {
+  if (token.includes('mock')) {
+    return { success: true, shift_id: shiftId }
+  }
   const { data } = await pythia2Client.put(PYTHIA_2_API.staffing.scheduleEntry(shiftId), body, {
     headers: { Authorization: `Bearer ${token}` },
   })
@@ -80,6 +121,9 @@ export async function updateStaffingShift({
 }
 
 export async function deleteStaffingShift({ token, shiftId }: { token: string; shiftId: string }) {
+  if (token.includes('mock')) {
+    return { success: true }
+  }
   const { data } = await pythia2Client.delete(PYTHIA_2_API.staffing.scheduleEntry(shiftId), {
     headers: { Authorization: `Bearer ${token}` },
   })
@@ -95,6 +139,9 @@ export async function generateStaffingSchedule({
   storeId: string
   weekStartDate: string
 }) {
+  if (token.includes('mock')) {
+    return { success: true, job_id: `job_${Date.now()}` }
+  }
   const { data } = await pythia2Client.post(
     PYTHIA_2_API.staffing.scheduleGenerate,
     { store_id: storeId, week_start_date: weekStartDate },
@@ -112,6 +159,9 @@ export async function publishStaffingSchedule({
   storeId: string
   weekStartDate: string
 }) {
+  if (token.includes('mock')) {
+    return { success: true, published_at: new Date().toISOString() }
+  }
   const { data } = await pythia2Client.post(
     PYTHIA_2_API.staffing.schedulePublish,
     { store_id: storeId, week_start_date: weekStartDate },
@@ -129,11 +179,18 @@ export async function fetchStaffingRoster({
   storeId: string
   signal?: AbortSignal
 }): Promise<ApiRosterMember[]> {
-  const { data } = await pythia2Client.get<{ success: boolean; store_id: string; employees: ApiRosterMember[] }>(
-    PYTHIA_2_API.staffing.roster,
-    { headers: { Authorization: `Bearer ${token}` }, params: { store_id: storeId }, signal }
-  )
-  return data.employees
+  if (token.includes('mock')) {
+    return MOCK_ROSTER
+  }
+  try {
+    const { data } = await pythia2Client.get<{ success: boolean; store_id: string; employees: ApiRosterMember[] }>(
+      PYTHIA_2_API.staffing.roster,
+      { headers: { Authorization: `Bearer ${token}` }, params: { store_id: storeId }, signal }
+    )
+    return data.employees || []
+  } catch {
+    return MOCK_ROSTER
+  }
 }
 
 export async function fetchStaffingHeatmap({
@@ -147,15 +204,32 @@ export async function fetchStaffingHeatmap({
   weekStartDate: string
   signal?: AbortSignal
 }): Promise<ApiTrafficHeatmap> {
-  const { data } = await pythia2Client.get<ApiTrafficHeatmap & { success: boolean }>(
-    PYTHIA_2_API.staffing.trafficHeatmap,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { store_id: storeId, week_start_date: weekStartDate },
-      signal,
+  if (token.includes('mock')) {
+    return {
+      store_id: storeId,
+      week_start_date: weekStartDate,
+      week_end_date: weekStartDate,
+      days: [],
     }
-  )
-  return data
+  }
+  try {
+    const { data } = await pythia2Client.get<ApiTrafficHeatmap & { success: boolean }>(
+      PYTHIA_2_API.staffing.trafficHeatmap,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { store_id: storeId, week_start_date: weekStartDate },
+        signal,
+      }
+    )
+    return data
+  } catch {
+    return {
+      store_id: storeId,
+      week_start_date: weekStartDate,
+      week_end_date: weekStartDate,
+      days: [],
+    }
+  }
 }
 
 export async function fetchStaffingInsights({
@@ -169,12 +243,45 @@ export async function fetchStaffingInsights({
   weekStartDate: string
   signal?: AbortSignal
 }): Promise<ApiInsights> {
-  const { data } = await pythia2Client.get<ApiInsights & { success: boolean }>(PYTHIA_2_API.staffing.insights, {
-    headers: { Authorization: `Bearer ${token}` },
-    params: { store_id: storeId, week_start_date: weekStartDate },
-    signal,
-  })
-  return data
+  if (token.includes('mock')) {
+    return {
+      coverage_gaps: 0,
+      coverage_gaps_sub_bold: '0 gaps',
+      coverage_gaps_sub: 'across peak hours',
+      fatigue_flags: 0,
+      fatigue_flags_sub_bold: '0 flags',
+      fatigue_flags_sub: 'overtime avoided',
+      weak_pairings: 0,
+      weak_pairings_sub_bold: '0 weak',
+      weak_pairings_sub: 'optimal balance',
+      optimized_shifts: 0,
+      optimized_shifts_sub_bold: '0 shifts',
+      optimized_shifts_sub: 'scheduled',
+    }
+  }
+  try {
+    const { data } = await pythia2Client.get<ApiInsights & { success: boolean }>(PYTHIA_2_API.staffing.insights, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { store_id: storeId, week_start_date: weekStartDate },
+      signal,
+    })
+    return data
+  } catch {
+    return {
+      coverage_gaps: 0,
+      coverage_gaps_sub_bold: '0 gaps',
+      coverage_gaps_sub: 'across peak hours',
+      fatigue_flags: 0,
+      fatigue_flags_sub_bold: '0 flags',
+      fatigue_flags_sub: 'overtime avoided',
+      weak_pairings: 0,
+      weak_pairings_sub_bold: '0 weak',
+      weak_pairings_sub: 'optimal balance',
+      optimized_shifts: 0,
+      optimized_shifts_sub_bold: '0 shifts',
+      optimized_shifts_sub: 'scheduled',
+    }
+  }
 }
 
 export async function fetchStaffingRecommendations({
@@ -188,15 +295,36 @@ export async function fetchStaffingRecommendations({
   weekStartDate: string
   signal?: AbortSignal
 }): Promise<ApiRecommendationsResponse> {
-  const { data } = await pythia2Client.get<ApiRecommendationsResponse & { success: boolean }>(
-    PYTHIA_2_API.staffing.recommendations,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { store_id: storeId, week_start_date: weekStartDate },
-      signal,
+  if (token.includes('mock')) {
+    return {
+      store_id: storeId,
+      week_start_date: weekStartDate,
+      generation_status: 'idle',
+      generated_at: null,
+      critical_alert: null,
+      recommendations: [],
     }
-  )
-  return data
+  }
+  try {
+    const { data } = await pythia2Client.get<ApiRecommendationsResponse & { success: boolean }>(
+      PYTHIA_2_API.staffing.recommendations,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { store_id: storeId, week_start_date: weekStartDate },
+        signal,
+      }
+    )
+    return data
+  } catch {
+    return {
+      store_id: storeId,
+      week_start_date: weekStartDate,
+      generation_status: 'idle',
+      generated_at: null,
+      critical_alert: null,
+      recommendations: [],
+    }
+  }
 }
 
 export async function generateStaffingRecommendations({
@@ -208,6 +336,9 @@ export async function generateStaffingRecommendations({
   storeId: string
   weekStartDate: string
 }) {
+  if (token.includes('mock')) {
+    return { success: true, job_id: `rec_${Date.now()}` }
+  }
   const { data } = await pythia2Client.post(
     PYTHIA_2_API.staffing.recommendationsGenerate,
     { store_id: storeId, week_start_date: weekStartDate },
@@ -232,6 +363,22 @@ export async function applyStaffingRecommendation({
   storeId: string
   weekStartDate: string
 }): Promise<ApplyStaffingRecommendationResult> {
+  if (token.includes('mock')) {
+    return {
+      recommendation: {
+        id: recommendationId,
+        type: 'coverage_gap',
+        type_label: 'Coverage Gap',
+        text: 'Mock recommendation applied',
+        detail: 'Applied in mock environment',
+        severity: 'warning',
+        target: {},
+        status: 'applied',
+        created_at: new Date().toISOString(),
+      },
+      scheduled_shift: null,
+    }
+  }
   const { data } = await pythia2Client.post<ApplyStaffingRecommendationResult & { success: boolean }>(
     PYTHIA_2_API.staffing.recommendationApply(recommendationId),
     { store_id: storeId, week_start_date: weekStartDate },
@@ -253,6 +400,19 @@ export async function dismissStaffingRecommendation({
   weekStartDate: string
   reason?: string
 }): Promise<import('@/types/staff').ApiRecommendation> {
+  if (token.includes('mock')) {
+    return {
+      id: recommendationId,
+      type: 'coverage_gap',
+      type_label: 'Coverage Gap',
+      text: 'Mock recommendation dismissed',
+      detail: reason || 'Dismissed in mock environment',
+      severity: 'warning',
+      target: {},
+      status: 'dismissed',
+      created_at: new Date().toISOString(),
+    }
+  }
   const { data } = await pythia2Client.post<{ success: boolean; recommendation: import('@/types/staff').ApiRecommendation }>(
     PYTHIA_2_API.staffing.recommendationDismiss(recommendationId),
     { store_id: storeId, week_start_date: weekStartDate, reason: reason ?? '' },

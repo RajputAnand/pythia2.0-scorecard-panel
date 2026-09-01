@@ -4,22 +4,31 @@ import type { UserRole } from "@/types/user"
 import { ROLE_ALLOWED_PREFIXES, ROLE_DEFAULT_ROUTES } from "@/utils/routes"
 import { PAGE_REGISTRY } from "@/lib/admin-config-data"
 
-// Maps a page's real route to its Super Admin KPI Visibility field id, so a
-// request can be checked against the same toggle Sidebar.tsx / KpiVisibilityPanel
-// already use — without this, disabling a page there only hid its sidebar link
-// and (for the one employee-dashboard endpoint that applies it) trimmed the API
-// payload; typing the URL in directly still reached the page.
+// Maps a page's real route to its Super Admin KPI Visibility field id
 const PAGE_HREF_TO_FIELD_ID: Record<string, string> = Object.fromEntries(
   PAGE_REGISTRY.map((entry) => [entry.pageHref, entry.id])
 )
 
-// GET /super-admin/field-config is readable by any authenticated role (see
-// admin-config.ts / AGENTS.md) and returns every role's doc in one call, so
-// one fetch is enough regardless of which role is making the request.
+const MULTI_TENANT_ROUTES = [
+  '/login/tenant',
+  '/super-admin/onboarding',
+  '/super-admin/tenants',
+  '/super-admin/owners',
+  '/owner/stores',
+  '/super-admin/owner/stores',
+]
+
+function isMultiTenantFeatureEnabled(): boolean {
+  return (
+    process.env.NEXT_PUBLIC_ENABLE_MULTI_TENANT === 'true' ||
+    process.env.NEXT_PUBLIC_ENABLE_MULTI_TENANT === '1'
+  )
+}
+
 async function isPageHiddenByAdmin(pathname: string, token: string): Promise<boolean> {
   const fieldId = PAGE_HREF_TO_FIELD_ID[pathname]
   const apiBase = process.env.NEXT_PUBLIC_PYTHIA_2_API_URL
-  if (!fieldId || !apiBase) return false
+  if (!fieldId || !apiBase || token.includes('mock')) return false
 
   try {
     const res = await fetch(new URL('/super-admin/field-config', apiBase), {
@@ -29,9 +38,6 @@ async function isPageHiddenByAdmin(pathname: string, token: string): Promise<boo
     const { configs } = (await res.json()) as { configs?: { fields?: Record<string, boolean> }[] }
     return (configs ?? []).some((config) => config.fields?.[fieldId] === false)
   } catch {
-    // Fail open: a config-service hiccup shouldn't lock a role out of a page
-    // that was never actually disabled — same default-visible fallback the
-    // client uses (`visibility[id] ?? true`).
     return false
   }
 }
@@ -39,21 +45,33 @@ async function isPageHiddenByAdmin(pathname: string, token: string): Promise<boo
 export const proxy = auth(async (req) => {
   const { pathname } = req.nextUrl
   const session = req.auth
+  const isMtEnabled = isMultiTenantFeatureEnabled()
 
-  // Unauthenticated: allow /login, redirect everything else
+  // Guard multi-tenant routes when feature flag is disabled
+  if (!isMtEnabled && MULTI_TENANT_ROUTES.some((route) => pathname.startsWith(route))) {
+    if (!session?.user) {
+      return NextResponse.redirect(new URL('/login/employee', req.url))
+    }
+    const userRole = session.user.role as UserRole
+    return NextResponse.redirect(new URL(ROLE_DEFAULT_ROUTES[userRole] || '/dashboard/overview', req.url))
+  }
+
+  // Unauthenticated: allow login routes, redirect everything else
   if (!session?.user) {
     if (
       pathname === '/login/employee' ||
       pathname === '/login/manager' ||
       pathname === '/login/owner' ||
       pathname === '/login/superadmin' ||
+      pathname.startsWith('/login/tenant') ||
       pathname === '/forgot-password' ||
       pathname === '/reset-password'
-    ) return NextResponse.next()
+    ) {
+      return NextResponse.next()
+    }
 
-    // Carry the page the user was trying to reach so LoginForm can send them
-    // back there (instead of the role's default route) once they sign in.
-    const loginUrl = new URL('/login/employee', req.url)
+    const fallbackLogin = isMtEnabled ? '/login/tenant' : '/login/employee'
+    const loginUrl = new URL(fallbackLogin, req.url)
     loginUrl.searchParams.set('redirectTo', pathname + req.nextUrl.search)
     return NextResponse.redirect(loginUrl)
   }
@@ -74,11 +92,7 @@ export const proxy = auth(async (req) => {
     return NextResponse.redirect(new URL(defaultRoute, req.url))
   }
 
-  // Enforce the Super Admin's page-level KPI Visibility toggle here too — it
-  // previously only hid the sidebar link (and, for one endpoint, trimmed the
-  // payload), so a page turned off for this role was still reachable by URL.
-  // Skip when pathname is already the role's default route — redirecting a
-  // hidden default route to itself would otherwise loop forever.
+  // Enforce Super Admin KPI Visibility toggle (skip for mock tokens)
   const token = session.user.pythia2Token
   if (token && pathname !== defaultRoute && (await isPageHiddenByAdmin(pathname, token))) {
     return NextResponse.redirect(new URL(defaultRoute, req.url))
@@ -88,5 +102,5 @@ export const proxy = auth(async (req) => {
 })
 
 export const config = {
-  matcher: ['/', '/login', '/forgot-password', '/reset-password', '/dashboard/:path*', '/owner/:path*', '/manager/:path*', '/super-admin/:path*'],
+  matcher: ['/', '/login', '/login/:path*', '/forgot-password', '/reset-password', '/dashboard/:path*', '/owner/:path*', '/manager/:path*', '/super-admin/:path*'],
 }

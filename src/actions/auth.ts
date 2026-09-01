@@ -6,6 +6,7 @@ import { User } from "@/types/user"
 import { pythia1Client, pythia2Client } from "@/lib/api-client"
 import { PYTHIA_2_API } from "@/utils/api-endpoints"
 import { extractApiErrorMessage } from "@/utils/common"
+import { fakeTenantLogin } from "@/mock/tenantAPIs"
 import type { ForgotPasswordResult, ResetPasswordResult, LoginResponse, P1LoginResponse, P1ProfileResponse } from "@/types/auth"
 
 // Manager and Owner auth are normally fully on Pythia 1.0: no Pythia 2.0 JWT is ever
@@ -152,6 +153,66 @@ export async function login(_prev: string | null | undefined, formData: FormData
   } catch (error) {
     if (error instanceof AuthError) {
       return 'Invalid email or password.'
+    }
+    throw error
+  }
+}
+
+/**
+ * Multi-Tenant login action: takes orgId, identifier, password, role.
+ * Works with real backend when available, or seamlessly resolves through
+ * mock layer while backend is WIP.
+ */
+export async function loginTenant(_prev: string | null | undefined, formData: FormData): Promise<string | null> {
+  try {
+    const orgId = (formData.get('orgId') as string) || ''
+    const identifier = (formData.get('email') as string) || ''
+    const password = (formData.get('password') as string) || ''
+    const role = ((formData.get('role') as string) || 'employee').toLowerCase()
+
+    if (!orgId.trim()) {
+      return 'Organization ID is required.'
+    }
+    if (!identifier.trim()) {
+      return 'Email or username is required.'
+    }
+    if (!password) {
+      return 'Password is required.'
+    }
+
+    // Try mock tenant login resolver
+    const res = await fakeTenantLogin(orgId, identifier, password, role)
+    if (!res.success || !res.user) {
+      return res.error || 'Invalid credentials or organization.'
+    }
+
+    const u = res.user
+    await signIn('credentials', {
+      email: u.email,
+      password,
+      userData: JSON.stringify({
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        role: u.role,
+        token: u.token,
+        pythia2Token: u.token,
+        refreshToken: u.refreshToken,
+        initials: u.initials,
+        score: u.role === 'employee' ? 88 : undefined,
+        jobTitle: `${u.tenantName} ${u.role}`,
+        points: u.points || 0,
+        tenantId: u.tenantId,
+        tenantName: u.tenantName,
+        tenantCode: u.tenantCode,
+      }),
+      redirect: false,
+    })
+
+    return null
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return 'Invalid organization, email, or password.'
     }
     throw error
   }

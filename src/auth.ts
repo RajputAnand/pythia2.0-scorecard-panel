@@ -37,6 +37,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.score = user.score
         token.jobTitle = user.jobTitle
         token.points = user.points
+        token.tenantId = user.tenantId
+        token.tenantName = user.tenantName
+        token.tenantCode = user.tenantCode
       }
       return token
     },
@@ -50,6 +53,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.score = t.score
       session.user.jobTitle = t.jobTitle
       session.user.points = t.points || 0
+      session.user.tenantId = t.tenantId
+      session.user.tenantName = t.tenantName
+      session.user.tenantCode = t.tenantCode
       return session
     },
   },

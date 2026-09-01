@@ -2,6 +2,7 @@
 export const PYTHIA_2_API = {
   auth: {
     login: '/auth/login',
+    loginTenant: '/auth/tenant-login',
     refresh: '/auth/refresh',
     forgotPassword: '/auth/forgot-password',
     resetPassword: '/auth/reset-password',
@@ -86,5 +87,35 @@ export const PYTHIA_2_API = {
     recommendationsGenerate: '/staffing/recommendations/generate',
     recommendationApply: (id: string) => `/staffing/recommendations/${id}/apply`,
     recommendationDismiss: (id: string) => `/staffing/recommendations/${id}/dismiss`,
+  },
+  tenants: {
+    list: '/super-admin/tenants',
+    detail: (id: string) => `/super-admin/tenants/${id}`,
+    create: '/super-admin/tenants',
+    updateStatus: (id: string) => `/super-admin/tenants/${id}/status`,
+    checklist: (id: string) => `/super-admin/tenants/${id}/checklist`,
+  },
+  stores: {
+    list: '/stores',
+    detail: (id: string) => `/stores/${id}`,
+    create: '/stores',
+    bulkCreate: '/stores/bulk',
+    pairingCode: (id: string) => `/stores/${id}/pairing-code`,
+    simulateHeartbeat: (id: string) => `/stores/${id}/heartbeat`,
+    updateStatus: (id: string) => `/stores/${id}/status`,
+  },
+  owners: {
+    list: '/super-admin/owners',
+    archived: '/super-admin/owners/archived',
+    detail: (userId: string) => `/super-admin/owners/${userId}`,
+    create: '/super-admin/owners',
+    credentials: (userId: string) => `/super-admin/owners/${userId}/credentials`,
+    archive: (userId: string) => `/super-admin/owners/${userId}/archive`,
+    unarchive: (userId: string) => `/super-admin/owners/${userId}/unarchive`,
+  },
+  onboarding: {
+    wizardState: (tenantId: string) => `/super-admin/onboarding/${tenantId}`,
+    stepUpdate: (tenantId: string) => `/super-admin/onboarding/${tenantId}/step`,
+    complete: (tenantId: string) => `/super-admin/onboarding/${tenantId}/complete`,
   },
 } as const
