@@ -8,6 +8,7 @@ import { loginSchema, employeeLoginSchema, type LoginSchema } from '@/schemas/au
 import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
 import type { FormField } from '@/types/dynamic-form'
 import { getSafeRedirect } from '@/utils/routes'
+import { isMultiTenantEnabled } from '@/store/tenantStore'
 
 interface LoginFormProps {
   role: 'employee' | 'manager' | 'owner' | 'superadmin'
@@ -41,6 +42,7 @@ export default function LoginForm({ role }: LoginFormProps) {
   const [isPending, startTransition] = useTransition()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo')
+  const mtEnabled = isMultiTenantEnabled()
 
   const config = roleConfig[role]
   const schema = role === 'employee' ? employeeLoginSchema : loginSchema
@@ -81,19 +83,7 @@ export default function LoginForm({ role }: LoginFormProps) {
     startTransition(async () => {
       const result = await login(undefined, formData)
 
-
       if (result === null) {
-        // Hard navigation: a soft router.push() leaves next-auth/react's
-        // SessionProvider serving the previous (stale) session, since the
-        // redirect:false signIn() only updates the cookie, not the client
-        // session cache. A full navigation forces SessionProvider to remount
-        // and read the freshly-set cookie.
-        // Navigate straight to this role's default route (or back to the page
-        // that redirected here, via `redirectTo`) rather than '/' — login()
-        // only returns null once the backend has confirmed `role` matches the
-        // account, so this is trustworthy without waiting on the proxy to
-        // re-derive the role from the just-set session cookie (which can
-        // momentarily still look unauthenticated and bounce to /login/employee).
         window.location.href = getSafeRedirect(redirectTo, role)
       } else if (typeof result === 'string') {
         setServerError(result)
@@ -118,12 +108,23 @@ export default function LoginForm({ role }: LoginFormProps) {
           </div>
         </div>
 
-        {/* Role Badge */}
-        <div className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 bg-surface-alt border border-border rounded-full">
-          <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${config.color}`} />
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-secondary">
-            {role} Mode
-          </span>
+        {/* Role Badge & Optional Multi-Tenant Switcher */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-alt border border-border rounded-full">
+            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${config.color}`} />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-secondary">
+              {role} Mode
+            </span>
+          </div>
+
+          {mtEnabled && (
+            <Link
+              href={redirectTo ? `/login/tenant?redirectTo=${encodeURIComponent(redirectTo)}` : '/login/tenant'}
+              className="text-[11.5px] font-medium text-accent hover:text-accent-mid transition-colors"
+            >
+              Org Login →
+            </Link>
+          )}
         </div>
 
         {/* Heading */}
@@ -150,10 +151,11 @@ export default function LoginForm({ role }: LoginFormProps) {
               <Link
                 key={r}
                 href={redirectTo ? `/login/${r}?redirectTo=${encodeURIComponent(redirectTo)}` : `/login/${r}`}
-                className={`flex-1 px-2 py-2 text-[11px] font-semibold rounded-lg border transition-colors text-center capitalize ${r === role
-                  ? 'bg-accent text-white border-accent'
-                  : 'border-border text-secondary hover:bg-surface-alt'
-                  }`}
+                className={`flex-1 px-2 py-2 text-[11px] font-semibold rounded-lg border transition-colors text-center capitalize ${
+                  r === role
+                    ? 'bg-accent text-white border-accent'
+                    : 'border-border text-secondary hover:bg-surface-alt'
+                }`}
               >
                 {r}
               </Link>

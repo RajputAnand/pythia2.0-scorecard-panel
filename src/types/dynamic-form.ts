@@ -12,17 +12,19 @@ export type FormField = {
   /** Optional extra elements rendered beside the label (e.g. a "Forgot password?" link). */
   labelSiblings?: JSX.Element[]
   placeholder: string
+  /** Optional default initial value */
+  defaultValue?: string
 }
 
 /** Props accepted by DynamicForm. */
-export type DynamicFormProps<T extends z.ZodTypeAny = any> = {
+export type DynamicFormProps<T extends z.ZodTypeAny = z.ZodTypeAny> = {
   /** Field descriptors — order determines render order. */
   fields: FormField[]
   /**
-   * Optional Zod schema.  When provided:
-   *  - validation runs on blur
-   *  - field-level errors are displayed inline
-   *  - the validated, typed data is passed to `onSubmit`
+   * Optional Zod schema. When provided:
+   * - validation runs on blur
+   * - field-level errors are displayed inline
+   * - the validated, typed data is passed to `onSubmit`
    *
    * When omitted the raw `Record<string, string>` values are passed instead.
    */
