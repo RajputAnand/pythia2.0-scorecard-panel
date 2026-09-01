@@ -305,6 +305,17 @@ function getSuperAdminNavByView(mtEnabled: boolean): Record<SuperAdminView, NavS
                 </svg>
               ),
             },
+            {
+              label: 'Managers',
+              href: '/super-admin/owner/managers',
+              mirrorsHref: '/owner/managers',
+              icon: (
+                <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+                </svg>
+              ),
+            },
           ],
         },
       ],
@@ -439,6 +450,17 @@ function getSuperAdminNavByView(mtEnabled: boolean): Record<SuperAdminView, NavS
         section: 'Owner View',
         items: [
           {
+            label: 'Managers',
+            href: '/super-admin/owner/managers',
+            mirrorsHref: '/owner/managers',
+            icon: (
+              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+              </svg>
+            ),
+          },
+          {
             label: 'ROI Attribution',
             href: '/super-admin/owner/roi-attribution',
             mirrorsHref: '/owner/roi-attribution',
@@ -466,18 +488,24 @@ function getSuperAdminNavByView(mtEnabled: boolean): Record<SuperAdminView, NavS
   }
 }
 
-const VIEW_DEFAULT_ROUTES: Record<UserRole, string> = {
-  owner: '/owner/stores',
-  manager: '/manager/employees',
-  employee: '/dashboard/overview',
-  superadmin: '/super-admin/tenants',
+function getViewDefaultRoutes(): Record<UserRole, string> {
+  const mt = isMultiTenantEnabled()
+  return {
+    owner: mt ? '/owner/stores' : '/owner/managers',
+    manager: mt ? '/manager/employees' : '/manager/coaching-tracker',
+    employee: '/dashboard/overview',
+    superadmin: mt ? '/super-admin/tenants' : '/super-admin/kpi-visibility',
+  }
 }
 
-const SUPERADMIN_VIEW_DEFAULT_ROUTES: Record<SuperAdminView, string> = {
-  admin: '/super-admin/tenants',
-  manager: '/super-admin/manager/employees',
-  employee: '/super-admin/employee/overview',
-  owner: '/super-admin/owner/stores',
+function getSuperAdminViewDefaultRoutes(): Record<SuperAdminView, string> {
+  const mt = isMultiTenantEnabled()
+  return {
+    admin: mt ? '/super-admin/tenants' : '/super-admin/kpi-visibility',
+    manager: mt ? '/super-admin/manager/employees' : '/super-admin/manager/dashboard',
+    employee: '/super-admin/employee/overview',
+    owner: mt ? '/super-admin/owner/stores' : '/super-admin/owner/managers',
+  }
 }
 
 const SUPERADMIN_VIEW_OPTIONS: { id: SuperAdminView; label: string; icon: ReactNode }[] = [
@@ -592,16 +620,18 @@ export default function Sidebar({ user }: { user: User }) {
   function handleViewToggle(view: UserRole) {
     if (user.role !== 'owner') return
     setActiveView(view)
+    const routes = getViewDefaultRoutes()
     startTransition(() => {
-      router.push(VIEW_DEFAULT_ROUTES[view])
+      router.push(routes[view])
     })
   }
 
   function handleSuperAdminViewToggle(view: SuperAdminView) {
     if (user.role === 'superadmin' || view === superAdminView) {
       setSuperAdminView(view)
+      const routes = getSuperAdminViewDefaultRoutes()
       startTransition(() => {
-        router.push(SUPERADMIN_VIEW_DEFAULT_ROUTES[view])
+        router.push(routes[view])
       })
     }
   }

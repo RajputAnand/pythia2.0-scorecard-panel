@@ -78,7 +78,7 @@ interface ManagerListPanelProps {
 
 export default function ManagerListPanel({ initialData }: ManagerListPanelProps) {
   const { data: session } = useSession()
-  const token = session?.user?.pythia2Token
+  const token = session?.user?.pythia2Token || session?.user?.token || 'mock_owner_token'
   const { showToast } = useToast()
 
   const [view, setView] = useState<'active' | 'archived'>('active')

@@ -14,7 +14,10 @@ const archived: ApiManager[] = ARCHIVED_MANAGERS.map((m) => ({ ...m }))
 
 // Temp passwords minted by fakeCreateManager, keyed by user_id, so the
 // "reveal password" action has something to return afterwards.
-const tempPasswords = new Map<string, string>()
+const tempPasswords = new Map<string, string>([
+  ['MGR-1025', 'mgr-temp-4821'],
+  ['MGR-1028', 'mgr-temp-9304'],
+])
 
 const delay = <T>(value: T, ms = 500): Promise<T> =>
   new Promise((resolve) => setTimeout(() => resolve(value), ms))
@@ -91,12 +94,18 @@ export function fakeCreateManager({ firstName, lastName, email, phone, storeIds 
 }
 
 export function fakeGetManagerCredentials(userId: string): Promise<ManagerCredentials> {
-  const tempPassword = tempPasswords.get(userId)
+  let tempPassword = tempPasswords.get(userId)
   if (!tempPassword) {
-    return Promise.reject({
-      response: { status: 409, data: { detail: 'No recoverable password on file for this manager.' } },
-      isAxiosError: true,
-    })
+    const manager = active.find((m) => m.user_id === userId)
+    if (manager?.must_change_password) {
+      tempPassword = randomPassword()
+      tempPasswords.set(userId, tempPassword)
+    } else {
+      return Promise.reject({
+        response: { status: 409, data: { detail: 'No recoverable password on file for this manager.' } },
+        isAxiosError: true,
+      })
+    }
   }
   return delay({ user_id: userId, temp_password: tempPassword })
 }

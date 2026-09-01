@@ -109,9 +109,9 @@ export default function LineChartSvg({
 
       {/* X-axis labels */}
       <div className="flex justify-between mt-[5px]">
-        {xLabels.map(({ label, highlight, color, opacity }) => (
+        {xLabels.map(({ label, highlight, color, opacity }, index) => (
           <span
-            key={label}
+            key={`${label}-${index}`}
             className={`font-mono text-center text-[9.5px] ${
               highlight ? 'text-accent font-semibold' : color ? '' : 'text-muted'
             }`}
