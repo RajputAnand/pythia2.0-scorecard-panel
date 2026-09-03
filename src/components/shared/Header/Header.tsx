@@ -5,11 +5,29 @@ import { useSession } from 'next-auth/react'
 import styles from './Header.module.css'
 import { useUserStore } from '@/store/userStore'
 import { useTenantStore, isMultiTenantEnabled } from '@/store/tenantStore'
+import { logout } from '@/actions/auth'
+import { createStripeCustomerPortalSession } from '@/actions/stripe'
+import type { User } from '@/types/user'
 
 interface HeaderProps {
   title: string
   subtitle?: string
   children?: ReactNode
+}
+
+function formatRole(role?: string): string {
+  switch (role) {
+    case 'employee':
+      return 'Employee'
+    case 'manager':
+      return 'Store Manager'
+    case 'owner':
+      return 'Store Owner'
+    case 'superadmin':
+      return 'Super Admin'
+    default:
+      return role || 'User'
+  }
 }
 
 export default function Header({ title, subtitle, children }: HeaderProps) {
@@ -29,8 +47,14 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
   const [tenantOpen, setTenantOpen] = useState(false)
   const tenantDropdownRef = useRef<HTMLDivElement>(null)
 
+  // Profile Dropdown open/close
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileDropdownRef = useRef<HTMLDivElement>(null)
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false)
+  const [portalError, setPortalError] = useState<string | null>(null)
+
   useEffect(() => {
-    if (!open && !tenantOpen) return
+    if (!open && !tenantOpen && !profileOpen) return
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setOpen(false)
@@ -38,10 +62,42 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
       if (tenantDropdownRef.current && !tenantDropdownRef.current.contains(e.target as Node)) {
         setTenantOpen(false)
       }
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target as Node)) {
+        setProfileOpen(false)
+      }
+    }
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false)
+        setTenantOpen(false)
+        setProfileOpen(false)
+      }
     }
     document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open, tenantOpen])
+    document.addEventListener('keydown', keyHandler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('keydown', keyHandler)
+    }
+  }, [open, tenantOpen, profileOpen])
+
+  async function handleManagePayments() {
+    setIsOpeningPortal(true)
+    setPortalError(null)
+    try {
+      const res = await createStripeCustomerPortalSession(window.location.href)
+      if (res.success && res.url) {
+        setProfileOpen(false)
+        window.location.href = res.url
+      } else {
+        setPortalError(res.error || 'Unable to open Stripe Customer Portal.')
+      }
+    } catch {
+      setPortalError('Failed to initialize Stripe Customer Portal.')
+    } finally {
+      setIsOpeningPortal(false)
+    }
+  }
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between bg-surface border-b border-border px-[30px] h-[58px]">
@@ -218,6 +274,98 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
         )}
 
         {children && <>{children}</>}
+
+        {/* User Profile DP & Dropdown Menu */}
+        {session?.user && (
+          <div ref={profileDropdownRef} className="relative ml-1">
+            <button
+              type="button"
+              onClick={() => setProfileOpen((prev) => !prev)}
+              aria-label="User profile menu"
+              aria-haspopup="menu"
+              aria-expanded={profileOpen}
+              className="flex items-center justify-center rounded-full bg-accent text-white font-bold w-[34px] h-[34px] text-[12px] cursor-pointer transition-all duration-150 hover:ring-2 hover:ring-accent/30 focus:outline-none"
+            >
+              {session.user.initials || session.user.name?.slice(0, 2).toUpperCase() || 'U'}
+            </button>
+
+            {profileOpen && (
+              <div
+                role="menu"
+                aria-label="User profile options"
+                className="absolute top-[calc(100%+8px)] right-0 min-w-[220px] w-max max-w-[260px] z-50 bg-surface border border-border rounded-xl p-1.5 shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] space-y-1"
+              >
+                <div className="px-2.5 py-1.5 border-b border-border/70 mb-1">
+                  <div className="text-[12.5px] font-semibold text-primary truncate">
+                    {session.user.name}
+                  </div>
+                  <div className="text-[10.5px] text-muted truncate">
+                    {session.user.email || session.user.jobTitle || formatRole(session.user.role)}
+                  </div>
+                </div>
+
+                {portalError && (
+                  <div className="px-2.5 py-1 text-[11px] text-danger bg-danger/10 rounded-md">
+                    {portalError}
+                  </div>
+                )}
+
+                {role === 'owner' && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleManagePayments}
+                      disabled={isOpeningPortal}
+                      className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] font-medium text-secondary hover:text-primary hover:bg-surface-alt transition-colors cursor-pointer text-left disabled:opacity-50"
+                    >
+                      {isOpeningPortal ? (
+                        <svg className="shrink-0 w-4 h-4 animate-spin text-accent" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="shrink-0 w-4 h-4 text-secondary"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                          <line x1="1" y1="10" x2="23" y2="10" />
+                        </svg>
+                      )}
+                      <span className="flex-1 min-w-0 leading-snug">
+                        {isOpeningPortal ? 'Opening Portal...' : 'Manage Payment methods'}
+                      </span>
+                    </button>
+                    <div className="h-px bg-border/60 mx-1 my-0.5" />
+                  </>
+                )}
+
+                <form action={logout.bind(null, session.user as unknown as User)} className="w-full">
+                  <button
+                    type="submit"
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] font-medium text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer text-left"
+                  >
+                    <svg
+                      className="shrink-0 w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    <span>Sign out</span>
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </header>
   )
