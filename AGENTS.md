@@ -12,8 +12,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **React**: React 19 (Hooks, Server Actions, `useActionState`, `useTransition`).
 - **Styling**: Tailwind CSS v4 + minimal CSS Modules with `@apply` and `@reference`.
 - **Auth**: Auth.js / NextAuth v5 beta with JWT session tokens and refresh rotation.
+- **Billing & Stripe**: Stripe Node SDK (`stripe`) for hosted Customer Portal session creation and billing management.
 - **HTTP**: Axios via custom `pythia2Client` instance (no TanStack Query / React Query).
-- **State**: Zustand stores (`userStore`, `swagStore`, `adminConfigStore`, `staffingStore`).
+- **State**: Zustand stores (`userStore`, `swagStore`, `adminConfigStore`, `staffingStore`, `tenantStore`).
 - **Forms & Validation**: `react-hook-form` via shared `DynamicForm` with Zod validation.
 - **PDF & Canvas**: `html2canvas-pro` + `jspdf` for sectioned A4 multi-page document export.
 
@@ -24,6 +25,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Use CSS Modules with `@apply` sparingly — only for genuine reuse/abstraction: shared button variants used across multiple pages, `@keyframes` animations, `::before`/`::after` pseudo-elements, and complex selectors that can't be expressed inline (`:nth-child`, descendant rules like `strong` inside dynamic JSX content).
 - CSS Module files that use `@apply` must start with `@reference "../../app/globals.css";` (adjust relative path per depth).
 - Design tokens (`bg-canvas`, `bg-surface`, `bg-surface-alt`, `bg-primary`, `text-accent`, `text-accent-mid`, `bg-accent`, `bg-accent-light`, `border-border`, `border-border-subtle`, `text-danger`, `bg-danger`, `text-warning`, `bg-warning`) are defined in `src/app/globals.css` under `@theme inline` and work as Tailwind utility classes directly in TSX — no `@reference` needed there.
+- Brand assets live in `public/`:
+  - `public/pythia-icon.png` (512×512 full-bleed solid RGB `#1A1714` background for Stripe Icon upload with zero white corner artifacts).
+  - `public/pythia-icon.svg` (Full-bleed vector icon).
+  - `public/pythia-logo.png` & `public/pythia-logo.svg` (Standard horizontal logo with squircle icon and "Pythia Scorecard" wordmark).
+  - `public/icons/`: Standard 24×24 standalone SVGs for sidebar navigation items (`overview`, `stores`, `users`, `coaching`, `staffing`, `roi-attribution`, `benchmarking`, `device-health`).
 
 ---
 
@@ -64,6 +70,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - `score`: baseline employee performance score
   - `jobTitle`: job title string (e.g. `'Sales Associate'`)
   - `points`: employee swag points balance
+  - `tenantId` / `tenantName` / `tenantCode`: optional multi-tenant organization identifiers.
 - Store data is **not** in the session — `userStore` seeds `stores` from a hardcoded constant `STORES` in `src/lib/store-data.ts`.
 - `NEXTAUTH_SECRET` must be set in `.env.local`.
 - `SessionProvider` is mounted in the root layout (`src/providers/SessionProvider.tsx`) so `useSession()` works in all client components.
@@ -71,18 +78,18 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ---
 
 ## Server Actions
-- Server actions live in `src/actions/` as `'use server'` files, one file per domain (e.g. `src/actions/auth.ts`).
+- Server actions live in `src/actions/` as `'use server'` files, one file per domain:
+  - `src/actions/auth.ts`: `login()` posts credentials to `POST /auth/login` and invokes Auth.js `signIn('credentials', ...)`; `logout()` calls Auth.js `signOut()`; `forgotPassword()` and `resetPassword()`.
+  - `src/actions/stripe.ts`: `createStripeCustomerPortalSession(returnUrl?: string)` invokes Stripe Billing Portal API (`stripe.billingPortal.sessions.create`) and returns hosted portal session URL for Owners to manage payment methods and view invoices.
 - Server actions bridge client components and server logic. A file cannot mix `'use client'` and `'use server'`.
 - Client components wire actions via `useActionState(action, initialState)` or execute inside `useTransition`.
-- `login()` in `src/actions/auth.ts` posts credentials to `POST /auth/login` and invokes Auth.js `signIn('credentials', ...)` with user payload.
-- `logout()` in `src/actions/auth.ts` calls Auth.js `signOut()`.
 
 ---
 
 ## Role-Based Routing & Next.js 16 Proxy (`src/proxy.ts`)
 - `src/proxy.ts` enforces authentication and role-based route access on every request.
   - **Note:** Next.js 16 renamed `middleware.ts` → `proxy.ts` and `export function middleware` → `export function proxy`. Always use `proxy.ts` and the `proxy` export.
-- Unauthenticated requests to protected pages redirect to `/login/employee?redirectTo=<path>`. Public routes are `/login/employee`, `/login/manager`, `/login/owner`, `/login/superadmin`, `/forgot-password`, `/reset-password`.
+- Unauthenticated requests to protected pages redirect to `/login/employee?redirectTo=<path>`. Public routes are `/login/employee`, `/login/manager`, `/login/owner`, `/login/superadmin`, `/login/tenant`, `/forgot-password`, `/reset-password`.
 - Authenticated requests to `/` or `/login` redirect to the role's `ROLE_DEFAULT_ROUTES[role]`.
 - Accessing a route outside a role's allowed prefix redirects to the default page.
 - Role → allowed route prefixes → default route:
@@ -92,7 +99,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
   | `manager`    | `/manager`                 | `/manager/coaching-tracker`       | `/login/manager`           |
   | `owner`      | `/owner`, `/manager`       | `/owner/roi-attribution`          | `/login/owner`             |
   | `superadmin` | `/super-admin`             | `/super-admin/kpi-visibility`     | `/login/superadmin`        |
-- Owners oversee managers and can access all `/manager/*` routes. Managers cannot access `/owner/*`.
+- Owners oversee managers and can access all `/manager/*` routes as well as `/owner/stores` and `/owner/managers`. Managers cannot access `/owner/*`.
+- **Multi-Tenant Feature Gate**: When `NEXT_PUBLIC_ENABLE_MULTI_TENANT="true"`, enables `/login/tenant`, `/super-admin/tenants`, `/super-admin/owners`, and `/super-admin/onboarding`. When disabled, these routes are blocked by `proxy.ts`.
 - **Dynamic KPI Visibility Route Enforcement**: `proxy.ts` Derives `PAGE_HREF_TO_FIELD_ID` from `PAGE_REGISTRY`. If an authenticated user attempts to access a page that has been disabled in the Super Admin KPI visibility settings (`GET /super-admin/field-config`), the proxy intercepts the request and redirects them to their role's default route. It fails open on fetch errors to ensure platform resiliency.
 
 ---
@@ -103,10 +111,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Navigation sections and bottom widgets per role:
   - `employee`: "My Dashboard" navigation + employee score & points pill (`currentScore ?? user.score`).
   - `manager`: "Navigate" (Dashboard, Employees) + "Manager Tools" (Coaching Tracker, Staffing, Unknown Identity, Video Identities) + store status pill.
-  - `owner`: "Owner Tools" (Stores, Managers, ROI Attribution, Benchmarking) + Owner/Manager view toggle switcher + store status pill.
-  - `superadmin`: 4-Way View Switcher (`Admin`, `Manager View`, `Employee View`, `Owner View`) with bidirectional URL sync and read-only mirror pages.
+  - `owner`: "Owner Tools" (Stores, Managers, ROI Attribution, Benchmarking) + Owner/Manager view toggle switcher + store status pill. In multi-tenant mode (`isMultiTenantEnabled()`), navigation adapts to focus on Stores and Managers.
+  - `superadmin`: 4-Way View Switcher (`Admin`, `Manager View`, `Employee View`, `Owner View`) with bidirectional URL sync and read-only mirror pages. When multi-tenant is enabled, Admin navigation includes Onboarding, Tenants, and Owners.
 - The store pill (`storeName`, `location`) in Sidebar comes from `useUserStore(s => s.currentStore)` (Zustand), not the session.
-- **Header Store Selector**: Renders for `owner`, `manager`, and `superadmin` roles when stores are present (`role !== 'employee' && stores.length > 0`).
+- **Header Store & Tenant Selectors**: Store selector renders for `owner`, `manager`, and `superadmin` roles when stores are present (`role !== 'employee' && stores.length > 0`). When multi-tenant mode is enabled, the Header also renders the Tenant Switcher dropdown.
 
 ---
 
@@ -130,7 +138,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Super Admin — Live Mirror Pages
 - Super Admin has access to read-only mirrors of:
   - **Manager Pages**: `/super-admin/manager/{dashboard,employees,coaching-tracker,staffing-intelligence,unknown-identities,video-identities}`.
-  - **Owner Pages**: `/super-admin/owner/{roi-attribution,benchmarking,marketing-loop}`.
+  - **Owner Pages**: `/super-admin/owner/{roi-attribution,benchmarking,marketing-loop,stores}`.
   - **Employee Page**: `/super-admin/employee/overview` (renders real components with preview datasets).
 - Mirror pages do NOT pass `previewMode`, so admin-configured visibility toggles remain active in mirrors.
 - Manager mirrors pass the Super Admin's token to real backend queries; backend helpers (`scoped_store_ids`) treat Super Admin's store access as unrestricted.
@@ -171,6 +179,9 @@ Endpoints are registered in `PYTHIA_2_API`:
 - **`superAdmin`**: `fieldConfig`, `fieldConfigForRole(roleName)`
 - **`deviceHealth`**: `list`, `detail(deviceId)`, `ws`
 - **`staffing`**: `schedule`, `scheduleGenerate`, `scheduleEntry(shiftId)`, `schedulePublish`, `roster`, `trafficHeatmap`, `insights`, `recommendations`, `recommendationsGenerate`, `recommendationApply(id)`, `recommendationDismiss(id)`
+- **`tenants`**: `list`, `create`, `detail(id)`, `updateStatus(id)`, `checklist(id)`
+- **`stores`**: `list`, `create`, `bulk`, `detail(id)`, `update(id)`, `deactivate(id)`, `activate(id)`
+- **`owners`**: `list`, `create`, `archived`, `credentials(id)`, `archive(id)`, `unarchive(id)`
 
 ---
 
@@ -184,7 +195,7 @@ Each domain has a dedicated query module exporting pure async functions:
 5. `employees.ts`: `fetchEmployees`, `createEmployee`, `fetchArchivedEmployees`, `fetchEmployee`, `fetchEmployeeCredentials`, `archiveEmployee`, `unarchiveEmployee`.
 6. `manager-coaching.ts`: `fetchManagerCoachingPlans`, `fetchManagerCoachingPlan`, `applyManagerPlanAction`, `fetchCoachingSummary`, `fetchCoachingEffectiveness`, `fetchCoachingEmployees`, `fetchEmployeeCoachingDetail`.
 7. `manager-dashboard.ts`: `fetchManagerDashboardSummary`, `fetchManagerDashboardLeaderboard`, `fetchManagerDashboardTrend`.
-8. `managers.ts`: `fetchManagers`, `fetchArchivedManagers`, `createManager`, `fetchManagerCredentials`, `archiveManager`, `unarchiveManager` (mock layer integration ready for backend swap).
+8. `managers.ts`: `fetchManagers`, `fetchArchivedManagers`, `createManager`, `fetchManagerCredentials`, `archiveManager`, `unarchiveManager`.
 9. `overview.ts`: `fetchOverview`.
 10. `owner-roi.ts`: `fetchRoiAttribution`, `shareRoiAttributionPdf`.
 11. `scorecard.ts`: `fetchDashboardSummary`, `fetchShiftHighlights`, `fetchCoachingMoments`.
@@ -192,6 +203,9 @@ Each domain has a dedicated query module exporting pure async functions:
 13. `unknown-identities.ts`: `fetchUnknownIdentities`, `fetchUnknownIdentitiesCount`, `fetchTrashedIdentities`, `assignUnknownIdentity`, `trashUnknownIdentity`, `restoreUnknownIdentity`.
 14. `video-identities.ts`: `fetchVideoIdentities`, `fetchVideoIdentityStats`, `presignVideoIdentityKeys`.
 15. `stores.ts`: `fetchStoresForTenant`, `fetchDeactivatedStores`, `deactivateStore`, `activateStore`, `createStore`, `bulkCreateStores`, `simulateStoreHeartbeat`, `updateStore`.
+16. `tenants.ts`: `fetchTenants`, `fetchTenantDetail`, `createTenant`, `updateTenantStatus`, `updateTenantChecklist`.
+17. `owners.ts`: `fetchOwners`, `fetchArchivedOwners`, `createOwner`, `fetchOwnerCredentials`, `archiveOwner`, `unarchiveOwner`.
+18. `onboarding.ts`: `fetchOnboardingWizardState`, `updateOnboardingStep`, `completeOnboarding`.
 
 ---
 
@@ -210,6 +224,9 @@ Each domain has a dedicated query module exporting pure async functions:
 4. **`staffingStore.ts`**:
    - Holds `schedule`, `roster`, `heatmap`, `insights`, `recommendations`, `criticalAlert`, `generationStatus`, `pollingRecommendations`, `savingShift`, `publishing`.
    - Actions: `hydrate`, `fetchAll`, `saveShift`, `deleteShift`, `generateSchedule`, `publishSchedule`, `generateRecommendations` (polls Gemini batch jobs), `applyRecommendation`, `applyAllRecommendations`, `dismissRecommendation`.
+5. **`tenantStore.ts`**:
+   - Holds `tenants: Tenant[]`, `currentTenant: Tenant | null`, `loading`, `stats: TenantStats | null`.
+   - Utility: `isMultiTenantEnabled()` checks `NEXT_PUBLIC_ENABLE_MULTI_TENANT === 'true'`.
 
 ---
 
@@ -221,6 +238,17 @@ Each domain has a dedicated query module exporting pure async functions:
 ---
 
 ## Feature Architectures
+
+### Stripe Billing & Customer Portal
+- Hosted billing portal session creation via `createStripeCustomerPortalSession` (`src/actions/stripe.ts`).
+- Integrated into `Header.tsx` profile dropdown for `role === 'owner'` via "Manage Payment methods".
+- Environment keys: `STRIPE_SECRET_KEY`, `STRIPE_CUSTOMER_ID`, `STRIPE_CUSTOMER_PORTAL_URL`.
+- Return URL redirects back to `/owner/roi-attribution` on completion.
+
+### Multi-Tenant Architecture & Onboarding
+- Feature-flagged multi-tenant organization directory and isolation.
+- Onboarding Wizard (`src/components/OnboardingWizard/` at `/super-admin/onboarding`): Multi-step setup for tenant details, stores, edge device pairing, owners, and managers.
+- Tenant login flow at `/login/tenant` supporting URL org slug prefilling (`?org=<id>`).
 
 ### Staffing Intelligence
 - AI schedule generator and recommendation engine.
@@ -249,7 +277,7 @@ Each domain has a dedicated query module exporting pure async functions:
 - **Forms**: Always use `DynamicForm` (`src/components/shared/DynamicForm/DynamicForm.tsx`).
 - **Validation**: Define Zod schemas in `src/schemas/` (`auth.ts`, `employee.ts`, `manager.ts`, `tenant.ts`, `investor-share.ts`) and pass to `DynamicForm` via `zodSchema`.
 - **Status Modals**: Standardize status screens with `SuccessPage` (`src/components/shared/Modals/Success.tsx`) and `ErrorModal` (`src/components/shared/Modals/Error.tsx`).
-- **Action Modals**: `CreateEmployeeModal`, `CreateManagerModal`, `CreateStoreModal`, `EditStoreModal`, `ConfirmDeactivateStoreModal`, `RevealCredentialsModal`, `ConfirmArchiveEmployeeModal`, `ConfirmArchiveManagerModal`, `StalledPlansModal`.
+- **Action Modals**: `CreateEmployeeModal`, `CreateManagerModal`, `CreateOwnerModal`, `CreateStoreModal`, `EditStoreModal`, `ConfirmDeactivateStoreModal`, `RevealCredentialsModal`, `ConfirmArchiveEmployeeModal`, `ConfirmArchiveManagerModal`, `ConfirmArchiveOwnerModal`, `StalledPlansModal`.
 
 ---
 
