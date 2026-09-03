@@ -117,11 +117,11 @@ export default function PostDemoRecaps() {
       render: (demo) => (
         <div className="flex items-center gap-[9px]">
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0 bg-accent">
-            {demo.name.charAt(0).toUpperCase()}
+            {demo?.name ? demo.name.charAt(0).toUpperCase() : 'P'}
           </div>
           <div>
-            <div className="text-[13px] font-semibold text-primary">{demo.name}</div>
-            <div className="text-[11px] text-muted">{demo.email}</div>
+            <div className="text-[13px] font-semibold text-primary">{demo?.name || 'Unknown'}</div>
+            <div className="text-[11px] text-muted">{demo?.email || '—'}</div>
           </div>
         </div>
       ),
@@ -130,7 +130,7 @@ export default function PostDemoRecaps() {
       key: 'status',
       header: 'Status',
       render: (demo) => {
-        const isSent = sentDemoIds.has(demo.id)
+        const isSent = demo?.id ? sentDemoIds.has(demo.id) : false
         return isSent ? (
           <span className="inline-flex items-center px-2.5 py-1 rounded-[6px] text-[10px] font-semibold bg-[#E8F5E9] text-[#2E7D32] border border-[#A5D6A7]">
             <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -147,19 +147,19 @@ export default function PostDemoRecaps() {
     {
       key: 'event',
       header: 'Event Type',
-      render: (demo) => <span className="text-[12.5px] text-secondary">{demo.eventName}</span>,
+      render: (demo) => <span className="text-[12.5px] text-secondary">{demo?.eventName || '—'}</span>,
     },
     {
       key: 'date',
       header: 'Date & Time',
       render: (demo) => (
         <span className="text-[12px] text-muted">
-          {new Date(demo.startTime).toLocaleString(undefined, {
+          {demo?.startTime ? new Date(demo.startTime).toLocaleString(undefined, {
             month: 'short',
             day: 'numeric',
             hour: 'numeric',
             minute: '2-digit',
-          })}
+          }) : '—'}
         </span>
       ),
     },
@@ -168,7 +168,7 @@ export default function PostDemoRecaps() {
       header: '',
       align: 'right',
       render: (demo) => {
-        const isSent = sentDemoIds.has(demo.id)
+        const isSent = demo?.id ? sentDemoIds.has(demo.id) : false
         return isSent ? (
           <button disabled className="px-4 py-[6px] rounded-[8px] border text-[11.5px] font-semibold bg-surface border-border text-muted cursor-not-allowed">
             Sent
@@ -201,10 +201,10 @@ export default function PostDemoRecaps() {
     setStatus('loading')
     setErrorMessage('')
 
-    const firstName = activeDemo.name.split(' ')[0]
+    const firstName = (activeDemo.name || '').split(' ')[0] || 'there'
     const result = await sendManualRecap(
       token,
-      activeDemo.email,
+      activeDemo.email || '',
       firstName,
       data.recap1,
       data.recap2,
