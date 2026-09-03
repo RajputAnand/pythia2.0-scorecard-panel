@@ -336,7 +336,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                         </svg>
                       )}
                       <span className="flex-1 min-w-0 leading-snug">
-                        {isOpeningPortal ? 'Opening Portal...' : 'Manage Payment methods'}
+                        {isOpeningPortal ? 'Opening Portal...' : 'Manage Subscription'}
                       </span>
                     </button>
                     <div className="h-px bg-border/60 mx-1 my-0.5" />
