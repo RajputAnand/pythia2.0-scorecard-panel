@@ -10,7 +10,6 @@ import { useUserStore } from '@/store/userStore'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { isMultiTenantEnabled } from '@/store/tenantStore'
 import { PAGE_ID_BY_HREF } from '@/lib/admin-config-data'
-import { logout } from '@/actions/auth'
 
 type NavItem = {
   label: string
@@ -708,33 +707,9 @@ export default function Sidebar({ user }: { user: User }) {
         ))}
       </nav>
 
-      {/* Bottom widget — role-specific */}
-      {user.role === 'employee' ? (
-        <div
-          className="flex items-center gap-[10px] mx-3 mb-3 rounded-[10px] border px-[14px] py-[12px]"
-          style={{ background: 'linear-gradient(135deg, var(--color-accent-light), #D0EAD8)', borderColor: '#B8D9C6' }}
-        >
-          <div className="flex items-center justify-center shrink-0 rounded-full bg-accent text-white font-bold w-9 h-9 text-[12px]">
-            {user.initials}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-[12.5px] font-semibold text-accent truncate">{user.name}</div>
-            <div className="text-accent-mid text-[10.5px] truncate">
-              {user.jobTitle}
-              {currentStore && ` · ${currentStore.name}`}
-            </div>
-          </div>
-          {(currentScore ?? user.score) != null && (
-            <div className="ml-auto text-right shrink-0">
-              <div className="font-mono font-bold text-accent text-[18px]">{currentScore ?? user.score}</div>
-              <div className="font-mono font-bold text-[11px]" style={{ color: '#F5C842' }}>
-                {points.toLocaleString('en-US')} pts
-              </div>
-            </div>
-          )}
-        </div>
-      ) : user.role === 'superadmin' ? (
-        <div className="mx-3 pt-4 border-t border-border mb-4">
+      {/* Bottom section — role-specific widgets */}
+      {user.role === 'superadmin' && (
+        <div className="mx-3 pt-4 border-t border-border mb-3">
           <div className="text-muted uppercase tracking-[.08em] text-[10px] mb-2 px-[2px]">Current View</div>
           {SUPERADMIN_VIEW_OPTIONS.map((option) => (
             <button
@@ -750,68 +725,65 @@ export default function Sidebar({ user }: { user: User }) {
             </button>
           ))}
         </div>
-      ) : (
-        <>
-          {user.role === 'owner' && (
-            <div className="mx-3 pt-4 border-t border-border mb-4">
-              <div className="text-muted uppercase tracking-[.08em] text-[10px] mb-2 px-[2px]">Current View</div>
-              <button
-                className={`${styles.toggleBtn} ${activeView === 'owner' ? styles.toggleBtnActive : ''} ${
-                  isPending ? 'opacity-60' : ''
-                }`}
-                onClick={() => handleViewToggle('owner')}
-                disabled={isPending}
-              >
-                <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                </svg>
-                Owner View
-              </button>
-              <button
-                className={`${styles.toggleBtn} ${activeView === 'manager' ? styles.toggleBtnActive : ''} ${
-                  isPending ? 'opacity-60' : ''
-                }`}
-                onClick={() => handleViewToggle('manager')}
-                disabled={isPending}
-              >
-                <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-                </svg>
-                Manager View
-              </button>
-            </div>
-          )}
-          <div className="flex items-center gap-[9px] mx-3 mb-3 rounded-[10px] bg-surface-alt px-[12px] py-[10px]">
-            <div className={styles.liveDot} />
-            <div className="min-w-0 flex-1">
-              <div className="text-[12px] font-medium truncate">{currentStore?.name ?? 'Select store'}</div>
-              <div className="text-muted text-[10.5px] truncate">{currentStore?.location ?? '—'}</div>
-            </div>
-          </div>
-        </>
       )}
 
-      {/* Logout */}
-      <form action={logout.bind(null, user)} className="mx-3 mb-4">
-        <button
-          type="submit"
-          className="w-full flex items-center gap-2 px-3 py-[9px] rounded-lg text-[12.5px] text-muted hover:text-danger hover:bg-danger/8 transition-colors cursor-pointer"
-        >
-          <svg
-            className="shrink-0 w-[14px] h-[14px]"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
+      {user.role === 'owner' && (
+        <div className="mx-3 pt-4 border-t border-border mb-3">
+          <div className="text-muted uppercase tracking-[.08em] text-[10px] mb-2 px-[2px]">Current View</div>
+          <button
+            className={`${styles.toggleBtn} ${activeView === 'owner' ? styles.toggleBtnActive : ''} ${
+              isPending ? 'opacity-60' : ''
+            }`}
+            onClick={() => handleViewToggle('owner')}
+            disabled={isPending}
           >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          Sign out
-        </button>
-      </form>
+            <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            </svg>
+            Owner View
+          </button>
+          <button
+            className={`${styles.toggleBtn} ${activeView === 'manager' ? styles.toggleBtnActive : ''} ${
+              isPending ? 'opacity-60' : ''
+            }`}
+            onClick={() => handleViewToggle('manager')}
+            disabled={isPending}
+          >
+            <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+            </svg>
+            Manager View
+          </button>
+        </div>
+      )}
+
+      {/* Bottom widget — employee scorecard pill */}
+      {user.role === 'employee' && (
+        <div
+          className="flex items-center gap-[10px] mx-3 mb-4 rounded-[10px] border px-[14px] py-[12px]"
+          style={{ background: 'linear-gradient(135deg, var(--color-accent-light), #D0EAD8)', borderColor: '#B8D9C6' }}
+        >
+          <div className="flex items-center justify-center shrink-0 rounded-full bg-accent text-white font-bold w-9 h-9 text-[12px]">
+            {user.initials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[12.5px] font-semibold text-accent truncate">{user.name}</div>
+            <div className="text-accent-mid text-[10.5px] truncate">
+              {user.jobTitle || 'Employee'}
+              {currentStore && ` · ${currentStore.name}`}
+            </div>
+          </div>
+          {(currentScore ?? user.score) != null && (
+            <div className="ml-auto text-right shrink-0">
+              <div className="font-mono font-bold text-accent text-[18px]">{currentScore ?? user.score}</div>
+              <div className="font-mono font-bold text-[11px]" style={{ color: '#F5C842' }}>
+                {points.toLocaleString('en-US')} pts
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </aside>
   )
 }
