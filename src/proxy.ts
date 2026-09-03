@@ -14,8 +14,6 @@ const MULTI_TENANT_ROUTES = [
   '/super-admin/onboarding',
   '/super-admin/tenants',
   '/super-admin/owners',
-  '/owner/stores',
-  '/super-admin/owner/stores',
 ]
 
 function isMultiTenantFeatureEnabled(): boolean {
