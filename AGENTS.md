@@ -103,7 +103,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Navigation sections and bottom widgets per role:
   - `employee`: "My Dashboard" navigation + employee score & points pill (`currentScore ?? user.score`).
   - `manager`: "Navigate" (Dashboard, Employees) + "Manager Tools" (Coaching Tracker, Staffing, Unknown Identity, Video Identities) + store status pill.
-  - `owner`: "Owner Tools" (Managers, ROI Attribution, Benchmarking) + Owner/Manager view toggle switcher + store status pill.
+  - `owner`: "Owner Tools" (Stores, Managers, ROI Attribution, Benchmarking) + Owner/Manager view toggle switcher + store status pill.
   - `superadmin`: 4-Way View Switcher (`Admin`, `Manager View`, `Employee View`, `Owner View`) with bidirectional URL sync and read-only mirror pages.
 - The store pill (`storeName`, `location`) in Sidebar comes from `useUserStore(s => s.currentStore)` (Zustand), not the session.
 - **Header Store Selector**: Renders for `owner`, `manager`, and `superadmin` roles when stores are present (`role !== 'employee' && stores.length > 0`).
@@ -191,6 +191,7 @@ Each domain has a dedicated query module exporting pure async functions:
 12. `staffing.ts`: `fetchStaffingSchedule`, `createStaffingShift`, `updateStaffingShift`, `deleteStaffingShift`, `generateStaffingSchedule`, `publishStaffingSchedule`, `fetchStaffingRoster`, `fetchStaffingHeatmap`, `fetchStaffingInsights`, `fetchStaffingRecommendations`, `generateStaffingRecommendations`, `applyStaffingRecommendation`, `dismissStaffingRecommendation`.
 13. `unknown-identities.ts`: `fetchUnknownIdentities`, `fetchUnknownIdentitiesCount`, `fetchTrashedIdentities`, `assignUnknownIdentity`, `trashUnknownIdentity`, `restoreUnknownIdentity`.
 14. `video-identities.ts`: `fetchVideoIdentities`, `fetchVideoIdentityStats`, `presignVideoIdentityKeys`.
+15. `stores.ts`: `fetchStoresForTenant`, `fetchDeactivatedStores`, `deactivateStore`, `activateStore`, `createStore`, `bulkCreateStores`, `simulateStoreHeartbeat`, `updateStore`.
 
 ---
 
@@ -246,9 +247,9 @@ Each domain has a dedicated query module exporting pure async functions:
 
 ## Forms, Validation & Modals
 - **Forms**: Always use `DynamicForm` (`src/components/shared/DynamicForm/DynamicForm.tsx`).
-- **Validation**: Define Zod schemas in `src/schemas/` (`auth.ts`, `employee.ts`, `manager.ts`, `investor-share.ts`) and pass to `DynamicForm` via `zodSchema`.
+- **Validation**: Define Zod schemas in `src/schemas/` (`auth.ts`, `employee.ts`, `manager.ts`, `tenant.ts`, `investor-share.ts`) and pass to `DynamicForm` via `zodSchema`.
 - **Status Modals**: Standardize status screens with `SuccessPage` (`src/components/shared/Modals/Success.tsx`) and `ErrorModal` (`src/components/shared/Modals/Error.tsx`).
-- **Action Modals**: `CreateEmployeeModal`, `CreateManagerModal`, `RevealCredentialsModal`, `ConfirmArchiveEmployeeModal`, `ConfirmArchiveManagerModal`, `StalledPlansModal`.
+- **Action Modals**: `CreateEmployeeModal`, `CreateManagerModal`, `CreateStoreModal`, `EditStoreModal`, `ConfirmDeactivateStoreModal`, `RevealCredentialsModal`, `ConfirmArchiveEmployeeModal`, `ConfirmArchiveManagerModal`, `StalledPlansModal`.
 
 ---
 

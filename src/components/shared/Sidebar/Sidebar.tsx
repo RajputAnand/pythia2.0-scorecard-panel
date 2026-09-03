@@ -79,6 +79,16 @@ function getOwnerNav(mtEnabled: boolean): NavSection[] {
       section: 'Owner Tools',
       items: [
         {
+          label: 'Stores',
+          href: '/owner/stores',
+          icon: (
+            <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          ),
+        },
+        {
           label: 'Managers',
           href: '/owner/managers',
           icon: (
@@ -450,6 +460,17 @@ function getSuperAdminNavByView(mtEnabled: boolean): Record<SuperAdminView, NavS
         section: 'Owner View',
         items: [
           {
+            label: 'Stores',
+            href: '/super-admin/owner/stores',
+            mirrorsHref: '/owner/stores',
+            icon: (
+              <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+            ),
+          },
+          {
             label: 'Managers',
             href: '/super-admin/owner/managers',
             mirrorsHref: '/owner/managers',
@@ -519,6 +540,15 @@ const SUPERADMIN_VIEW_OPTIONS: { id: SuperAdminView; label: string; icon: ReactN
     ),
   },
   {
+    id: 'owner',
+    label: 'Owner View',
+    icon: (
+      <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      </svg>
+    ),
+  },
+  {
     id: 'manager',
     label: 'Manager View',
     icon: (
@@ -537,15 +567,6 @@ const SUPERADMIN_VIEW_OPTIONS: { id: SuperAdminView; label: string; icon: ReactN
       <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
         <circle cx="12" cy="8" r="4" />
         <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-      </svg>
-    ),
-  },
-  {
-    id: 'owner',
-    label: 'Owner View',
-    icon: (
-      <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       </svg>
     ),
   },

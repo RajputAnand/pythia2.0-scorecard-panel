@@ -34,7 +34,7 @@ Pythia 2.0 frontend uses a unified architecture for fetching data without any th
 13. `unknown-identities.ts`: `fetchUnknownIdentities`, `fetchUnknownIdentitiesCount`, `fetchTrashedIdentities`, `assignUnknownIdentity`, `trashUnknownIdentity`, `restoreUnknownIdentity`.
 14. `video-identities.ts`: `fetchVideoIdentities`, `fetchVideoIdentityStats`, `presignVideoIdentityKeys`.
 15. `tenants.ts` **(Multi-Tenant)**: `fetchTenants`, `fetchTenantDetail`, `createTenant`, `updateTenantStatus`, `updateTenantChecklist`.
-16. `stores.ts` **(Multi-Tenant / Owner)**: `fetchStoresForTenant`, `createStore`, `bulkCreateStores`, `simulateStoreHeartbeat`, `updateStore`.
+16. `stores.ts` **(Owner / Multi-Tenant)**: `fetchStoresForTenant`, `fetchDeactivatedStores`, `deactivateStore`, `activateStore`, `createStore`, `bulkCreateStores`, `simulateStoreHeartbeat`, `updateStore`.
 17. `owners.ts` **(Multi-Tenant / Super Admin)**: `fetchOwners`, `fetchArchivedOwners`, `createOwner`, `fetchOwnerCredentials`, `archiveOwner`, `unarchiveOwner`.
 18. `onboarding.ts` **(Customer Onboarding)**: `fetchOnboardingWizardState`, `updateOnboardingStep`, `completeOnboarding`.
 

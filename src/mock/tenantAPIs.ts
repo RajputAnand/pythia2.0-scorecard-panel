@@ -184,9 +184,11 @@ export const INITIAL_STORES: TenantStore[] = [
     name: 'Store 001',
     location: 'Northside',
     district: 'Central',
-    address: { street: '100 North Blvd', city: 'New York', state: 'NY', zip: '10001' },
+    address: { street: '100 North Blvd', city: 'New York', state: 'NY', zip: '10001', fullAddress: '100 North Blvd, Floor 2, New York, NY 10001' },
+    fullAddress: '100 North Blvd, Floor 2, New York, NY 10001',
     timezone: 'America/New_York',
     status: 'live',
+    is_active: true,
     pairingCode: 'LM-PAIR-8801',
     lastHeartbeat: '2026-09-01T11:45:00Z',
     nodesOnline: 3,
@@ -203,9 +205,11 @@ export const INITIAL_STORES: TenantStore[] = [
     name: 'Store 002',
     location: 'Uptown',
     district: 'Central',
-    address: { street: '240 Madison Ave', city: 'New York', state: 'NY', zip: '10016' },
+    address: { street: '240 Madison Ave', city: 'New York', state: 'NY', zip: '10016', fullAddress: '240 Madison Ave, Suite 300, New York, NY 10016' },
+    fullAddress: '240 Madison Ave, Suite 300, New York, NY 10016',
     timezone: 'America/New_York',
     status: 'live',
+    is_active: true,
     pairingCode: 'LM-PAIR-8802',
     lastHeartbeat: '2026-09-01T11:50:00Z',
     nodesOnline: 2,
@@ -222,9 +226,11 @@ export const INITIAL_STORES: TenantStore[] = [
     name: 'Store 003',
     location: 'Westside',
     district: 'Central',
-    address: { street: '780 8th Ave', city: 'New York', state: 'NY', zip: '10036' },
+    address: { street: '780 8th Ave', city: 'New York', state: 'NY', zip: '10036', fullAddress: '780 8th Ave, Retail Level 1, New York, NY 10036' },
+    fullAddress: '780 8th Ave, Retail Level 1, New York, NY 10036',
     timezone: 'America/New_York',
     status: 'live',
+    is_active: true,
     pairingCode: 'LM-PAIR-8803',
     lastHeartbeat: '2026-09-01T11:40:00Z',
     nodesOnline: 2,
@@ -241,9 +247,11 @@ export const INITIAL_STORES: TenantStore[] = [
     name: 'Store 101',
     location: 'Eastgate',
     district: 'Metro',
-    address: { street: '450 East River Rd', city: 'Queens', state: 'NY', zip: '11101' },
+    address: { street: '450 East River Rd', city: 'Queens', state: 'NY', zip: '11101', fullAddress: '450 East River Rd, Building C, Queens, NY 11101' },
+    fullAddress: '450 East River Rd, Building C, Queens, NY 11101',
     timezone: 'America/New_York',
     status: 'live',
+    is_active: true,
     pairingCode: 'LM-PAIR-8804',
     lastHeartbeat: '2026-09-01T11:52:00Z',
     nodesOnline: 1,
@@ -260,9 +268,11 @@ export const INITIAL_STORES: TenantStore[] = [
     name: 'Store 102',
     location: 'Riverside',
     district: 'Metro',
-    address: { street: '512 Riverside Dr', city: 'New York', state: 'NY', zip: '10027' },
+    address: { street: '512 Riverside Dr', city: 'New York', state: 'NY', zip: '10027', fullAddress: '512 Riverside Dr, New York, NY 10027' },
+    fullAddress: '512 Riverside Dr, New York, NY 10027',
     timezone: 'America/New_York',
     status: 'live',
+    is_active: true,
     pairingCode: 'LM-PAIR-8805',
     lastHeartbeat: '2026-09-01T11:48:00Z',
     nodesOnline: 2,
@@ -279,9 +289,11 @@ export const INITIAL_STORES: TenantStore[] = [
     name: 'Downtown Roastery',
     location: 'Downtown',
     district: 'East',
-    address: { street: '12 Michigan Ave', city: 'Chicago', state: 'IL', zip: '60601' },
+    address: { street: '12 Michigan Ave', city: 'Chicago', state: 'IL', zip: '60601', fullAddress: '12 Michigan Ave, Chicago, IL 60601' },
+    fullAddress: '12 Michigan Ave, Chicago, IL 60601',
     timezone: 'America/Chicago',
     status: 'live',
+    is_active: true,
     pairingCode: 'SC-PAIR-1001',
     lastHeartbeat: '2026-09-01T11:35:00Z',
     nodesOnline: 2,
@@ -298,9 +310,11 @@ export const INITIAL_STORES: TenantStore[] = [
     name: 'Airport Terminal 2',
     location: 'Airport',
     district: 'North',
-    address: { street: '10000 O\'Hare Way', city: 'Chicago', state: 'IL', zip: '60666' },
+    address: { street: '10000 O\'Hare Way', city: 'Chicago', state: 'IL', zip: '60666', fullAddress: '10000 O\'Hare Way, Gate B12, Chicago, IL 60666' },
+    fullAddress: '10000 O\'Hare Way, Gate B12, Chicago, IL 60666',
     timezone: 'America/Chicago',
     status: 'provisioning',
+    is_active: true,
     pairingCode: 'SC-PAIR-1002',
     lastHeartbeat: null,
     nodesOnline: 0,
@@ -317,9 +331,11 @@ export const INITIAL_STORES: TenantStore[] = [
     name: 'Apex Main',
     location: 'Central Square',
     district: 'West',
-    address: { street: '500 Market St', city: 'San Francisco', state: 'CA', zip: '94105' },
+    address: { street: '500 Market St', city: 'San Francisco', state: 'CA', zip: '94105', fullAddress: '500 Market St, San Francisco, CA 94105' },
+    fullAddress: '500 Market St, San Francisco, CA 94105',
     timezone: 'America/Los_Angeles',
     status: 'provisioning',
+    is_active: true,
     pairingCode: 'APEX-PAIR-9001',
     lastHeartbeat: null,
     nodesOnline: 0,
@@ -336,15 +352,43 @@ export const INITIAL_STORES: TenantStore[] = [
     name: 'Apex Harbor',
     location: 'Pier 39',
     district: 'Coastal',
-    address: { street: 'Beach St & The Embarcadero', city: 'San Francisco', state: 'CA', zip: '94133' },
+    address: { street: 'Beach St & The Embarcadero', city: 'San Francisco', state: 'CA', zip: '94133', fullAddress: 'Beach St & The Embarcadero, Suite 10, San Francisco, CA 94133' },
+    fullAddress: 'Beach St & The Embarcadero, Suite 10, San Francisco, CA 94133',
     timezone: 'America/Los_Angeles',
     status: 'provisioning',
+    is_active: true,
     pairingCode: 'APEX-PAIR-9002',
     lastHeartbeat: null,
     nodesOnline: 0,
     managerCount: 0,
     employeeCount: 0,
     createdAt: '2026-08-21T10:00:00Z',
+  },
+]
+
+export const INITIAL_DEACTIVATED_STORES: TenantStore[] = [
+  {
+    _id: 'STORE-099',
+    id: 'STORE-099',
+    tenantId: 'ten_lionmart',
+    tenantName: 'Lionmart Retail Group',
+    storeNo: 'STORE-099',
+    name: 'Old Port Flagship',
+    location: 'Historic Port',
+    district: 'Waterfront',
+    address: { street: '12 Harbor Way', city: 'Brooklyn', state: 'NY', zip: '11201', fullAddress: '12 Harbor Way, Pier 4, Brooklyn, NY 11201' },
+    fullAddress: '12 Harbor Way, Pier 4, Brooklyn, NY 11201',
+    timezone: 'America/New_York',
+    status: 'offline',
+    is_active: false,
+    pairingCode: 'LM-PAIR-8099',
+    lastHeartbeat: '2026-07-20T10:00:00Z',
+    nodesOnline: 0,
+    managerCount: 0,
+    employeeCount: 0,
+    createdAt: '2025-11-10T10:00:00Z',
+    deactivated_at: '2026-08-01T14:30:00Z',
+    deactivated_by: 'owner@demo.com',
   },
 ]
 
@@ -449,6 +493,7 @@ export const INITIAL_OWNERS: TenantOwner[] = [
 // Mutable module-level store collections for session lifecycle
 const tenants: Tenant[] = INITIAL_TENANTS.map((t) => ({ ...t, checklist: { ...t.checklist }, stats: { ...t.stats } }))
 const stores: TenantStore[] = INITIAL_STORES.map((s) => ({ ...s, address: { ...s.address } }))
+const deactivatedStores: TenantStore[] = INITIAL_DEACTIVATED_STORES.map((s) => ({ ...s, address: { ...s.address } }))
 const owners: TenantOwner[] = INITIAL_OWNERS.map((o) => ({ ...o, store_ids: [...o.store_ids], storeIds: [...(o.storeIds || o.store_ids)] }))
 const archivedOwners: TenantOwner[] = []
 
@@ -592,13 +637,15 @@ export function fakeListStores(params?: {
   const term = search.trim().toLowerCase()
 
   const filtered = stores.filter((s) => {
-    const matchesTenant = !tenantId || s.tenantId === tenantId
+    const matchesTenant = !tenantId || tenantId === 'all' || s.tenantId === tenantId
     const matchesSearch =
       !term ||
       s.name.toLowerCase().includes(term) ||
       s.storeNo.toLowerCase().includes(term) ||
       s.location.toLowerCase().includes(term) ||
-      s.district.toLowerCase().includes(term)
+      s.district.toLowerCase().includes(term) ||
+      (s.fullAddress || '').toLowerCase().includes(term) ||
+      (s.pairingCode || '').toLowerCase().includes(term)
     const matchesStatus = !status || status === 'all' || s.status === status
     return matchesTenant && matchesSearch && matchesStatus
   })
@@ -611,14 +658,106 @@ export function fakeListStores(params?: {
   })
 }
 
+export function fakeListDeactivatedStores(params?: {
+  tenantId?: string
+  search?: string
+  skip?: number
+  limit?: number
+}): Promise<ApiResponseV2Paginated<TenantStore[]>> {
+  const { tenantId, search = '', skip = 0, limit = 20 } = params || {}
+  const term = search.trim().toLowerCase()
+
+  const filtered = deactivatedStores.filter((s) => {
+    const matchesTenant = !tenantId || tenantId === 'all' || s.tenantId === tenantId
+    const matchesSearch =
+      !term ||
+      s.name.toLowerCase().includes(term) ||
+      s.storeNo.toLowerCase().includes(term) ||
+      s.location.toLowerCase().includes(term) ||
+      s.district.toLowerCase().includes(term) ||
+      (s.fullAddress || '').toLowerCase().includes(term) ||
+      (s.pairingCode || '').toLowerCase().includes(term)
+    return matchesTenant && matchesSearch
+  })
+
+  const page = filtered.slice(skip, skip + limit)
+  return delay({
+    success: true,
+    meta: { total: filtered.length, skip, limit },
+    data: page.map((s) => ({ ...s })),
+  })
+}
+
+export function fakeDeactivateStore(storeId: string): Promise<ApiResponseV2<TenantStore>> {
+  const idx = stores.findIndex((s) => s.id === storeId || s._id === storeId)
+  if (idx === -1) {
+    return Promise.reject({
+      response: { status: 404, data: { detail: 'Store not found in active list.' } },
+      isAxiosError: true,
+    })
+  }
+
+  const [removed] = stores.splice(idx, 1)
+  const deactivatedRecord: TenantStore = {
+    ...removed,
+    status: 'offline',
+    is_active: false,
+    deactivated_at: new Date().toISOString(),
+    deactivated_by: 'owner@demo.com',
+  }
+  deactivatedStores.unshift(deactivatedRecord)
+
+  const tenant = tenants.find((t) => t.id === removed.tenantId)
+  if (tenant) {
+    tenant.stats.storeCount = Math.max(0, tenant.stats.storeCount - 1)
+  }
+
+  return delay({ success: true, data: { ...deactivatedRecord } })
+}
+
+export function fakeActivateStore(storeId: string): Promise<ApiResponseV2<TenantStore>> {
+  const idx = deactivatedStores.findIndex((s) => s.id === storeId || s._id === storeId)
+  if (idx === -1) {
+    return Promise.reject({
+      response: { status: 404, data: { detail: 'Store not found in deactivated list.' } },
+      isAxiosError: true,
+    })
+  }
+
+  const [removed] = deactivatedStores.splice(idx, 1)
+  const activatedRecord: TenantStore = {
+    ...removed,
+    status: 'live',
+    is_active: true,
+    deactivated_at: null,
+    deactivated_by: null,
+    updatedAt: new Date().toISOString(),
+  }
+  stores.unshift(activatedRecord)
+
+  const tenant = tenants.find((t) => t.id === removed.tenantId)
+  if (tenant) {
+    tenant.stats.storeCount += 1
+  }
+
+  return delay({ success: true, data: { ...activatedRecord } })
+}
+
 export function fakeCreateStore(params: CreateStoreParams): Promise<ApiResponseV2<TenantStore>> {
-  const tenant = tenants.find((t) => t.id === params.tenantId)
-  const pairingCode = randomCode('PAIR')
+  const tenant = params.tenantId ? tenants.find((t) => t.id === params.tenantId) : tenants[0]
+  const tenantId = tenant?.id || 'ten_lionmart'
+  const pairingCode = params.pairingCode || randomCode('PAIR')
+  const fullAddress =
+    params.fullAddress ||
+    (params.street
+      ? `${params.street}, ${params.city || ''}, ${params.state || ''} ${params.zip || ''}`.trim()
+      : `${params.location}, ${params.district}`)
+
   const newStore: TenantStore = {
     _id: params.storeNo,
     id: params.storeNo,
-    tenantId: params.tenantId,
-    tenantName: tenant?.name ?? 'Tenant',
+    tenantId,
+    tenantName: tenant?.name ?? 'Lionmart Retail Group',
     storeNo: params.storeNo,
     name: params.name,
     location: params.location,
@@ -628,9 +767,12 @@ export function fakeCreateStore(params: CreateStoreParams): Promise<ApiResponseV
       city: params.city,
       state: params.state,
       zip: params.zip,
+      fullAddress,
     },
-    timezone: params.timezone,
+    fullAddress,
+    timezone: params.timezone || 'America/New_York',
     status: 'provisioning',
+    is_active: true,
     pairingCode,
     lastHeartbeat: null,
     nodesOnline: 0,
@@ -654,6 +796,7 @@ export function fakeBulkCreateStores(params: BulkCreateStoresParams): Promise<Ap
 
   for (const s of params.stores) {
     const pairingCode = randomCode('PAIR')
+    const fullAddress = `${s.street || ''}, ${s.city || ''}, ${s.state || ''} ${s.zip || ''}`.trim() || `${s.location}, ${s.district}`
     const record: TenantStore = {
       _id: s.storeNo,
       id: s.storeNo,
@@ -668,9 +811,12 @@ export function fakeBulkCreateStores(params: BulkCreateStoresParams): Promise<Ap
         city: s.city,
         state: s.state,
         zip: s.zip,
+        fullAddress,
       },
+      fullAddress,
       timezone: s.timezone,
       status: 'provisioning',
+      is_active: true,
       pairingCode,
       lastHeartbeat: null,
       nodesOnline: 0,
@@ -720,15 +866,21 @@ export function fakeUpdateStore(
   updates: Partial<TenantStore>
 ): Promise<ApiResponseV2<TenantStore>> {
   const idx = stores.findIndex((s) => s.id === storeId || s._id === storeId)
-  if (idx === -1) {
-    return Promise.reject({
-      response: { status: 404, data: { detail: 'Store not found.' } },
-      isAxiosError: true,
-    })
+  if (idx !== -1) {
+    stores[idx] = { ...stores[idx], ...updates, updatedAt: new Date().toISOString() }
+    return delay({ success: true, data: { ...stores[idx] } })
   }
 
-  stores[idx] = { ...stores[idx], ...updates, updatedAt: new Date().toISOString() }
-  return delay({ success: true, data: { ...stores[idx] } })
+  const deactIdx = deactivatedStores.findIndex((s) => s.id === storeId || s._id === storeId)
+  if (deactIdx !== -1) {
+    deactivatedStores[deactIdx] = { ...deactivatedStores[deactIdx], ...updates, updatedAt: new Date().toISOString() }
+    return delay({ success: true, data: { ...deactivatedStores[deactIdx] } })
+  }
+
+  return Promise.reject({
+    response: { status: 404, data: { detail: 'Store not found.' } },
+    isAxiosError: true,
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -778,7 +930,7 @@ export function fakeListArchivedOwners(params?: {
   const filtered = archivedOwners.filter((o) => {
     const matchesTenant = !tenantId || o.tenant_id === tenantId
     const name = `${o.first_name || ''} ${o.last_name || ''}`.toLowerCase()
-    return !term || name.includes(term) || o.email.toLowerCase().includes(term)
+    return matchesTenant && (!term || name.includes(term) || o.email.toLowerCase().includes(term))
   })
 
   const page = filtered.slice(skip, skip + limit)
