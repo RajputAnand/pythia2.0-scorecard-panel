@@ -113,3 +113,21 @@ Sidebar is rendered per role via the role layout (`src/app/<role>/layout.tsx`):
 4. **Super Admin View**:
    - 4-Way View Switcher: `Admin` (Onboarding [if MT], Tenants [if MT], Owners [if MT], KPI Visibility, Device Health), `Manager View`, `Employee View`, `Owner View` (Stores mirror, Managers mirror, ROI, Benchmarking).
    - URL Sync: Synchronizes active toggle with current URL path automatically.
+
+---
+
+## Owner Billing & Stripe Customer Portal
+
+Owners have direct access to Stripe Customer Portal for managing payment methods, viewing invoices, and updating billing details:
+- **Server Action**: `createStripeCustomerPortalSession(returnUrl?: string)` in [`src/actions/stripe.ts`](file:///home/vikalp/workspaces/inx/pythia/Pythia2.0-frontend1/src/actions/stripe.ts).
+- **Header Trigger**: Rendered in [`src/components/shared/Header/Header.tsx`](file:///home/vikalp/workspaces/inx/pythia/Pythia2.0-frontend1/src/components/shared/Header/Header.tsx) user profile dropdown when `role === 'owner'`:
+  ```tsx
+  <button onClick={handleManagePayments} disabled={isOpeningPortal}>
+    {isOpeningPortal ? 'Opening Portal...' : 'Manage Payment methods'}
+  </button>
+  ```
+- **Fallback / Environment**:
+  - `STRIPE_CUSTOMER_PORTAL_URL`: Direct link override if hosted URL is static.
+  - `STRIPE_SECRET_KEY`: Used to call `stripe.billingPortal.sessions.create({ customer: customerId, return_url })`.
+  - Default return URL routes back to `/owner/roi-attribution`.
+
