@@ -8,7 +8,7 @@ import { getGreeting } from '@/utils/common'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
 
-interface MetricProps extends MetricData {}
+type MetricProps = MetricData
 
 export function Metric({ label, value, change, valueColor }: MetricProps) {
   return (
