@@ -29,7 +29,7 @@ Pythia 2.0 implements a strict multi-role permission and authentication system u
 Multi-tenant features are gated behind the environment flag `NEXT_PUBLIC_ENABLE_MULTI_TENANT="true"`.
 
 ### Environment Flag Behavior
-- **Flag Disabled (default)**: The legacy single-tenant flow remains active (`/login/[role]`). Multi-tenant routes are blocked at `proxy.ts`.
+- **Flag Disabled (default)**: The single-tenant flow remains active (`/login/[role]`). Multi-tenant administration routes (`/super-admin/tenants`, `/super-admin/onboarding`, `/super-admin/owners`, `/login/tenant`) are blocked at `proxy.ts`. Store management (`/owner/stores` and `/super-admin/owner/stores`) remains fully accessible to Owners and Super Admins.
 - **Flag Enabled (`NEXT_PUBLIC_ENABLE_MULTI_TENANT="true"`)**:
   - Multi-Tenant Login Portal active at `/login/tenant` (accepts Organization ID, Username/Email, Password, and Role).
   - Super Admin Customer Onboarding Wizard active at `/super-admin/onboarding`.
@@ -88,7 +88,7 @@ interface User {
 ## Next.js 16 Proxy Gatekeeper (`src/proxy.ts`)
 
 `src/proxy.ts` executes on every incoming request:
-1. **Multi-Tenant Feature Gate**: If `NEXT_PUBLIC_ENABLE_MULTI_TENANT` is false, intercepts `/login/tenant`, `/super-admin/onboarding`, `/super-admin/tenants`, `/super-admin/owners`, `/owner/stores` and redirects to the role's default route or `/login/employee`.
+1. **Multi-Tenant Feature Gate**: If `NEXT_PUBLIC_ENABLE_MULTI_TENANT` is false, intercepts `/login/tenant`, `/super-admin/onboarding`, `/super-admin/tenants`, `/super-admin/owners` and redirects to the role's default route or `/login/employee`.
 2. **Unauthenticated Users**: Allows `/login/employee`, `/login/manager`, `/login/owner`, `/login/superadmin`, `/login/tenant`, `/forgot-password`, `/reset-password`. Redirects any other route to login with `redirectTo=<path>`.
 3. **Authenticated Users on Public Routes**: Redirects `/login` or `/` to the role's `ROLE_DEFAULT_ROUTES[role]`.
 4. **Prefix Guard**: Checks `pathname.startsWith(allowedPrefix)`. Redirects unauthorized accesses to the default route.
@@ -107,9 +107,9 @@ Sidebar is rendered per role via the role layout (`src/app/<role>/layout.tsx`):
    - Navigation: Navigate (Dashboard, Employees) + Manager Tools (Coaching Tracker, Staffing, Unknown Identity, Video Identities).
    - Bottom Widget: Store selection pill with pulsing live dot (`useUserStore(s => s.currentStore)`).
 3. **Owner View**:
-   - Navigation: Owner Tools (Managers, Stores [if MT enabled], ROI Attribution, Benchmarking).
+   - Navigation: Owner Tools (Stores, Managers, ROI Attribution, Benchmarking).
    - View Toggle: Swappable Owner View / Manager View buttons that update route and swap active nav items.
    - Bottom Widget: Store selection pill.
 4. **Super Admin View**:
-   - 4-Way View Switcher: `Admin` (Onboarding [if MT], Tenants [if MT], Owners [if MT], KPI Visibility, Device Health), `Manager View`, `Employee View`, `Owner View` (Stores mirror [if MT], ROI, Benchmarking).
+   - 4-Way View Switcher: `Admin` (Onboarding [if MT], Tenants [if MT], Owners [if MT], KPI Visibility, Device Health), `Manager View`, `Employee View`, `Owner View` (Stores mirror, Managers mirror, ROI, Benchmarking).
    - URL Sync: Synchronizes active toggle with current URL path automatically.

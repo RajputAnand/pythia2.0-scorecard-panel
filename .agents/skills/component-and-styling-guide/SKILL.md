@@ -113,3 +113,17 @@ import headerStyles from '@/components/shared/Header/Header.module.css'
 </Header>
 ```
 
+---
+
+## Forms, Validation & Action Modals
+
+- **Forms**: Always use `DynamicForm` (`src/components/shared/DynamicForm/DynamicForm.tsx`) for standard text/email/password forms. For specialized forms requiring custom controls (e.g. photo uploads, multi-select stores, textareas with guidance notes, or auto-generated pairing codes), use `useForm` + `zodResolver` with standard design token styling.
+- **Validation**: Define Zod schemas in `src/schemas/` (`auth.ts`, `employee.ts`, `manager.ts`, `tenant.ts`, `investor-share.ts`).
+- **Standard Action Modals**:
+  - `CreateEmployeeModal`: Multi-step form with face photo capture and temporary credentials reveal.
+  - `CreateManagerModal`: Form with store assignment multi-picker and credentials reveal.
+  - `CreateStoreModal`: Form with full physical address input, delivery note, and auto-generated edge device pairing code.
+  - `EditStoreModal`: Store location, district, address, and status editor.
+  - `ConfirmDeactivateStoreModal` / `ConfirmArchiveManagerModal` / `ConfirmArchiveEmployeeModal`: Destructive action confirmation dialogs with pending states.
+
+

@@ -4,6 +4,9 @@
 
 import {
   fakeListStores,
+  fakeListDeactivatedStores,
+  fakeDeactivateStore,
+  fakeActivateStore,
   fakeCreateStore,
   fakeBulkCreateStores,
   fakeSimulateHeartbeat,
@@ -34,6 +37,33 @@ export async function fetchStoresForTenant({
   limit = 20,
 }: FetchStoresParams): Promise<ApiResponseV2Paginated<TenantStore[]>> {
   return fakeListStores({ tenantId, search, status, skip, limit })
+}
+
+export async function fetchDeactivatedStores({
+  tenantId,
+  search,
+  skip = 0,
+  limit = 20,
+}: FetchStoresParams): Promise<ApiResponseV2Paginated<TenantStore[]>> {
+  return fakeListDeactivatedStores({ tenantId, search, skip, limit })
+}
+
+export async function deactivateStore({
+  storeId,
+}: {
+  token?: string
+  storeId: string
+}): Promise<ApiResponseV2<TenantStore>> {
+  return fakeDeactivateStore(storeId)
+}
+
+export async function activateStore({
+  storeId,
+}: {
+  token?: string
+  storeId: string
+}): Promise<ApiResponseV2<TenantStore>> {
+  return fakeActivateStore(storeId)
 }
 
 export async function createStore({

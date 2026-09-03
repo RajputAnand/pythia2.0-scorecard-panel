@@ -49,6 +49,7 @@ export interface StoreAddress {
   city?: string
   state?: string
   zip?: string
+  fullAddress?: string
 }
 
 export interface TenantStore {
@@ -61,8 +62,10 @@ export interface TenantStore {
   location: string
   district: string
   address?: StoreAddress
+  fullAddress?: string
   timezone: string
   status: StoreProvisionStatus
+  is_active?: boolean
   pairingCode: string
   lastHeartbeat?: string | null
   nodesOnline?: number
@@ -70,6 +73,8 @@ export interface TenantStore {
   employeeCount?: number
   createdAt: string
   updatedAt?: string
+  deactivated_at?: string | null
+  deactivated_by?: string | null
 }
 
 export interface CreateTenantParams {
@@ -85,7 +90,7 @@ export interface CreateTenantParams {
 }
 
 export interface CreateStoreParams {
-  tenantId: string
+  tenantId?: string
   storeNo: string
   name: string
   location: string
@@ -94,7 +99,9 @@ export interface CreateStoreParams {
   city?: string
   state?: string
   zip?: string
-  timezone: string
+  fullAddress?: string
+  pairingCode?: string
+  timezone?: string
 }
 
 export interface BulkCreateStoresParams {

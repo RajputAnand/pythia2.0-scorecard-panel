@@ -23,6 +23,7 @@ export default function EditStoreModal({ store, onClose, onUpdated }: EditStoreM
   const [name, setName] = useState(store.name)
   const [location, setLocation] = useState(store.location)
   const [district, setDistrict] = useState(store.district)
+  const [fullAddress, setFullAddress] = useState(store.fullAddress || (store.address ? `${store.address.street || ''}, ${store.address.city || ''}, ${store.address.state || ''} ${store.address.zip || ''}`.trim() : ''))
   const [status, setStatus] = useState<StoreProvisionStatus>(store.status)
   const [timezone, setTimezone] = useState(store.timezone)
   const [isPending, setIsPending] = useState(false)
@@ -36,7 +37,7 @@ export default function EditStoreModal({ store, onClose, onUpdated }: EditStoreM
     try {
       const res = await updateStore({
         storeId: store.id,
-        updates: { name, location, district, status, timezone },
+        updates: { name, location, district, fullAddress, status, timezone },
       })
       if (res.success && res.data) {
         onUpdated(res.data)
@@ -49,9 +50,9 @@ export default function EditStoreModal({ store, onClose, onUpdated }: EditStoreM
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto" onClick={onClose}>
       <div
-        className="w-full max-w-[440px] bg-surface border border-border rounded-2xl shadow-lg p-6 space-y-4"
+        className="w-full max-w-[460px] bg-surface border border-border rounded-2xl shadow-xl p-6 space-y-4 my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -99,6 +100,16 @@ export default function EditStoreModal({ store, onClose, onUpdated }: EditStoreM
                 className="w-full bg-surface border border-border rounded-lg px-3 py-1.5 text-[12.5px] outline-none focus:border-accent"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="text-[11px] font-medium text-secondary uppercase block mb-1">Full Address</label>
+            <textarea
+              rows={2}
+              value={fullAddress}
+              onChange={(e) => setFullAddress(e.target.value)}
+              className="w-full bg-surface border border-border rounded-lg px-3 py-1.5 text-[12.5px] outline-none focus:border-accent resize-none"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-2.5">
