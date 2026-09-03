@@ -514,7 +514,7 @@ export default function PostDemoRecaps() {
                   placeholder="john@example.com, jane@example.com&#10;mike@example.com"
                 />
                 <p className="text-[12px] text-muted mt-2">
-                  These prospects will be automatically enrolled in the "Trigger Cold Prospect Flow" metric in Klaviyo.
+                  These prospects will be automatically enrolled in the &quot;Trigger Cold Prospect Flow&quot; metric in Klaviyo.
                 </p>
               </div>
 

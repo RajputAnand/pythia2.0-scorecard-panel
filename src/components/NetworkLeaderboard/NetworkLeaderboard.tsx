@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
@@ -121,15 +121,6 @@ export default function NetworkLeaderboard({
     router.push(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
-  if (!previewMode && !visible) return null
-
-  // `data === undefined` means no live data was ever wired up (e.g. the Super
-  // Admin static mirror renders `<NetworkLeaderboard />` with no props) — show
-  // illustrative sample rows. `data` being a defined-but-empty array is a real
-  // "no stores matched this filter/scope" result and must NOT fall back to the
-  // same sample rows, or an empty result looks like fabricated live data.
-  const isLiveEmpty = !previewMode && data !== undefined && !loading && data.length === 0
-
   const displayRows = useMemo(() => {
     if (previewMode) return previewRows.filter((r) => r.rank === 1 || r.isYours)
     if (data === undefined) return rows
@@ -184,6 +175,15 @@ export default function NetworkLeaderboard({
       }
     })
   }, [data, previewMode, currentStore])
+
+  // `data === undefined` means no live data was ever wired up (e.g. the Super
+  // Admin static mirror renders `<NetworkLeaderboard />` with no props) — show
+  // illustrative sample rows. `data` being a defined-but-empty array is a real
+  // "no stores matched this filter/scope" result and must NOT fall back to the
+  // same sample rows, or an empty result looks like fabricated live data.
+  const isLiveEmpty = !previewMode && data !== undefined && !loading && data.length === 0
+
+  if (!previewMode && !visible) return null
 
   return (
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
