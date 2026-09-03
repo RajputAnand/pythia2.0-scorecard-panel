@@ -124,6 +124,19 @@ import headerStyles from '@/components/shared/Header/Header.module.css'
   - `CreateManagerModal`: Form with store assignment multi-picker and credentials reveal.
   - `CreateStoreModal`: Form with full physical address input, delivery note, and auto-generated edge device pairing code.
   - `EditStoreModal`: Store location, district, address, and status editor.
-  - `ConfirmDeactivateStoreModal` / `ConfirmArchiveManagerModal` / `ConfirmArchiveEmployeeModal`: Destructive action confirmation dialogs with pending states.
+  - `ConfirmDeactivateStoreModal` / `ConfirmArchiveManagerModal` / `ConfirmArchiveEmployeeModal` / `ConfirmArchiveOwnerModal`: Destructive action confirmation dialogs with pending states.
+---
 
+## Brand Assets & Stripe Branding Guidelines
 
+### Public Brand Assets (`public/`)
+- **`public/pythia-icon.png` / `.svg`**: The primary square brand icon (dark `#1A1714` squircle with centered white reticle target).
+  - *Stripe Requirement*: Full-bleed solid square RGB `#1A1714` background (no transparent corner padding) so Stripe's container rounds it seamlessly without white corner bleeding.
+- **`public/pythia-logo.png` / `.svg`**: Standard horizontal logo with squircle icon and "Pythia Scorecard" wordmark.
+- **`public/icons/`**: Standard 24×24 navigation SVGs extracted from Sidebar (`overview`, `stores`, `users`, `coaching`, `staffing`, `roi-attribution`, `benchmarking`, `device-health`).
+
+### Recommended Stripe Palette
+- **Brand Color**: `#1A1714` (Executive Dark Charcoal) or `#1D5C3A` (Forest Green CTA).
+- **Accent Color**: `#E6F2EC` (Mint) or `#F6F4F1` (Canvas).
+- **Button Shape**: `Rounded`.
+- **Font**: `System default` or `Inter` (closest standard match to `DM Sans`).
