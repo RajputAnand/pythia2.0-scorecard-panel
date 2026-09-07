@@ -42,14 +42,21 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
 
   if (!previewMode && !visible) return null
 
-  const items = previewMode ? PREVIEW_CATALOG : storeItems
+  const items = previewMode
+    ? PREVIEW_CATALOG
+    : storeItems.filter((item) => item.status !== 'archived')
   const isLoading = previewMode ? false : storeLoading
   const points = previewMode ? PREVIEW_POINTS : storePoints
 
   async function handleRedeem(item: SwagItem) {
     if (previewMode) return
+    if (item.stock === 0) {
+      showToast(`"${item.name}" is currently out of stock.`)
+      return
+    }
     if (points < item.cost || item.redeemed || redeemingId) return
     const success = await redeemItem(item)
+
     if (success) {
       const remaining = useUserStore.getState().points ?? 0
       showToast(`${item.emoji} ${item.name} redeemed! ${remaining.toLocaleString('en-US')} pts remaining`)
@@ -155,6 +162,14 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                     disabled
                   >
                     ✓ Redeemed
+                  </button>
+                ) : item.stock === 0 ? (
+                  <button
+                    className="cursor-default rounded-[7px] border-0 px-[10px] py-[6px] text-[11.5px] font-semibold text-muted transition-all duration-150 opacity-60"
+                    style={{ background: 'var(--color-surface-alt)' }}
+                    disabled
+                  >
+                    Out of Stock
                   </button>
                 ) : canAfford ? (
                   <button

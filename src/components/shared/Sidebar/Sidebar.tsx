@@ -83,6 +83,20 @@ function getOwnerNav(mtEnabled: boolean): NavSection[] {
               </svg>
             ),
           },
+          {
+            label: "Swag Store",
+            href: "/owner/swag-store",
+            icon: (
+              <svg
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            ),
+          },
         ],
       },
     ];
@@ -119,6 +133,20 @@ function getOwnerNav(mtEnabled: boolean): NavSection[] {
             >
               <circle cx="12" cy="8" r="4" />
               <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+            </svg>
+          ),
+        },
+        {
+          label: "Swag Store",
+          href: "/owner/swag-store",
+          icon: (
+            <svg
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           ),
         },
@@ -432,6 +460,21 @@ function getSuperAdminNavByView(
                 </svg>
               ),
             },
+            {
+              label: "Swag Store",
+              href: "/super-admin/owner/swag-store",
+              mirrorsHref: "/owner/swag-store",
+              icon: (
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              ),
+            },
           ],
         },
       ],
@@ -662,6 +705,21 @@ function getSuperAdminNavByView(
               >
                 <circle cx="12" cy="8" r="4" />
                 <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+              </svg>
+            ),
+          },
+          {
+            label: "Swag Store",
+            href: "/super-admin/owner/swag-store",
+            mirrorsHref: "/owner/swag-store",
+            icon: (
+              <svg
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             ),
           },
