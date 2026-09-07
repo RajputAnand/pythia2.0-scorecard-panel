@@ -4,7 +4,15 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { SelectProps } from '@/types/select'
 
-export default function Select({ value, options, onChange, ariaLabel }: SelectProps) {
+export default function Select({
+  value,
+  options,
+  onChange,
+  ariaLabel,
+  fullWidth = false,
+  className = '',
+  triggerClassName = '',
+}: SelectProps) {
   const [open, setOpen] = useState(false)
   const [position, setPosition] = useState<{ top: number; left: number; width: number } | null>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -33,7 +41,7 @@ export default function Select({ value, options, onChange, ariaLabel }: SelectPr
   const activeOption = options.find((o) => o.value === value)
 
   return (
-    <div className="relative inline-block">
+    <div className={`relative ${fullWidth ? 'w-full' : 'inline-block'} ${className}`}>
       <button
         ref={triggerRef}
         type="button"
@@ -41,7 +49,11 @@ export default function Select({ value, options, onChange, ariaLabel }: SelectPr
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={ariaLabel}
-        className="cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface border border-border rounded-lg transition-all duration-150 hover:bg-surface-alt hover:text-primary text-[12px] px-3 py-[6px] whitespace-nowrap"
+        className={
+          fullWidth
+            ? `cursor-pointer w-full flex items-center justify-between gap-[7px] font-sans font-medium text-primary bg-surface-alt border border-border rounded-lg transition-all duration-150 hover:border-accent text-[12.5px] px-3 py-2 ${triggerClassName}`
+            : `cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface border border-border rounded-lg transition-all duration-150 hover:bg-surface-alt hover:text-primary text-[12px] px-3 py-[6px] whitespace-nowrap ${triggerClassName}`
+        }
       >
         <span>{activeOption?.label ?? value}</span>
         <svg
@@ -62,7 +74,7 @@ export default function Select({ value, options, onChange, ariaLabel }: SelectPr
             role="listbox"
             aria-label={ariaLabel}
             style={{ position: 'fixed', top: position.top, left: position.left, minWidth: position.width }}
-            className="bg-surface border border-border rounded-[10px] p-[4px] shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] list-none m-0 z-50"
+            className="bg-surface border border-border rounded-[10px] p-[4px] shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] list-none m-0 z-[9999] max-h-60 overflow-y-auto"
           >
             {options.map((option) => {
               const active = option.value === value

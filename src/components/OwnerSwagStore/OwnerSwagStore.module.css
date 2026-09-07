@@ -1,0 +1,21 @@
+@reference "../../app/globals.css";
+
+.metricCard {
+  @apply flex flex-col justify-between rounded-xl border border-border bg-surface p-4 transition-all duration-150;
+}
+
+.tabBtn {
+  @apply flex items-center gap-2 border-b-2 px-4 py-3 text-[13px] font-medium transition-colors cursor-pointer;
+}
+
+.tabBtnActive {
+  @apply border-accent text-accent font-semibold;
+}
+
+.tabBtnInactive {
+  @apply border-transparent text-secondary hover:text-primary;
+}
+
+.productCard {
+  @apply flex flex-col justify-between rounded-xl border border-border bg-surface p-5 transition-shadow hover:shadow-sm;
+}

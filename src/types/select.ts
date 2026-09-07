@@ -8,6 +8,9 @@ export interface SelectProps {
   options: SelectOption[]
   onChange: (value: string | number) => void
   ariaLabel?: string
+  fullWidth?: boolean
+  className?: string
+  triggerClassName?: string
 }
 
 export interface MultiSelectProps {
