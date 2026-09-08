@@ -7,9 +7,10 @@ export default function SwagPage() {
   const currentDate = new Date(2026, 5, 14) // replace with new Date() in production
   return (
     <>
-      <Header title="Swag Store" subtitle={getWeekSubtitle(currentDate)}>
-        <button className={headerStyles.btnGhost}>View Last Week</button>
-      </Header>
+      <Header
+        title="Swag Store"
+        subtitle="Redeem your hard-earned performance points for exclusive team rewards and perks"
+      />
 
       <div className="grid px-[30px] py-[24px] gap-5">
         <SwagStore />

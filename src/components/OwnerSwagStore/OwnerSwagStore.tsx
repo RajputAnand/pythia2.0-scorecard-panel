@@ -3,19 +3,24 @@
 import { useState, useMemo } from 'react'
 import { useSwagStore } from '@/store/swagStore'
 import { useToast } from '@/context/ToastContext'
-import type { SwagProduct } from '@/types/swagstore'
+import type { SwagProduct, SwagOrder } from '@/types/swagstore'
 import styles from './OwnerSwagStore.module.css'
 import Select from '@/components/shared/Select/Select'
 import CreateSwagProductModal from './CreateSwagProductModal'
 import CannotDeleteProductModal from './CannotDeleteProductModal'
 import ConfirmDeleteProductModal from './ConfirmDeleteProductModal'
 import ConfirmArchiveProductModal from './ConfirmArchiveProductModal'
+import RejectOrderModal from '@/components/ManagerOrdersPanel/RejectOrderModal'
 
 interface OwnerSwagStoreProps {
   readOnly?: boolean
+  actorTitle?: string
 }
 
-export default function OwnerSwagStore({ readOnly = false }: OwnerSwagStoreProps) {
+export default function OwnerSwagStore({
+  readOnly = false,
+  actorTitle = 'Store Owner',
+}: OwnerSwagStoreProps) {
   const {
     catalog,
     orders,
@@ -26,6 +31,7 @@ export default function OwnerSwagStore({ readOnly = false }: OwnerSwagStoreProps
     deleteProduct,
     canDeleteProduct,
     completeOrder,
+    rejectOrder,
     resetToDefaults,
   } = useSwagStore()
 
@@ -40,6 +46,7 @@ export default function OwnerSwagStore({ readOnly = false }: OwnerSwagStoreProps
   const [editingProduct, setEditingProduct] = useState<SwagProduct | null>(null)
   const [archivingProduct, setArchivingProduct] = useState<SwagProduct | null>(null)
   const [deletingProduct, setDeletingProduct] = useState<SwagProduct | null>(null)
+  const [rejectingOrder, setRejectingOrder] = useState<SwagOrder | null>(null)
   const [blockedDeleteProduct, setBlockedDeleteProduct] = useState<{
     product: SwagProduct
     pendingCount: number
@@ -47,31 +54,31 @@ export default function OwnerSwagStore({ readOnly = false }: OwnerSwagStoreProps
 
   // Derived metrics
   const activeProducts = useMemo(
-    () => catalog.filter((p) => p.status !== 'archived'),
+    () => (catalog ?? []).filter((p) => p?.status !== 'archived'),
     [catalog]
   )
   const archivedProducts = useMemo(
-    () => catalog.filter((p) => p.status === 'archived'),
+    () => (catalog ?? []).filter((p) => p?.status === 'archived'),
     [catalog]
   )
   const pendingOrders = useMemo(
-    () => orders.filter((o) => o.status !== 'completed'),
+    () => (orders ?? []).filter((o) => o?.status === 'pending'),
     [orders]
   )
   const completedOrders = useMemo(
-    () => orders.filter((o) => o.status === 'completed'),
+    () => (orders ?? []).filter((o) => o?.status === 'completed'),
     [orders]
   )
   const totalPointsRedeemed = useMemo(
-    () => orders.reduce((sum, o) => sum + (o.pointsCost || 0), 0),
+    () => (orders ?? []).reduce((sum, o) => sum + (o?.pointsCost || 0), 0),
     [orders]
   )
 
   // Categories present in catalog
   const availableCategories = useMemo(() => {
     const set = new Set<string>()
-    catalog.forEach((p) => {
-      if (p.category) set.add(p.category)
+    ;(catalog ?? []).forEach((p) => {
+      if (p?.category) set.add(p.category)
     })
     return Array.from(set)
   }, [catalog])
@@ -84,11 +91,13 @@ export default function OwnerSwagStore({ readOnly = false }: OwnerSwagStoreProps
   // Filtered products
   const currentTabProducts = activeTab === 'active' ? activeProducts : archivedProducts
   const filteredProducts = useMemo(() => {
-    return currentTabProducts.filter((p) => {
+    return (currentTabProducts ?? []).filter((p) => {
+      if (!p) return false
+      const q = searchQuery.toLowerCase().trim()
       const matchesSearch =
-        searchQuery.trim() === '' ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.desc.toLowerCase().includes(searchQuery.toLowerCase())
+        q === '' ||
+        p.name?.toLowerCase().includes(q) ||
+        p.desc?.toLowerCase().includes(q)
       const matchesCategory =
         selectedCategory === 'ALL' || p.category === selectedCategory
       return matchesSearch && matchesCategory
@@ -141,8 +150,21 @@ export default function OwnerSwagStore({ readOnly = false }: OwnerSwagStoreProps
   }
 
   const handleCompleteOrder = (orderId: string, productName: string, employeeName: string) => {
-    completeOrder(orderId)
+    completeOrder(orderId, actorTitle.includes('Manager') ? 'Manager' : 'Owner')
     showToast(`Fulfilled order for ${employeeName} (${productName})!`)
+  }
+
+  const handleConfirmReject = (reason: string) => {
+    if (!rejectingOrder) return
+    const res = rejectOrder(rejectingOrder.id, reason, actorTitle)
+    if (res.success) {
+      showToast(
+        `Order #${rejectingOrder.id} rejected. ${rejectingOrder.pointsCost.toLocaleString('en-US')} pts refunded to ${rejectingOrder.employeeName}.`
+      )
+    } else {
+      showToast(res.reason || 'Failed to reject order.')
+    }
+    setRejectingOrder(null)
   }
 
   return (
@@ -525,7 +547,11 @@ export default function OwnerSwagStore({ readOnly = false }: OwnerSwagStoreProps
                   </thead>
                   <tbody className="divide-y divide-border">
                     {orders.map((order) => {
-                      const isPending = order.status !== 'completed'
+                      const isPending = order.status === 'pending'
+                      const isCompleted = order.status === 'completed'
+                      const isRejected = order.status === 'rejected'
+                      const isCancelled = order.status === 'cancelled'
+
                       const orderDate = new Date(order.orderedAt).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -554,6 +580,11 @@ export default function OwnerSwagStore({ readOnly = false }: OwnerSwagStoreProps
 
                           <td className="px-4 py-3 font-mono font-bold text-gold">
                             🪙 {order.pointsCost.toLocaleString('en-US')} pts
+                            {(isCancelled || isRejected) && (
+                              <span className="block font-sans text-[10px] font-semibold text-accent">
+                                (Refunded)
+                              </span>
+                            )}
                           </td>
 
                           <td className="px-4 py-3 text-muted text-[12px]">
@@ -566,9 +597,24 @@ export default function OwnerSwagStore({ readOnly = false }: OwnerSwagStoreProps
                                 <span className="w-1.5 h-1.5 rounded-full bg-amber shrink-0 animate-pulse" />
                                 Pending Fulfillment
                               </span>
-                            ) : (
+                            ) : isCompleted ? (
                               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-accent-light text-accent whitespace-nowrap">
                                 ✓ Completed
+                              </span>
+                            ) : isRejected ? (
+                              <div>
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-danger/10 text-danger border border-danger/20 whitespace-nowrap">
+                                  ✕ Rejected
+                                </span>
+                                {order.rejectionReason && (
+                                  <span className="block text-[10.5px] text-muted mt-0.5 truncate max-w-[160px]" title={order.rejectionReason}>
+                                    &ldquo;{order.rejectionReason}&rdquo;
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-surface-alt text-secondary border border-border whitespace-nowrap">
+                                ⊘ Cancelled
                               </span>
                             )}
                           </td>
@@ -576,22 +622,39 @@ export default function OwnerSwagStore({ readOnly = false }: OwnerSwagStoreProps
                           {!readOnly && (
                             <td className="px-4 py-3 text-right">
                               {isPending ? (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleCompleteOrder(
-                                      order.id,
-                                      order.productName,
-                                      order.employeeName
-                                    )
-                                  }
-                                  className="bg-accent hover:opacity-90 text-white font-semibold text-[11.5px] rounded-lg px-3 py-1 transition-opacity cursor-pointer shadow-xs"
-                                >
-                                  Mark as Completed
-                                </button>
-                              ) : (
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleCompleteOrder(
+                                        order.id,
+                                        order.productName,
+                                        order.employeeName
+                                      )
+                                    }
+                                    className="bg-accent hover:opacity-90 text-white font-semibold text-[11.5px] rounded-lg px-2.5 py-1 transition-opacity cursor-pointer shadow-xs whitespace-nowrap"
+                                  >
+                                    Fulfill
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setRejectingOrder(order)}
+                                    className="border border-danger/30 text-danger hover:bg-danger/10 font-semibold text-[11.5px] rounded-lg px-2 py-1 transition-colors cursor-pointer whitespace-nowrap"
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              ) : isCompleted ? (
                                 <span className="text-muted text-[11.5px] italic">
                                   Fulfilled
+                                </span>
+                              ) : isRejected ? (
+                                <span className="text-danger font-medium text-[11.5px]">
+                                  Rejected
+                                </span>
+                              ) : (
+                                <span className="text-muted text-[11.5px] italic">
+                                  Cancelled
                                 </span>
                               )}
                             </td>
@@ -653,6 +716,15 @@ export default function OwnerSwagStore({ readOnly = false }: OwnerSwagStoreProps
           product={archivingProduct}
           onCancel={() => setArchivingProduct(null)}
           onConfirm={handleConfirmArchive}
+        />
+      )}
+
+      {rejectingOrder && (
+        <RejectOrderModal
+          order={rejectingOrder}
+          roleTitle={actorTitle}
+          onCancel={() => setRejectingOrder(null)}
+          onConfirm={handleConfirmReject}
         />
       )}
     </div>

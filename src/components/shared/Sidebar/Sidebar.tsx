@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import styles from "./Sidebar.module.css";
 import type { ReactNode } from "react";
 import type { User, UserRole } from "@/types/user";
 import { useUserStore } from "@/store/userStore";
+import { useSwagStore } from "@/store/swagStore";
 import { useAdminConfigStore } from "@/store/adminConfigStore";
 import { isMultiTenantEnabled } from "@/store/tenantStore";
 import { PAGE_ID_BY_HREF } from "@/lib/admin-config-data";
@@ -40,6 +41,20 @@ const EMPLOYEE_NAV: NavSection[] = [
             <rect x="14" y="3" width="7" height="7" rx="1" />
             <rect x="3" y="14" width="7" height="7" rx="1" />
             <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+        ),
+      },
+      {
+        label: "Swag Store",
+        href: "/dashboard/swag",
+        icon: (
+          <svg
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
         ),
       },
@@ -206,6 +221,34 @@ function getManagerNav(mtEnabled: boolean): NavSection[] {
               </svg>
             ),
           },
+          {
+            label: "Orders",
+            href: "/manager/orders",
+            icon: (
+              <svg
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            ),
+          },
+          {
+            label: "Swag Store",
+            href: "/manager/swag-store",
+            icon: (
+              <svg
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            ),
+          },
         ],
       },
     ];
@@ -314,6 +357,34 @@ function getManagerNav(mtEnabled: boolean): NavSection[] {
             </svg>
           ),
         },
+        {
+          label: "Orders",
+          href: "/manager/orders",
+          icon: (
+            <svg
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+          ),
+        },
+        {
+          label: "Swag Store",
+          href: "/manager/swag-store",
+          icon: (
+            <svg
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+          ),
+        },
       ],
     },
   ];
@@ -396,6 +467,36 @@ function getSuperAdminNavByView(
                 </svg>
               ),
             },
+            {
+              label: "Orders",
+              href: "/super-admin/manager/orders",
+              mirrorsHref: "/manager/orders",
+              icon: (
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              ),
+            },
+            {
+              label: "Swag Store",
+              href: "/super-admin/manager/swag-store",
+              mirrorsHref: "/manager/swag-store",
+              icon: (
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              ),
+            },
           ],
         },
       ],
@@ -418,6 +519,21 @@ function getSuperAdminNavByView(
                   <rect x="14" y="3" width="7" height="7" rx="1" />
                   <rect x="3" y="14" width="7" height="7" rx="1" />
                   <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+              ),
+            },
+            {
+              label: "Swag Store",
+              href: "/super-admin/employee/swag",
+              mirrorsHref: "/dashboard/swag",
+              icon: (
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
               ),
             },
@@ -644,6 +760,36 @@ function getSuperAdminNavByView(
               </svg>
             ),
           },
+          {
+            label: "Orders",
+            href: "/super-admin/manager/orders",
+            mirrorsHref: "/manager/orders",
+            icon: (
+              <svg
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            ),
+          },
+          {
+            label: "Swag Store",
+            href: "/super-admin/manager/swag-store",
+            mirrorsHref: "/manager/swag-store",
+            icon: (
+              <svg
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            ),
+          },
         ],
       },
     ],
@@ -666,6 +812,21 @@ function getSuperAdminNavByView(
                 <rect x="14" y="3" width="7" height="7" rx="1" />
                 <rect x="3" y="14" width="7" height="7" rx="1" />
                 <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+            ),
+          },
+          {
+            label: "Swag Store",
+            href: "/super-admin/employee/swag",
+            mirrorsHref: "/dashboard/swag",
+            icon: (
+              <svg
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             ),
           },
@@ -877,11 +1038,31 @@ export default function Sidebar({ user }: { user: User }) {
   const currentStore = useUserStore((s) => s.currentStore);
   const points = storePoints ?? user.points ?? 0;
 
+  const swagOrders = useSwagStore((s) => s.orders);
+  const pendingManagerOrders = useMemo(
+    () => (swagOrders ?? []).filter((o) => o?.status === "pending").length,
+    [swagOrders]
+  );
+  const myPendingOrders = useMemo(
+    () =>
+      (swagOrders ?? []).filter(
+        (o) =>
+          o?.status === "pending" &&
+          (o?.employeeId === user.email ||
+            o?.employeeName === user?.name ||
+            o?.employeeName === "Marcus Reynolds" ||
+            o?.employeeName === "Marcus R.")
+      ).length,
+    [swagOrders, user]
+  );
+
   const pageVisibility = useAdminConfigStore((s) => s.visibility);
   const fetchPageVisibility = useAdminConfigStore((s) => s.fetchVisibility);
 
   useEffect(() => {
-    if (user.points != null) setPoints(user.points);
+    if (useUserStore.getState().points === null) {
+      setPoints(user.points && user.points > 0 ? user.points : 1450);
+    }
   }, [user.points, setPoints]);
 
   useEffect(() => {
@@ -910,10 +1091,32 @@ export default function Sidebar({ user }: { user: User }) {
   const navSections = roleSections
     .map((section) => ({
       ...section,
-      items: section.items.filter((item) => {
-        const pageId = PAGE_ID_BY_HREF[item.mirrorsHref ?? item.href];
-        return !pageId || (pageVisibility[pageId] ?? true);
-      }),
+      items: section.items
+        .filter((item) => {
+          const pageId = PAGE_ID_BY_HREF[item.mirrorsHref ?? item.href];
+          return !pageId || (pageVisibility[pageId] ?? true);
+        })
+        .map((item) => {
+          if (
+            item.href === "/manager/orders" ||
+            item.href === "/super-admin/manager/orders"
+          ) {
+            return {
+              ...item,
+              badge: pendingManagerOrders > 0 ? pendingManagerOrders : null,
+            };
+          }
+          if (
+            item.href === "/dashboard/swag" ||
+            item.href === "/super-admin/employee/swag"
+          ) {
+            return {
+              ...item,
+              badge: myPendingOrders > 0 ? myPendingOrders : null,
+            };
+          }
+          return item;
+        }),
     }))
     .filter((section) => section.items.length > 0);
 
