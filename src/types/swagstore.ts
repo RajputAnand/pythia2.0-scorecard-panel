@@ -15,17 +15,26 @@ export interface SwagItem {
 
 export type SwagProduct = SwagItem
 
+export type SwagOrderStatus = 'pending' | 'completed' | 'cancelled' | 'rejected'
+
 export interface SwagOrder {
   id: string
   productId: string
   productName: string
   productEmoji: string
+  category?: string
   employeeId: string
   employeeName: string
   pointsCost: number
-  status: 'pending' | 'completed'
+  status: SwagOrderStatus
   orderedAt: string
   completedAt?: string
+  fulfilledBy?: string
+  cancelledAt?: string
+  cancelledBy?: string
+  rejectedAt?: string
+  rejectedBy?: string
+  rejectionReason?: string
 }
 
 export interface SwagStoreConfig {

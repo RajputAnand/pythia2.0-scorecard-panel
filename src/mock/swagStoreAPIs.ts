@@ -13,8 +13,8 @@ export function fakeGet(): Promise<{ catalog: SwagItem[] }> {
 }
 
 export function fakePost(_itemId: string): Promise<void> {
-  return new Promise((resolve, reject) =>
-    setTimeout(() => (Math.random() < 0.15 ? reject(new Error('Server error')) : resolve()), 600)
+  return new Promise((resolve) =>
+    setTimeout(resolve, 300)
   )
 }
 // ---------------------------------------------------------------------------
