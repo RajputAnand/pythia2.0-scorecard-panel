@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import styles from './Header.module.css'
 import { useUserStore } from '@/store/userStore'
 import { useTenantStore, isMultiTenantEnabled } from '@/store/tenantStore'
+import { fetchStoresForTenant } from '@/queries/stores'
 import { logout } from '@/actions/auth'
 import { createStripeCustomerPortalSession } from '@/actions/stripe'
 import type { User } from '@/types/user'
@@ -80,6 +81,39 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
       document.removeEventListener('keydown', keyHandler)
     }
   }, [open, tenantOpen, profileOpen])
+
+  useEffect(() => {
+    const token = session?.user?.pythia2Token || session?.user?.token
+    if (!token || !showStoreSelector) return
+
+    let cancelled = false
+    fetchStoresForTenant({ token, limit: 100 })
+      .then((res) => {
+        if (cancelled) return
+        if (res.data && res.data.length > 0) {
+          const userStores = res.data.map((s) => ({
+            _id: s.storeNo || s.id || s._id,
+            name: s.name,
+            storeNo: s.storeNo,
+            location: s.location,
+            district: s.district,
+            createdBy: '',
+            updatedBy: null,
+            createdAt: s.createdAt || new Date().toISOString(),
+            updatedAt: s.updatedAt || new Date().toISOString(),
+            __v: 0,
+          }))
+          useUserStore.getState().setStores(userStores)
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load stores for Header store selector:', err)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [session?.user?.pythia2Token, session?.user?.token, showStoreSelector])
 
   async function handleManagePayments() {
     setIsOpeningPortal(true)

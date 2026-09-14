@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createStore } from '@/queries/stores'
@@ -10,6 +11,7 @@ import { useToast } from '@/context/ToastContext'
 import type { TenantStore } from '@/types/tenant'
 
 interface CreateStoreModalProps {
+  token?: string
   tenantId?: string
   onClose: () => void
   onCreated: (store: TenantStore) => void
@@ -22,10 +24,13 @@ function generatePairingCode(): string {
 }
 
 export default function CreateStoreModal({
+  token,
   tenantId = 'ten_lionmart',
   onClose,
   onCreated,
 }: CreateStoreModalProps) {
+  const { data: session } = useSession()
+  const authToken = token || session?.user?.pythia2Token || session?.user?.token
   const { showToast } = useToast()
   const [pairingCode, setPairingCode] = useState(() => generatePairingCode())
   const [isPending, setIsPending] = useState(false)
@@ -70,6 +75,7 @@ export default function CreateStoreModal({
 
     try {
       const res = await createStore({
+        token: authToken,
         data: {
           tenantId,
           storeNo: values.storeNo.trim(),
