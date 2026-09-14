@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useUserStore } from '@/store/userStore'
 import { fetchTrashedIdentities, fetchUnknownIdentities } from '@/queries/unknown-identities'
 import UnknownIdentityCarousel from '@/components/UnknownIdentityCarousel/UnknownIdentityCarousel'
 import EmployeeAssignPicker from '@/components/EmployeeAssignPicker/EmployeeAssignPicker'
@@ -65,6 +66,8 @@ interface UnknownIdentitiesPanelProps {
 export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitiesPanelProps) {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
+  const currentStore = useUserStore((s) => s.currentStore)
+  const storeId = currentStore?.storeNo || currentStore?._id
 
   const [view, setView] = useState<'active' | 'trashed'>('active')
 
@@ -81,6 +84,15 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
   const [isErrorTrashed, setIsErrorTrashed] = useState(false)
   const [trashedActiveIndex, setTrashedActiveIndex] = useState(0)
 
+  // Sync state if initialData changes (e.g. from server refresh on store switch)
+  useEffect(() => {
+    if (initialData) {
+      setIdentities(initialData.data)
+      setTotal(initialData.meta.total)
+      setActiveIndex(0)
+    }
+  }, [initialData])
+
   // resetIndex=true for the initial load / retry-after-error (start at the
   // top of the list); false after an assign, so the carousel stays on the
   // identity the manager was just looking at instead of jumping back to #1.
@@ -88,7 +100,7 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
     if (!token) return
     setIsLoading(true)
     setIsError(false)
-    fetchUnknownIdentities({ token, skip: 0, limit: PAGE_SIZE })
+    fetchUnknownIdentities({ token, skip: 0, limit: PAGE_SIZE, storeId: storeId || undefined })
       .then((response) => {
         setIdentities(response.data)
         setTotal(response.meta.total)
@@ -96,7 +108,7 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
       })
       .catch(() => setIsError(true))
       .finally(() => setIsLoading(false))
-  }, [token])
+  }, [token, storeId])
 
   // Fall back to a client-side fetch when the server-side prefetch failed or
   // there was no token yet at request time.
@@ -108,7 +120,7 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
     if (!token) return
     setIsLoadingTrashed(true)
     setIsErrorTrashed(false)
-    fetchTrashedIdentities({ token, skip: 0, limit: PAGE_SIZE })
+    fetchTrashedIdentities({ token, skip: 0, limit: PAGE_SIZE, storeId: storeId || undefined })
       .then((response) => {
         setTrashedIdentities(response.data)
         setTrashedTotal(response.meta.total)
@@ -116,12 +128,23 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
       })
       .catch(() => setIsErrorTrashed(true))
       .finally(() => setIsLoadingTrashed(false))
-  }, [token])
+  }, [token, storeId])
 
   // Fetch trashed identities lazily, the first time the manager switches to that tab.
   useEffect(() => {
     if (view === 'trashed' && token) loadTrashed()
   }, [view, token, loadTrashed])
+
+  // Re-fetch when storeId changes on the client
+  useEffect(() => {
+    if (token) {
+      if (view === 'active') {
+        loadFirstPage(true)
+      } else {
+        loadTrashed(true)
+      }
+    }
+  }, [storeId])
 
   // Clamp the trashed active index if the list shrinks (e.g. after a restore refetches it).
   if (trashedIdentities.length > 0 && trashedActiveIndex >= trashedIdentities.length) {
@@ -141,14 +164,14 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
     if (activeIndex < identities.length - 5) return
 
     setIsFetchingMore(true)
-    fetchUnknownIdentities({ token, skip: identities.length, limit: PAGE_SIZE })
+    fetchUnknownIdentities({ token, skip: identities.length, limit: PAGE_SIZE, storeId: storeId || undefined })
       .then((response) => {
         setIdentities((prev) => [...prev, ...response.data])
         setTotal(response.meta.total)
       })
       .catch(() => {})
       .finally(() => setIsFetchingMore(false))
-  }, [activeIndex, identities.length, total, token, isLoading, isError, isFetchingMore])
+  }, [activeIndex, identities.length, total, token, isLoading, isError, isFetchingMore, storeId])
 
   function renderActive() {
     if (isError) return <PanelError onRetry={loadFirstPage} />

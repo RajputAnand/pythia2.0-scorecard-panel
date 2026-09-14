@@ -1,4 +1,5 @@
 import { unstable_rethrow } from 'next/navigation'
+import { cookies } from 'next/headers'
 import Header from '@/components/shared/Header/Header'
 import ManagerDashboardKpiStrip from '@/components/ManagerDashboardKpiStrip/ManagerDashboardKpiStrip'
 import EmployeeSpotlightCard from '@/components/EmployeeSpotlightCard/EmployeeSpotlightCard'
@@ -12,6 +13,7 @@ import { fetchManagerDashboardSummary, fetchManagerDashboardLeaderboard, fetchMa
 import { fetchUnknownIdentitiesCount } from '@/queries/unknown-identities'
 import { fetchCoachingSummary } from '@/queries/manager-coaching'
 import { fetchAgeDistribution, fetchGenderDistribution, fetchCustomerSegments } from '@/queries/demographics'
+import { fetchStoresForTenant } from '@/queries/stores'
 import { auth } from '@/auth'
 import type { ManagerDashboardEmployeeRow, ManagerDashboardSummary, ManagerDashboardTrendWeek } from '@/types/manager-dashboard'
 import type { CoachingSummary } from '@/types/coaching-plan'
@@ -29,6 +31,18 @@ export default async function SuperAdminManagerDashboardPage() {
   const session = await auth()
   const token = session?.user?.pythia2Token
 
+  const cookieStore = await cookies()
+  let selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
+
+  if (!selectedStoreId && token) {
+    try {
+      const storesRes = await fetchStoresForTenant({ token, limit: 1 })
+      selectedStoreId = storesRes.data?.[0]?.storeNo || storesRes.data?.[0]?.id || storesRes.data?.[0]?._id
+    } catch {
+      // fallback if stores fetch fails
+    }
+  }
+
   let summary: ManagerDashboardSummary | null = null
   let employees: ManagerDashboardEmployeeRow[] = []
   let trendWeeks: ManagerDashboardTrendWeek[] | null = null
@@ -40,14 +54,14 @@ export default async function SuperAdminManagerDashboardPage() {
 
   if (token) {
     const [summaryResult, employeesResult, trendResult, unknownResult, coachingResult, ageResult, genderResult, segmentsResult] = await Promise.allSettled([
-      fetchManagerDashboardSummary({ token, view: 'all' }),
-      fetchManagerDashboardLeaderboard({ token, view: 'all', sortBy: 'thanked_count' }),
-      fetchManagerDashboardTrend({ token, weeks: 8 }),
-      fetchUnknownIdentitiesCount({ token }),
-      fetchCoachingSummary({ token, view: 'month' }),
-      fetchAgeDistribution({ token, storeId: '69c19e66a27efce5858b6487' }),
-      fetchGenderDistribution({ token, storeId: '69c19e66a27efce5858b6487' }),
-      fetchCustomerSegments({ token, storeId: '69c19e66a27efce5858b6487' }),
+      fetchManagerDashboardSummary({ token, view: 'all', storeId: selectedStoreId }),
+      fetchManagerDashboardLeaderboard({ token, view: 'all', sortBy: 'thanked_count', storeId: selectedStoreId }),
+      fetchManagerDashboardTrend({ token, weeks: 8, storeId: selectedStoreId }),
+      fetchUnknownIdentitiesCount({ token, storeId: selectedStoreId }),
+      fetchCoachingSummary({ token, view: 'month', storeId: selectedStoreId }),
+      fetchAgeDistribution({ token, storeId: selectedStoreId }),
+      fetchGenderDistribution({ token, storeId: selectedStoreId }),
+      fetchCustomerSegments({ token, storeId: selectedStoreId }),
     ])
     // Promise.allSettled swallows thrown errors as 'rejected' results, including
     // the NEXT_REDIRECT next/navigation throws server-side on a 401 (session

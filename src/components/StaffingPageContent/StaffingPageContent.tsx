@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useToast } from '@/context/ToastContext'
 import { useStaffingStore } from '@/store/staffingStore'
+import { useUserStore } from '@/store/userStore'
 import {
   transformScheduleToStaffEmployees,
   transformRosterToTeamScores,
@@ -74,6 +75,8 @@ export default function StaffingPageContent({
   const applyAllRecommendations = useStaffingStore((s) => s.applyAllRecommendations)
   const dismissRecommendation = useStaffingStore((s) => s.dismissRecommendation)
 
+  const currentStore = useUserStore((s) => s.currentStore)
+
   useEffect(() => {
     hydrate({
       storeId,
@@ -84,11 +87,13 @@ export default function StaffingPageContent({
       insights: initialInsights,
       recommendations: initialRecommendations,
     })
-    // Seed once from server-fetched props — subsequent updates flow through the
-    // store's own actions (fetchAll/goToNextWeek/etc), same pattern as
-    // Sidebar seeding userStore.points from the session on mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [storeId, initialWeekStartDate, initialSchedule, initialRoster, initialHeatmap, initialInsights, initialRecommendations, hydrate])
+
+  useEffect(() => {
+    if (currentStore?._id && currentStore._id !== storeId && token) {
+      fetchAll(token, currentStore._id)
+    }
+  }, [currentStore?._id, storeId, token, fetchAll])
 
   const [editTarget, setEditTarget] = useState<EditTarget>(null)
   const [editDayPart, setEditDayPart] = useState('off')

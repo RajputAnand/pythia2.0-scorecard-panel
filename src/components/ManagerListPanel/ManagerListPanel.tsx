@@ -13,7 +13,7 @@ import {
 import { fetchStoresForTenant } from '@/queries/stores'
 import { getEmployeeName, getEmployeeInitials, extractApiErrorMessage } from '@/utils/common'
 import { useToast } from '@/context/ToastContext'
-import { STORES } from '@/lib/store-data'
+import { useUserStore } from '@/store/userStore'
 import DataTable from '@/components/shared/DataTable/DataTable'
 import RevealCredentialsModal from '@/components/RevealCredentialsModal/RevealCredentialsModal'
 import ConfirmArchiveManagerModal from '@/components/ConfirmArchiveManagerModal/ConfirmArchiveManagerModal'
@@ -101,7 +101,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
   }, [token, initialStores])
 
   const storeNameMap = useMemo(() => {
-    const map: Record<string, string> = Object.fromEntries(STORES.map((s) => [s._id, s.name]))
+    const map: Record<string, string> = {}
     for (const s of stores) {
       if (s.storeNo) map[s.storeNo] = s.name
       if (s._id) map[s._id] = s.name
@@ -119,14 +119,14 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
   )
 
   const storeOptions = useMemo(() => {
-    if (stores.length > 0) {
-      return stores.map((s) => ({
-        label: `${s.name || s.storeNo} · ${s.location || s.district || ''}`.trim().replace(/ · $/, ''),
-        value: s.storeNo || s.id || s._id,
-      }))
-    }
-    return STORES.map((s) => ({ label: `${s.name} · ${s.location}`, value: s._id }))
+    return stores.map((s) => ({
+      label: `${s.name || s.storeNo} · ${s.location || s.district || ''}`.trim().replace(/ · $/, ''),
+      value: s.storeNo || s.id || s._id,
+    }))
   }, [stores])
+
+  const currentStore = useUserStore((s) => s.currentStore)
+  const currentStoreId = currentStore?._id
 
   const [view, setView] = useState<'active' | 'archived'>('active')
   const [isCreating, setIsCreating] = useState(false)
@@ -151,6 +151,20 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
   const skipNextFetch = useRef(!!trustedInitialData)
   const [retryToken, setRetryToken] = useState(0)
 
+  const lastStoreId = useRef(currentStoreId)
+  useEffect(() => {
+    if (lastStoreId.current !== currentStoreId) {
+      lastStoreId.current = currentStoreId
+      skipNextFetch.current = false
+      setSkip(0)
+      setArchivedSkip(0)
+      setRetryToken((r) => r + 1)
+      if (hasLoadedArchived.current) {
+        setArchivedRetryToken((r) => r + 1)
+      }
+    }
+  }, [currentStoreId])
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
     return () => clearTimeout(t)
@@ -171,7 +185,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     let cancelled = false
     setIsLoading(true)
     setIsError(false)
-    fetchManagers({ token, search: debouncedSearch, skip, limit: PAGE_SIZE })
+    fetchManagers({ token, search: debouncedSearch, skip, limit: PAGE_SIZE, storeId: currentStoreId })
       .then((response) => {
         if (cancelled) return
         setManagers(response.data ?? [])
@@ -186,7 +200,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     return () => {
       cancelled = true
     }
-  }, [token, debouncedSearch, skip, retryToken])
+  }, [token, debouncedSearch, skip, retryToken, currentStoreId])
 
   const page = meta ? Math.floor(meta.skip / meta.limit) : 0
   const totalPages = meta ? Math.max(1, Math.ceil(meta.total / meta.limit)) : 1
@@ -220,14 +234,14 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     hasLoadedArchived.current = true
     setIsLoadingArchived(true)
     setIsErrorArchived(false)
-    fetchArchivedManagers({ token, search: archivedDebouncedSearch, skip: archivedSkip, limit: PAGE_SIZE })
+    fetchArchivedManagers({ token, search: archivedDebouncedSearch, skip: archivedSkip, limit: PAGE_SIZE, storeId: currentStoreId })
       .then((response) => {
         setArchivedManagers(response.data ?? [])
         setArchivedMeta(response.meta)
       })
       .catch(() => setIsErrorArchived(true))
       .finally(() => setIsLoadingArchived(false))
-  }, [token, archivedDebouncedSearch, archivedSkip])
+  }, [token, archivedDebouncedSearch, archivedSkip, currentStoreId])
 
   useEffect(() => {
     if (view === 'archived' && token) loadArchived()

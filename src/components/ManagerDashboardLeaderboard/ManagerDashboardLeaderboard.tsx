@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useUserStore } from '@/store/userStore'
 import { fetchManagerDashboardLeaderboard } from '@/queries/manager-dashboard'
 import type { ManagerDashboardEmployeeRow, ManagerDashboardSortBy, ManagerDashboardView } from '@/types/manager-dashboard'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
@@ -55,6 +56,8 @@ const VIEWS: { key: ManagerDashboardView; label: string }[] = [
 export default function ManagerDashboardLeaderboard({ initialEmployees, initialView, previewMode }: Props) {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
+  const currentStore = useUserStore((s) => s.currentStore)
+  const storeId = currentStore?.storeNo || currentStore?._id
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.managerLeaderboard] ?? true)
 
   const [sortBy, setSortBy] = useState<ManagerDashboardSortBy>('thanked_count')
@@ -62,15 +65,21 @@ export default function ManagerDashboardLeaderboard({ initialEmployees, initialV
   const [employees, setEmployees] = useState<ManagerDashboardEmployeeRow[]>(initialEmployees)
   const [loading, setLoading] = useState(false)
 
+  // Sync state whenever parent server component re-renders with new props
+  useEffect(() => {
+    setEmployees(initialEmployees)
+  }, [initialEmployees])
+
   useEffect(() => {
     if (!token) return
-    if (sortBy === 'thanked_count' && view === initialView) {
-      setEmployees(initialEmployees)
-      return
-    }
     let cancelled = false
     setLoading(true)
-    fetchManagerDashboardLeaderboard({ token, view, sortBy })
+    fetchManagerDashboardLeaderboard({
+      token,
+      view,
+      sortBy,
+      storeId: storeId || undefined,
+    })
       .then((rows) => {
         if (!cancelled) setEmployees(rows)
       })
@@ -83,8 +92,7 @@ export default function ManagerDashboardLeaderboard({ initialEmployees, initialV
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, sortBy, view])
+  }, [token, sortBy, view, storeId])
 
   if (!previewMode && !visible) return null
 
@@ -94,7 +102,9 @@ export default function ManagerDashboardLeaderboard({ initialEmployees, initialV
         <div>
           <div className="text-[13.5px] font-semibold">Employee Recognition Leaderboard</div>
           <div className="text-[11.5px] text-muted mt-[2px]">
-            Who&apos;s saying thank you and pitching value to customers
+            {currentStore?.name
+              ? `Rankings for ${currentStore.name}`
+              : "Who's saying thank you and pitching value to customers"}
           </div>
         </div>
         <div className="flex gap-[6px]">

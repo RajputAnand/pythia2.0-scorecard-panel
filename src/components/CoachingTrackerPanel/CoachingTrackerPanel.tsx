@@ -40,6 +40,12 @@ export default function CoachingTrackerPanel({ initialEmployees }: Props) {
   const [activeId, setActiveId] = useState(initialEmployees[0]?.user_id ?? null)
   const activeEmployee = initialEmployees.find((e) => e.user_id === activeId) ?? null
 
+  useEffect(() => {
+    if (!initialEmployees.some((e) => e.user_id === activeId)) {
+      setActiveId(initialEmployees[0]?.user_id ?? null)
+    }
+  }, [initialEmployees, activeId])
+
   const [detail, setDetail] = useState<CoachingEmployeeDetail | null>(null)
   const [isLoadingDetail, setIsLoadingDetail] = useState(true)
   const [isDetailError, setIsDetailError] = useState(false)
