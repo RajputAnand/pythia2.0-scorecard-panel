@@ -21,6 +21,7 @@ export interface FetchManagersParams {
   search?: string
   skip?: number
   limit?: number
+  storeId?: string
 }
 
 export async function fetchManagers({
@@ -28,6 +29,7 @@ export async function fetchManagers({
   search,
   skip = 0,
   limit = 15,
+  storeId,
 }: FetchManagersParams): Promise<ApiResponseV2Paginated<ApiManager[]>> {
   if (token.includes('mock')) {
     return fakeListManagers({ search, skip, limit })
@@ -37,7 +39,7 @@ export async function fetchManagers({
     PYTHIA_2_API.managers.list,
     {
       headers: { Authorization: `Bearer ${token}` },
-      params: { search: search || undefined, skip, limit },
+      params: { search: search || undefined, skip, limit, store_id: storeId || undefined },
     },
   )
   return response
@@ -48,6 +50,7 @@ export async function fetchArchivedManagers({
   search,
   skip = 0,
   limit = 15,
+  storeId,
 }: FetchManagersParams): Promise<ApiResponseV2Paginated<ApiManager[]>> {
   if (token.includes('mock')) {
     return fakeListArchivedManagers({ search, skip, limit })
@@ -57,7 +60,7 @@ export async function fetchArchivedManagers({
     PYTHIA_2_API.managers.archived,
     {
       headers: { Authorization: `Bearer ${token}` },
-      params: { search: search || undefined, skip, limit },
+      params: { search: search || undefined, skip, limit, store_id: storeId || undefined },
     },
   )
   return response

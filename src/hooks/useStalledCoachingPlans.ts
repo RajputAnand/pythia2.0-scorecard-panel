@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useUserStore } from '@/store/userStore'
 import { fetchManagerCoachingPlans } from '@/queries/manager-coaching'
 import { fetchEmployee } from '@/queries/employees'
 import { getEmployeeName, getEmployeeInitials } from '@/utils/common'
@@ -33,6 +34,8 @@ export interface UseStalledCoachingPlansResult {
 export function useStalledCoachingPlans(): UseStalledCoachingPlansResult {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
+  const currentStore = useUserStore((s) => s.currentStore)
+  const storeId = currentStore?.storeNo || currentStore?._id
 
   const [plans, setPlans] = useState<ManagerCoachingPlan[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -48,7 +51,11 @@ export function useStalledCoachingPlans(): UseStalledCoachingPlansResult {
     // Ask the API for exactly the statuses this view cares about — resolved
     // and dismissed plans are never relevant here, no reason to fetch them
     // just to filter them out client-side.
-    fetchManagerCoachingPlans({ token, status: ['open', 'acknowledged', 'in_progress'] })
+    fetchManagerCoachingPlans({
+      token,
+      status: ['open', 'acknowledged', 'in_progress'],
+      storeId: storeId || undefined,
+    })
       .then((result) => {
         if (!cancelled) setPlans(result)
       })
@@ -61,7 +68,7 @@ export function useStalledCoachingPlans(): UseStalledCoachingPlansResult {
     return () => {
       cancelled = true
     }
-  }, [token, retryToken])
+  }, [token, retryToken, storeId])
 
   // Resolve employee display info for every user_id referenced by a plan —
   // the manager-coaching endpoints only return user_id, not a display name.

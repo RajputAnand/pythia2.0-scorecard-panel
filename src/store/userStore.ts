@@ -1,12 +1,21 @@
 import { create } from 'zustand'
-import { subscribeWithSelector } from 'zustand/middleware'
+import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { Store } from '@/types/store'
-import { STORES } from '@/lib/store-data'
+
+function syncStoreCookie(storeId: string | null | undefined) {
+  if (typeof document !== 'undefined') {
+    if (storeId) {
+      document.cookie = `pythia_selected_store_id=${encodeURIComponent(storeId)}; path=/; max-age=31536000; SameSite=Lax`
+    } else {
+      document.cookie = `pythia_selected_store_id=; path=/; max-age=0; SameSite=Lax`
+    }
+  }
+}
 
 interface UserStoreState {
   /** Full list of stores the authenticated user has access to */
   stores: Store[]
-  /** The store currently selected in the UI (defaults to stores[0] on load) */
+  /** The store currently selected in the UI */
   currentStore: Store | null
   /** Employee's current score from the latest weekly stats fetch */
   currentScore: number | null
@@ -24,44 +33,46 @@ interface UserStoreState {
 }
 
 export const useUserStore = create<UserStoreState>()(
-  subscribeWithSelector((set) => ({
-    stores: STORES,
-    currentStore: STORES[0] ?? null,
-    currentScore: null,
-    points: null,
+  persist(
+    subscribeWithSelector((set) => ({
+      stores: [],
+      currentStore: null,
+      currentScore: null,
+      points: null,
 
-    setStores(stores) {
-      set((state) => {
-        const stillValid = state.currentStore && stores.some((s) => s._id === state.currentStore!._id)
-        return { stores, currentStore: stillValid ? state.currentStore : (stores[0] ?? null) }
-      })
-    },
+      setStores(stores) {
+        set((state) => {
+          const stillValid = state.currentStore && stores.some((s) => s._id === state.currentStore!._id)
+          const newCurrentStore = stillValid ? state.currentStore : (stores[0] ?? null)
+          syncStoreCookie(newCurrentStore?._id)
+          return { stores, currentStore: newCurrentStore }
+        })
+      },
 
-    setCurrentStore(store) {
-      set({ currentStore: store })
-    },
+      setCurrentStore(store) {
+        syncStoreCookie(store?._id)
+        set({ currentStore: store })
+      },
 
-    setCurrentScore(score) {
-      set({ currentScore: score })
-    },
+      setCurrentScore(score) {
+        set({ currentScore: score })
+      },
 
-    setPoints(points) {
-      set({ points })
-    },
-  }))
+      setPoints(points) {
+        set({ points })
+      },
+    })),
+    {
+      name: 'pythia_user_store',
+      partialize: (state) => ({ currentStore: state.currentStore }),
+    }
+  )
 )
 
 /**
  * Subscribe to `currentStore` changes outside of React (e.g. in other Zustand
  * stores or plain modules). The callback receives the next and previous value.
  * Call the returned unsubscribe function to clean up.
- *
- * @example
- * // In another store's init / useEffect:
- * const unsub = onStoreChange((next, prev) => {
- *   if (next?.id !== prev?.id) myStore.getState().fetchData()
- * })
- * // cleanup: unsub()
  */
 export const onStoreChange = (
   callback: (next: Store | null, prev: Store | null) => void
