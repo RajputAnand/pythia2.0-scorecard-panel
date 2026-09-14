@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import Header from '@/components/shared/Header/Header'
 import CoachingWinStrip from '@/components/CoachingWinStrip/CoachingWinStrip'
 import CoachingTrackerPanel from '@/components/CoachingTrackerPanel/CoachingTrackerPanel'
+import CoachingTrackerContent from '@/components/CoachingTrackerContent/CoachingTrackerContent'
 import { fetchCoachingSummary, fetchCoachingEmployees } from '@/queries/manager-coaching'
 import { fetchStoresForTenant } from '@/queries/stores'
 import { auth } from '@/auth'
@@ -35,7 +36,7 @@ export default async function CoachingTrackerPage() {
   if (token) {
     const [summaryResult, employeesResult] = await Promise.allSettled([
       fetchCoachingSummary({ token, view: 'month', storeId: selectedStoreId }),
-      fetchCoachingEmployees({ token, storeId: selectedStoreId }),
+      fetchCoachingEmployees({ token, storeId: selectedStoreId, view: 'month' }),
     ])
     // Promise.allSettled swallows thrown errors as 'rejected' results, including
     // the NEXT_REDIRECT next/navigation throws server-side on a 401 (session
@@ -48,13 +49,10 @@ export default async function CoachingTrackerPage() {
   }
 
   return (
-    <>
-      <Header title="Coaching Effectiveness Tracker" />
-
-      <div className="px-[30px] py-[26px] flex flex-col gap-5">
-        <CoachingWinStrip summary={summary} />
-        <CoachingTrackerPanel initialEmployees={employees} />
-      </div>
-    </>
+    <CoachingTrackerContent
+      initialSummary={summary}
+      initialEmployees={employees}
+      selectedStoreId={selectedStoreId}
+    />
   )
 }

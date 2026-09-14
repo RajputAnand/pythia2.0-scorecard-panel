@@ -9,6 +9,7 @@ interface Props {
   topEmployee: ManagerDashboardEmployeeRow | null
   view: ManagerDashboardView
   previewMode?: boolean
+  isCustomRange?: boolean
 }
 
 interface ChipProps {
@@ -33,9 +34,9 @@ function Chip({ label, value, valueColor }: ChipProps) {
   )
 }
 
-export default function EmployeeSpotlightCard({ topEmployee, view, previewMode }: Props) {
+export default function EmployeeSpotlightCard({ topEmployee, view, previewMode, isCustomRange }: Props) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.managerEmployeeSpotlight] ?? true)
-  const periodLabel = view === 'week' ? 'this week' : 'all-time'
+  const periodLabel = isCustomRange ? 'in the selected period' : view === 'week' ? 'this week' : 'all-time'
 
   if (!previewMode && !visible) return null
 

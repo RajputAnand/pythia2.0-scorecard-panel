@@ -9,6 +9,7 @@ interface Props {
   previewMode?: boolean
   /** Super Admin preview only — dims every card except the one being previewed, so it's obvious which card a given row controls. */
   highlightId?: string
+  isCustomRange?: boolean
 }
 
 function WinStripSkeleton() {
@@ -29,7 +30,7 @@ function WinStripSkeleton() {
   )
 }
 
-export default function CoachingWinStrip({ summary, previewMode, highlightId }: Props) {
+export default function CoachingWinStrip({ summary, previewMode, highlightId, isCustomRange }: Props) {
   const storeVisibility = useAdminConfigStore((s) => s.visibility)
   const visibility = previewMode ? {} : storeVisibility
 
@@ -58,7 +59,7 @@ export default function CoachingWinStrip({ summary, previewMode, highlightId }: 
       barSuffix: `${team_win_rate.pct}%`,
       barSuffixColor: 'text-accent',
       subBold: `${team_win_rate.resolved} of ${team_win_rate.total}`,
-      sub: ' issues resolved this month',
+      sub: isCustomRange ? ' issues resolved in selected period' : ' issues resolved this month',
     },
     {
       key: 'avg_time',
@@ -103,7 +104,9 @@ export default function CoachingWinStrip({ summary, previewMode, highlightId }: 
       barSuffix: 'active',
       barSuffixColor: 'text-amber',
       subBold: 'Across ',
-      sub: `${in_progress.employees_affected} employee${in_progress.employees_affected === 1 ? '' : 's'} this month`,
+      sub: isCustomRange
+        ? `${in_progress.employees_affected} employee${in_progress.employees_affected === 1 ? '' : 's'} in selected period`
+        : `${in_progress.employees_affected} employee${in_progress.employees_affected === 1 ? '' : 's'} this month`,
     },
   ].filter((card) => visibility[card.id] ?? true)
 

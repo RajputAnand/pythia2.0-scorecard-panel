@@ -1,4 +1,4 @@
-export type ManagerDashboardView = 'week' | 'all'
+export type ManagerDashboardView = 'week' | 'all' | 'custom'
 
 // Mirrors get_dashboard_summary in app/services/manager_dashboard_service.py —
 // GET /manager-dashboard/summary.
