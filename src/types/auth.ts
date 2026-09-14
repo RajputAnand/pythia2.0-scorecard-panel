@@ -30,6 +30,8 @@ export interface ApiAuthUser {
   is_active: boolean
   points: number
   must_change_password: boolean
+  can_manage_subscription?: boolean
+  is_root_owner?: boolean
 }
 
 /** Raw response from POST /auth/login. Not wrapped in ApiResponseV2 — flat shape. */

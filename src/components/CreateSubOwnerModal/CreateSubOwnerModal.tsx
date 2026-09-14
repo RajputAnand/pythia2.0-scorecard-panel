@@ -8,11 +8,17 @@ import type { OrganizationOwner } from '@/types/organization-owner'
 
 interface CreateSubOwnerModalProps {
   token: string
+  canManageSubscriptionAllowed?: boolean
   onClose: () => void
   onCreated: (owner: OrganizationOwner) => void
 }
 
-export default function CreateSubOwnerModal({ token, onClose, onCreated }: CreateSubOwnerModalProps) {
+export default function CreateSubOwnerModal({
+  token,
+  canManageSubscriptionAllowed = false,
+  onClose,
+  onCreated,
+}: CreateSubOwnerModalProps) {
   const [step, setStep] = useState<'form' | 'credentials'>('form')
   const [isPending, setIsPending] = useState(false)
   const [serverError, setServerError] = useState<string | undefined>()
@@ -47,13 +53,14 @@ export default function CreateSubOwnerModal({ token, onClose, onCreated }: Creat
 
     setIsPending(true)
     try {
+      const effectiveCanManageSub = canManageSubscriptionAllowed ? canManageSubscription : false
       const res = await createSubOwner({
         token,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim(),
         phone: phone.trim() || undefined,
-        canManageSubscription,
+        canManageSubscription: effectiveCanManageSub,
       })
 
       const newOwner: OrganizationOwner = {
@@ -173,24 +180,26 @@ export default function CreateSubOwnerModal({ token, onClose, onCreated }: Creat
               </div>
 
               {/* Manage Subscription Permission Option */}
-              <div className="mt-2 rounded-xl border border-border/80 bg-surface-alt/60 p-3">
-                <label className="flex items-start gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={canManageSubscription}
-                    onChange={(e) => setCanManageSubscription(e.target.checked)}
-                    className="mt-0.5 rounded border-border text-accent focus:ring-accent accent-accent w-4 h-4 cursor-pointer"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <span className="block text-[12.5px] font-medium text-primary">
-                      Allow this owner to manage subscription
-                    </span>
-                    <span className="block text-[11px] text-muted leading-relaxed mt-0.5">
-                      Grants access to the Stripe Customer Portal to view invoices, update payment methods, and manage subscription settings on behalf of this organization.
-                    </span>
-                  </div>
-                </label>
-              </div>
+              {canManageSubscriptionAllowed && (
+                <div className="mt-2 rounded-xl border border-border/80 bg-surface-alt/60 p-3">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={canManageSubscription}
+                      onChange={(e) => setCanManageSubscription(e.target.checked)}
+                      className="mt-0.5 rounded border-border text-accent focus:ring-accent accent-accent w-4 h-4 cursor-pointer"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="block text-[12.5px] font-medium text-primary">
+                        Allow this owner to manage subscription
+                      </span>
+                      <span className="block text-[11px] text-muted leading-relaxed mt-0.5">
+                        Grants access to the Stripe Customer Portal to view invoices, update payment methods, and manage subscription settings on behalf of this organization.
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              )}
 
               {serverError && (
                 <div className="p-2.5 bg-danger/10 border border-danger/20 rounded-lg text-danger text-[12px]">

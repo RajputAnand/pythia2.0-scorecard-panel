@@ -42,6 +42,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.tenantCode = user.tenantCode
         token.store_ids = user.store_ids
         token.storeIds = user.storeIds
+        token.can_manage_subscription = user.can_manage_subscription
+        token.is_root_owner = user.is_root_owner
       }
       return token
     },
@@ -60,6 +62,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.tenantCode = t.tenantCode
       session.user.store_ids = t.store_ids
       session.user.storeIds = t.storeIds
+      session.user.can_manage_subscription = t.can_manage_subscription
+      session.user.is_root_owner = t.is_root_owner
       return session
     },
   },
