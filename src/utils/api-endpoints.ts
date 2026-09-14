@@ -132,4 +132,11 @@ export const PYTHIA_2_API = {
     stepUpdate: (tenantId: string) => `/super-admin/onboarding/${tenantId}/step`,
     complete: (tenantId: string) => `/super-admin/onboarding/${tenantId}/complete`,
   },
+  organizationOwners: {
+    list: '/organizations/owners',
+    create: '/organizations/owners',
+    deactivate: (userId: string) => `/organizations/owners/${userId}/deactivate`,
+    credentials: (userId: string) => `/organizations/owners/${userId}/credentials`,
+    subscriptionPermission: (userId: string) => `/organizations/owners/${userId}/subscription-permission`,
+  },
 } as const
