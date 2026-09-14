@@ -63,8 +63,34 @@ export default function DatePicker({ value, onChange, ariaLabel, min, max }: Dat
 
   useEffect(() => {
     if (!open || !triggerRef.current) return
-    const rect = triggerRef.current.getBoundingClientRect()
-    setPosition({ top: rect.bottom + 6, left: rect.left })
+
+    const updatePosition = () => {
+      if (!triggerRef.current) return
+      const rect = triggerRef.current.getBoundingClientRect()
+      const PANEL_WIDTH = 240
+      const PANEL_HEIGHT = 310
+      const MARGIN = 16
+
+      let left = rect.left
+      if (left + PANEL_WIDTH + MARGIN > window.innerWidth) {
+        left = Math.max(MARGIN, Math.min(rect.right - PANEL_WIDTH, window.innerWidth - PANEL_WIDTH - MARGIN))
+      }
+
+      let top = rect.bottom + 6
+      if (top + PANEL_HEIGHT > window.innerHeight && rect.top - PANEL_HEIGHT - 6 > 0) {
+        top = rect.top - PANEL_HEIGHT - 6
+      }
+
+      setPosition({ top, left })
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
   }, [open])
 
   const handleToggle = () => {
