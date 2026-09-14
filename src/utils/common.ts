@@ -99,6 +99,18 @@ export function formatWeekRange(weekStart: string, weekEnd: string): string {
   return `Week of ${fmt(start)} – ${fmt(end)}, ${end.getFullYear()}`
 }
 
+/** Formats start and end date strings (YYYY-MM-DD) as "MMM D – MMM D, YYYY" */
+export function formatDateRange(startDate: string, endDate: string): string {
+  if (!startDate || !endDate) return ''
+  const [sy, sm, sd] = startDate.split('-').map(Number)
+  const [ey, em, ed] = endDate.split('-').map(Number)
+  if (!sy || !sm || !sd || !ey || !em || !ed) return `${startDate} – ${endDate}`
+  const start = new Date(sy, sm - 1, sd)
+  const end = new Date(ey, em - 1, ed)
+  const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return `${fmt(start)} – ${fmt(end)}, ${end.getFullYear()}`
+}
+
 /** Joins names with an Oxford comma: "A", "A and B", "A, B, and C". */
 export function formatNameList(names: string[]): string {
   if (names.length === 0) return ''

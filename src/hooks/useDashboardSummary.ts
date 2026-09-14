@@ -5,7 +5,7 @@ import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import { fetchDashboardSummary } from '@/queries/scorecard'
 import type { DashboardSummaryResponse } from '@/types/overview'
-import { extractApiErrorMessage, formatWeekRange, getWeekSubtitle } from '@/utils/common'
+import { extractApiErrorMessage, formatDateRange, formatWeekRange, getWeekSubtitle } from '@/utils/common'
 
 interface UseDashboardSummaryArgs {
   initialSummary: DashboardSummaryResponse | null
@@ -21,6 +21,12 @@ interface UseDashboardSummaryResult {
   weekLabel: string
   goToPreviousWeek: () => void
   goToNextWeek: () => void
+  dateFrom: string
+  dateTo: string
+  setDateFrom: (val: string) => void
+  setDateTo: (val: string) => void
+  clearDateFilter: () => void
+  hasActiveDateFilter: boolean
 }
 
 // Shared by every dashboard route that renders week-scoped data (overview,
@@ -29,8 +35,8 @@ interface UseDashboardSummaryResult {
 // flash on first paint) — leaderboard/progress default to 1 (last week),
 // since the current week has no data yet mid-week for most employees;
 // overview defaults to 0 (current week) instead. Navigation is capped to
-// just these two weeks (offset 0 and 1); every weekOffset change fetches
-// client-side, aborting any still-in-flight request first.
+// just these two weeks (offset 0 and 1); every weekOffset or date range change
+// fetches client-side, aborting any still-in-flight request first.
 export function useDashboardSummary({
   initialSummary,
   initialError,
@@ -45,19 +51,35 @@ export function useDashboardSummary({
   const [loading, setLoading] = useState(false)
   const isFirstRun = useRef(true)
 
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+
+  const hasActiveDateFilter = Boolean(dateFrom && dateTo)
+  const appliedDateFrom = hasActiveDateFilter ? dateFrom : ''
+  const appliedDateTo = hasActiveDateFilter ? dateTo : ''
+
   useEffect(() => {
     // initialWeekOffset was already fetched server-side on mount.
-    if (isFirstRun.current) {
+    if (isFirstRun.current && !appliedDateFrom && !appliedDateTo) {
       isFirstRun.current = false
       return
     }
+    isFirstRun.current = false
     if (!token) return
 
     const controller = new AbortController()
     let cancelled = false
-    setLoading(true)
+    queueMicrotask(() => {
+      if (!cancelled) setLoading(true)
+    })
 
-    fetchDashboardSummary({ token, weekOffset, signal: controller.signal })
+    fetchDashboardSummary({
+      token,
+      weekOffset,
+      startDate: appliedDateFrom || undefined,
+      endDate: appliedDateTo || undefined,
+      signal: controller.signal,
+    })
       .then((data) => {
         if (cancelled) return
         setSummary(data)
@@ -76,15 +98,22 @@ export function useDashboardSummary({
       cancelled = true
       controller.abort()
     }
-  }, [weekOffset, token])
+  }, [weekOffset, token, appliedDateFrom, appliedDateTo])
 
-  const weekLabel = summary
-    ? formatWeekRange(summary.weekly.week_start, summary.weekly.week_end)
-    : (() => {
-        const refDate = new Date()
-        refDate.setDate(refDate.getDate() - 7 * weekOffset)
-        return getWeekSubtitle(refDate)
-      })()
+  const weekLabel = hasActiveDateFilter
+    ? formatDateRange(appliedDateFrom, appliedDateTo)
+    : summary
+      ? formatWeekRange(summary.weekly.week_start, summary.weekly.week_end)
+      : (() => {
+          const refDate = new Date()
+          refDate.setDate(refDate.getDate() - 7 * weekOffset)
+          return getWeekSubtitle(refDate)
+        })()
+
+  const clearDateFilter = () => {
+    setDateFrom('')
+    setDateTo('')
+  }
 
   return {
     summary,
@@ -92,7 +121,19 @@ export function useDashboardSummary({
     loading,
     weekOffset,
     weekLabel,
-    goToPreviousWeek: () => setWeekOffset((n) => Math.min(1, n + 1)),
-    goToNextWeek: () => setWeekOffset((n) => Math.max(0, n - 1)),
+    goToPreviousWeek: () => {
+      if (hasActiveDateFilter) clearDateFilter()
+      setWeekOffset((n) => Math.min(1, n + 1))
+    },
+    goToNextWeek: () => {
+      if (hasActiveDateFilter) clearDateFilter()
+      setWeekOffset((n) => Math.max(0, n - 1))
+    },
+    dateFrom,
+    dateTo,
+    setDateFrom,
+    setDateTo,
+    clearDateFilter,
+    hasActiveDateFilter,
   }
 }

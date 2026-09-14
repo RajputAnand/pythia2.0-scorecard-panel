@@ -35,14 +35,28 @@ export async function fetchDashboardSummary({
   token,
   weekOffset = 0,
   employeeId,
+  startDate,
+  endDate,
   signal,
 }: {
   token: string
   weekOffset?: number
   employeeId?: string
+  startDate?: string
+  endDate?: string
   signal?: AbortSignal
 }): Promise<DashboardSummaryResponse> {
   if (token.includes('mock')) {
+    if (startDate && endDate) {
+      return {
+        ...MOCK_SUMMARY,
+        weekly: {
+          ...MOCK_SUMMARY.weekly,
+          week_start: startDate,
+          week_end: endDate,
+        },
+      }
+    }
     return MOCK_SUMMARY
   }
 
@@ -51,7 +65,12 @@ export async function fetchDashboardSummary({
       PYTHIA_2_API.dashboard.summary,
       {
         headers: { Authorization: `Bearer ${token}` },
-        params: { week_offset: weekOffset, ...(employeeId ? { employee_id: employeeId } : {}) },
+        params: {
+          week_offset: weekOffset,
+          ...(employeeId ? { employee_id: employeeId } : {}),
+          ...(startDate ? { start_date: startDate } : {}),
+          ...(endDate ? { end_date: endDate } : {}),
+        },
         signal,
       },
     )
