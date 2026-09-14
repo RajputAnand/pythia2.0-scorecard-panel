@@ -128,19 +128,6 @@ export default function ManagerDashboardLeaderboard({
           </div>
         </div>
         <div className="flex gap-[6px]">
-          {VIEWS.map((v) => (
-            <button
-              key={v.key}
-              onClick={() => setView(v.key)}
-              className={`px-3 py-[5px] rounded-full border font-sans text-[11.5px] font-medium cursor-pointer transition-all duration-150
-                ${view === v.key
-                  ? 'bg-primary text-white border-primary'
-                  : 'bg-surface text-secondary border-border hover:border-accent hover:text-accent'
-                }`}
-            >
-              {v.label}
-            </button>
-          ))}
           {hasActiveDateFilter ? (
             <span className="px-3 py-[5px] rounded-full border border-primary bg-primary text-white font-sans text-[11.5px] font-medium">
               Custom Range
