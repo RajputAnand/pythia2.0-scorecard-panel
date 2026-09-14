@@ -75,6 +75,7 @@ interface ManagerListPanelProps {
 export default function ManagerListPanel({ initialData, initialStores }: ManagerListPanelProps) {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token || session?.user?.token || 'mock_owner_token'
+  const tenantId = session?.user?.tenantId
   const { showToast } = useToast()
 
   const [stores, setStores] = useState<TenantStore[]>(initialStores || [])
@@ -84,7 +85,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     if (!token) return
 
     let cancelled = false
-    fetchStoresForTenant({ token, limit: 100 })
+    fetchStoresForTenant({ token, tenantId, limit: 100 })
       .then((res) => {
         if (cancelled) return
         if (res.data && res.data.length > 0) {
@@ -98,7 +99,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     return () => {
       cancelled = true
     }
-  }, [token, initialStores])
+  }, [token, tenantId, initialStores])
 
   const storeNameMap = useMemo(() => {
     const map: Record<string, string> = {}
@@ -133,7 +134,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
 
   // ---- Active managers ----
 
-  const trustedInitialData = initialData && initialData.data.length > 0 ? initialData : null
+  const trustedInitialData = initialData !== null && initialData !== undefined ? initialData : null
 
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -185,7 +186,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     let cancelled = false
     setIsLoading(true)
     setIsError(false)
-    fetchManagers({ token, search: debouncedSearch, skip, limit: PAGE_SIZE, storeId: currentStoreId })
+    fetchManagers({ token, tenantId, search: debouncedSearch, skip, limit: PAGE_SIZE, storeId: currentStoreId })
       .then((response) => {
         if (cancelled) return
         setManagers(response.data ?? [])
@@ -200,7 +201,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     return () => {
       cancelled = true
     }
-  }, [token, debouncedSearch, skip, retryToken, currentStoreId])
+  }, [token, tenantId, debouncedSearch, skip, retryToken, currentStoreId])
 
   const page = meta ? Math.floor(meta.skip / meta.limit) : 0
   const totalPages = meta ? Math.max(1, Math.ceil(meta.total / meta.limit)) : 1
@@ -234,14 +235,14 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     hasLoadedArchived.current = true
     setIsLoadingArchived(true)
     setIsErrorArchived(false)
-    fetchArchivedManagers({ token, search: archivedDebouncedSearch, skip: archivedSkip, limit: PAGE_SIZE, storeId: currentStoreId })
+    fetchArchivedManagers({ token, tenantId, search: archivedDebouncedSearch, skip: archivedSkip, limit: PAGE_SIZE, storeId: currentStoreId })
       .then((response) => {
         setArchivedManagers(response.data ?? [])
         setArchivedMeta(response.meta)
       })
       .catch(() => setIsErrorArchived(true))
       .finally(() => setIsLoadingArchived(false))
-  }, [token, archivedDebouncedSearch, archivedSkip, currentStoreId])
+  }, [token, tenantId, archivedDebouncedSearch, archivedSkip, currentStoreId])
 
   useEffect(() => {
     if (view === 'archived' && token) loadArchived()
@@ -255,7 +256,10 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
   function handleCreated(manager: ApiManager) {
     setIsCreating(false)
     showToast(`${getEmployeeName(manager)} was added`)
-    // Refresh the active list so the new manager shows up.
+    // Optimistically prepend the new manager and bump count so it's instantly visible
+    setManagers((prev) => [manager, ...prev.filter((m) => m.user_id !== manager.user_id)])
+    setMeta((prev) => (prev ? { ...prev, total: prev.total + 1 } : { total: 1, skip: 0, limit: PAGE_SIZE }))
+    // Refresh from backend to sync
     setRetryToken((n) => n + 1)
   }
 
@@ -541,6 +545,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
       {isCreating && token && (
         <CreateManagerModal
           token={token}
+          tenantId={tenantId}
           stores={storeOptions}
           onClose={() => setIsCreating(false)}
           onCreated={handleCreated}

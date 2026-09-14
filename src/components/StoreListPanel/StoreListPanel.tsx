@@ -76,12 +76,13 @@ interface StoreListPanelProps {
 
 export default function StoreListPanel({
   initialData,
-  tenantId = 'ten_lionmart',
+  tenantId,
   token: propToken,
   readOnly = false,
 }: StoreListPanelProps) {
   const { data: session } = useSession()
-  const token = propToken || session?.user?.pythia2Token || session?.user?.token || 'mock_owner_token'
+  const effectiveTenantId = tenantId || session?.user?.tenantId
+  const token = propToken || session?.user?.pythia2Token || session?.user?.token
   const { showToast } = useToast()
   const [isHeartbeating, startTransition] = useTransition()
 
@@ -95,7 +96,7 @@ export default function StoreListPanel({
   const [activatingId, setActivatingId] = useState<string | null>(null)
 
   // ---- Active Stores ----
-  const trustedInitialData = initialData && initialData.data.length > 0 ? initialData : null
+  const trustedInitialData = initialData !== null && initialData !== undefined ? initialData : null
 
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -130,7 +131,7 @@ export default function StoreListPanel({
 
     fetchStoresForTenant({
       token,
-      tenantId: tenantId === 'all' ? undefined : tenantId,
+      tenantId: effectiveTenantId === 'all' ? undefined : effectiveTenantId,
       search: debouncedSearch,
       skip,
       limit: PAGE_SIZE,
@@ -150,7 +151,7 @@ export default function StoreListPanel({
     return () => {
       cancelled = true
     }
-  }, [token, tenantId, debouncedSearch, skip, retryToken])
+  }, [token, effectiveTenantId, debouncedSearch, skip, retryToken])
 
   const page = meta ? Math.floor(meta.skip / meta.limit) : 0
   const totalPages = meta ? Math.max(1, Math.ceil(meta.total / meta.limit)) : 1
@@ -185,7 +186,7 @@ export default function StoreListPanel({
 
     fetchDeactivatedStores({
       token,
-      tenantId: tenantId === 'all' ? undefined : tenantId,
+      tenantId: effectiveTenantId === 'all' ? undefined : effectiveTenantId,
       search: deactivatedDebouncedSearch,
       skip: deactivatedSkip,
       limit: PAGE_SIZE,
@@ -196,7 +197,7 @@ export default function StoreListPanel({
       })
       .catch(() => setIsErrorDeactivated(true))
       .finally(() => setIsLoadingDeactivated(false))
-  }, [token, tenantId, deactivatedDebouncedSearch, deactivatedSkip])
+  }, [token, effectiveTenantId, deactivatedDebouncedSearch, deactivatedSkip])
 
   useEffect(() => {
     if (view === 'deactivated' && token) {
@@ -610,7 +611,7 @@ export default function StoreListPanel({
       {isCreating && (
         <CreateStoreModal
           token={token}
-          tenantId={tenantId}
+          tenantId={effectiveTenantId}
           onClose={() => setIsCreating(false)}
           onCreated={handleCreated}
         />
