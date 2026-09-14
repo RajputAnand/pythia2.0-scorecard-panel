@@ -8,7 +8,6 @@ import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
 import MultiSelect from '@/components/shared/MultiSelect/MultiSelect'
 import CredentialsReveal from '@/components/shared/CredentialsReveal/CredentialsReveal'
 import { extractApiErrorMessage } from '@/utils/common'
-import { STORES } from '@/lib/store-data'
 import type { FormField } from '@/types/dynamic-form'
 import type { ApiManager } from '@/types/manager'
 
@@ -72,8 +71,6 @@ export default function CreateManagerModal({ token, onClose, onCreated, stores }
             value: s.storeNo || s.id || s._id,
           }))
           setStoreOptions(opts)
-        } else if (token.includes('mock')) {
-          setStoreOptions(STORES.map((s) => ({ label: `${s.name} · ${s.location}`, value: s._id })))
         } else {
           setStoreOptions([])
         }
@@ -81,11 +78,7 @@ export default function CreateManagerModal({ token, onClose, onCreated, stores }
       .catch((err) => {
         if (cancelled) return
         console.warn('Failed to load stores for manager creation:', err)
-        if (token.includes('mock')) {
-          setStoreOptions(STORES.map((s) => ({ label: `${s.name} · ${s.location}`, value: s._id })))
-        } else {
-          setStoreOptions([])
-        }
+        setStoreOptions([])
       })
       .finally(() => {
         if (!cancelled) setIsLoadingStores(false)

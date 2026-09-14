@@ -1,4 +1,5 @@
 import { unstable_rethrow } from 'next/navigation'
+import { cookies } from 'next/headers'
 import Header from '@/components/shared/Header/Header'
 import ExportPdfButton from '@/components/shared/ExportPdfButton/ExportPdfButton'
 import ShareWithInvestorButton from '@/components/shared/ShareWithInvestorButton/ShareWithInvestorButton'
@@ -18,6 +19,8 @@ export default async function RoiAttributionPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const searchParams = await props.searchParams
+  const cookieStore = await cookies()
+  const selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
   const session = await auth()
   const token = session?.user?.pythia2Token
 
@@ -46,6 +49,7 @@ export default async function RoiAttributionPage(props: {
       const [roiResult] = await Promise.allSettled([
         fetchRoiAttribution({
           token,
+          store_id: selectedStoreId,
           period_type: periodKey,
           custom_start: typeof searchParams.custom_start === 'string' ? searchParams.custom_start : undefined,
           custom_end: typeof searchParams.custom_end === 'string' ? searchParams.custom_end : undefined,

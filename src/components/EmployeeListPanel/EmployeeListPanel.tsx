@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
+import { useUserStore } from '@/store/userStore'
 import {
   fetchEmployees,
   fetchArchivedEmployees,
@@ -71,6 +72,8 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
   const { showToast } = useToast()
+  const currentStore = useUserStore((s) => s.currentStore)
+  const currentStoreId = currentStore?._id
 
   const [view, setView] = useState<'active' | 'archived'>('active')
 
@@ -102,6 +105,20 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
   const skipNextFetch = useRef(!!trustedInitialData)
   const [retryToken, setRetryToken] = useState(0)
 
+  const lastStoreId = useRef(currentStoreId)
+  useEffect(() => {
+    if (lastStoreId.current !== currentStoreId) {
+      lastStoreId.current = currentStoreId
+      skipNextFetch.current = false
+      setSkip(0)
+      setArchivedSkip(0)
+      setRetryToken((r) => r + 1)
+      if (hasLoadedArchived.current) {
+        setArchivedRetryToken((r) => r + 1)
+      }
+    }
+  }, [currentStoreId])
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
     return () => clearTimeout(t)
@@ -123,7 +140,7 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
     let cancelled = false
     setIsLoading(true)
     setIsError(false)
-    fetchEmployees({ token, search: debouncedSearch, skip, limit: PAGE_SIZE })
+    fetchEmployees({ token, search: debouncedSearch, skip, limit: PAGE_SIZE, storeId: currentStoreId })
       .then((response) => {
         if (cancelled) return
         setEmployees(response.data ?? [])
@@ -139,7 +156,7 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
       cancelled = true
     }
     // retryToken intentionally re-runs this effect on manual retry without changing search/skip
-  }, [token, debouncedSearch, skip, retryToken])
+  }, [token, debouncedSearch, skip, retryToken, currentStoreId])
 
   const page = meta ? Math.floor(meta.skip / meta.limit) : 0
   const totalPages = meta ? Math.max(1, Math.ceil(meta.total / meta.limit)) : 1
@@ -173,14 +190,14 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
     hasLoadedArchived.current = true
     setIsLoadingArchived(true)
     setIsErrorArchived(false)
-    fetchArchivedEmployees({ token, search: archivedDebouncedSearch, skip: archivedSkip, limit: PAGE_SIZE })
+    fetchArchivedEmployees({ token, search: archivedDebouncedSearch, skip: archivedSkip, limit: PAGE_SIZE, storeId: currentStoreId })
       .then((response) => {
         setArchivedEmployees(response.data ?? [])
         setArchivedMeta(response.meta)
       })
       .catch(() => setIsErrorArchived(true))
       .finally(() => setIsLoadingArchived(false))
-  }, [token, archivedDebouncedSearch, archivedSkip])
+  }, [token, archivedDebouncedSearch, archivedSkip, currentStoreId])
 
   // Fetch archived employees lazily, the first time the manager switches to that tab.
   useEffect(() => {

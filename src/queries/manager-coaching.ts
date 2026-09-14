@@ -27,12 +27,14 @@ export interface FetchManagerCoachingPlansParams {
   token: string
   employeeId?: string
   status?: ManagerPlanStatus | ManagerPlanStatus[]
+  storeId?: string
 }
 
 export async function fetchManagerCoachingPlans({
   token,
   employeeId,
   status,
+  storeId,
 }: FetchManagerCoachingPlansParams): Promise<ManagerCoachingPlan[]> {
   if (token.includes('mock')) {
     return []
@@ -43,6 +45,7 @@ export async function fetchManagerCoachingPlans({
       params: {
         employee_id: employeeId || undefined,
         status: Array.isArray(status) ? status.join(',') : status || undefined,
+        store_id: storeId || undefined,
       },
     })
     return data.signals || []
@@ -94,16 +97,17 @@ interface EmployeeDetailResponse extends CoachingEmployeeDetail {
 export interface FetchCoachingViewParams {
   token: string
   view?: CoachingView
+  storeId?: string
 }
 
-export async function fetchCoachingSummary({ token, view = 'month' }: FetchCoachingViewParams): Promise<CoachingSummary> {
+export async function fetchCoachingSummary({ token, view = 'month', storeId }: FetchCoachingViewParams): Promise<CoachingSummary> {
   if (token.includes('mock')) {
     return PREVIEW_COACHING_SUMMARY
   }
   try {
     const { data } = await pythia2Client.get<SummaryResponse>(PYTHIA_2_API.managerCoaching.summary, {
       headers: { Authorization: `Bearer ${token}` },
-      params: { view },
+      params: { view, store_id: storeId || undefined },
     })
     return data
   } catch {
@@ -114,6 +118,7 @@ export async function fetchCoachingSummary({ token, view = 'month' }: FetchCoach
 export async function fetchCoachingEffectiveness({
   token,
   view = 'month',
+  storeId,
 }: FetchCoachingViewParams): Promise<CoachingEffectivenessRow[]> {
   if (token.includes('mock')) {
     return []
@@ -121,7 +126,7 @@ export async function fetchCoachingEffectiveness({
   try {
     const { data } = await pythia2Client.get<EffectivenessResponse>(PYTHIA_2_API.managerCoaching.effectiveness, {
       headers: { Authorization: `Bearer ${token}` },
-      params: { view },
+      params: { view, store_id: storeId || undefined },
     })
     return data.categories || []
   } catch {
@@ -129,13 +134,14 @@ export async function fetchCoachingEffectiveness({
   }
 }
 
-export async function fetchCoachingEmployees({ token }: { token: string }): Promise<CoachingEmployeeChip[]> {
+export async function fetchCoachingEmployees({ token, storeId }: { token: string; storeId?: string }): Promise<CoachingEmployeeChip[]> {
   if (token.includes('mock')) {
     return []
   }
   try {
     const { data } = await pythia2Client.get<EmployeesResponse>(PYTHIA_2_API.managerCoaching.employees, {
       headers: { Authorization: `Bearer ${token}` },
+      params: { store_id: storeId || undefined },
     })
     return data.employees || []
   } catch {

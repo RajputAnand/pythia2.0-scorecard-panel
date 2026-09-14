@@ -73,7 +73,7 @@ interface StaffingState {
   lastSyncedAt: string | null
 
   hydrate: (args: HydrateArgs) => void
-  fetchAll: (token: string) => Promise<void>
+  fetchAll: (token: string, storeId?: string) => Promise<void>
   goToPreviousWeek: (token: string) => Promise<void>
   goToNextWeek: (token: string) => Promise<void>
   saveShift: (
@@ -111,7 +111,6 @@ export const useStaffingStore = create<StaffingState>((set, get) => ({
   lastSyncedAt: null,
 
   hydrate({ storeId, weekStartDate, schedule, roster, heatmap, insights, recommendations }) {
-    if (get().hydrated) return
     set({
       hydrated: true,
       storeId,
@@ -126,10 +125,11 @@ export const useStaffingStore = create<StaffingState>((set, get) => ({
     })
   },
 
-  async fetchAll(token) {
-    const { storeId, weekStartDate } = get()
+  async fetchAll(token, customStoreId) {
+    const storeId = customStoreId ?? get().storeId
+    const { weekStartDate } = get()
     if (!storeId || !weekStartDate) return
-    set({ loading: true, error: null })
+    set({ storeId, loading: true, error: null })
     try {
       const [schedule, roster, heatmap, insights, recommendations] = await Promise.all([
         fetchStaffingSchedule({ token, storeId, weekStartDate }),

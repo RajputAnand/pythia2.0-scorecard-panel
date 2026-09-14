@@ -7,9 +7,10 @@ export interface FetchUnknownIdentitiesParams {
   token: string
   skip?: number
   limit?: number
+  storeId?: string
 }
 
-export async function fetchUnknownIdentities({ token, skip = 0, limit = 50 }: FetchUnknownIdentitiesParams) {
+export async function fetchUnknownIdentities({ token, skip = 0, limit = 50, storeId }: FetchUnknownIdentitiesParams) {
   if (token.includes('mock')) {
     return {
       success: true,
@@ -22,7 +23,7 @@ export async function fetchUnknownIdentities({ token, skip = 0, limit = 50 }: Fe
       PYTHIA_2_API.unknownIdentities.list,
       {
         headers: { Authorization: `Bearer ${token}` },
-        params: { skip, limit },
+        params: { skip, limit, store_id: storeId || undefined },
       },
     )
     return response
@@ -35,12 +36,15 @@ export async function fetchUnknownIdentities({ token, skip = 0, limit = 50 }: Fe
   }
 }
 
-export async function fetchUnknownIdentitiesCount({ token }: { token: string }): Promise<number> {
+export async function fetchUnknownIdentitiesCount({ token, storeId }: { token: string; storeId?: string }): Promise<number> {
   if (token.includes('mock')) return 0
   try {
     const { data } = await pythia2Client.get<{ success: boolean; total: number }>(
       PYTHIA_2_API.unknownIdentities.count,
-      { headers: { Authorization: `Bearer ${token}` } },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { store_id: storeId || undefined },
+      },
     )
     return data.total
   } catch {
@@ -48,7 +52,7 @@ export async function fetchUnknownIdentitiesCount({ token }: { token: string }):
   }
 }
 
-export async function fetchTrashedIdentities({ token, skip = 0, limit = 50 }: FetchUnknownIdentitiesParams) {
+export async function fetchTrashedIdentities({ token, skip = 0, limit = 50, storeId }: FetchUnknownIdentitiesParams) {
   if (token.includes('mock')) {
     return {
       success: true,
@@ -61,7 +65,7 @@ export async function fetchTrashedIdentities({ token, skip = 0, limit = 50 }: Fe
       PYTHIA_2_API.unknownIdentities.trashed,
       {
         headers: { Authorization: `Bearer ${token}` },
-        params: { skip, limit },
+        params: { skip, limit, store_id: storeId || undefined },
       },
     )
     return response

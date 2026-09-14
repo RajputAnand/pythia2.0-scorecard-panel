@@ -31,11 +31,13 @@ interface TrendResponse {
 export interface FetchManagerDashboardSummaryParams {
   token: string
   view?: ManagerDashboardView
+  storeId?: string
 }
 
 export async function fetchManagerDashboardSummary({
   token,
   view = 'week',
+  storeId,
 }: FetchManagerDashboardSummaryParams): Promise<ManagerDashboardSummary> {
   if (token.includes('mock')) {
     return PREVIEW_MANAGER_DASHBOARD_SUMMARY
@@ -43,7 +45,7 @@ export async function fetchManagerDashboardSummary({
   try {
     const { data } = await pythia2Client.get<SummaryResponse>(PYTHIA_2_API.managerDashboard.summary, {
       headers: { Authorization: `Bearer ${token}` },
-      params: { view },
+      params: { view, store_id: storeId || undefined },
     })
     return data
   } catch {
@@ -56,6 +58,7 @@ export interface FetchManagerDashboardLeaderboardParams {
   view?: ManagerDashboardView
   sortBy?: ManagerDashboardSortBy
   limit?: number
+  storeId?: string
 }
 
 export async function fetchManagerDashboardLeaderboard({
@@ -63,6 +66,7 @@ export async function fetchManagerDashboardLeaderboard({
   view = 'week',
   sortBy = 'thanked_count',
   limit,
+  storeId,
 }: FetchManagerDashboardLeaderboardParams): Promise<ManagerDashboardEmployeeRow[]> {
   if (token.includes('mock')) {
     return PREVIEW_EMPLOYEE_ROWS
@@ -70,7 +74,7 @@ export async function fetchManagerDashboardLeaderboard({
   try {
     const { data } = await pythia2Client.get<LeaderboardResponse>(PYTHIA_2_API.managerDashboard.leaderboard, {
       headers: { Authorization: `Bearer ${token}` },
-      params: { view, sort_by: sortBy, limit: limit ?? undefined },
+      params: { view, sort_by: sortBy, limit: limit ?? undefined, store_id: storeId || undefined },
     })
     return data.employees
   } catch {
@@ -81,11 +85,13 @@ export async function fetchManagerDashboardLeaderboard({
 export interface FetchManagerDashboardTrendParams {
   token: string
   weeks?: number
+  storeId?: string
 }
 
 export async function fetchManagerDashboardTrend({
   token,
   weeks = 8,
+  storeId,
 }: FetchManagerDashboardTrendParams): Promise<ManagerDashboardTrendWeek[]> {
   if (token.includes('mock')) {
     return PREVIEW_TREND_WEEKS
@@ -93,7 +99,7 @@ export async function fetchManagerDashboardTrend({
   try {
     const { data } = await pythia2Client.get<TrendResponse>(PYTHIA_2_API.managerDashboard.trend, {
       headers: { Authorization: `Bearer ${token}` },
-      params: { weeks },
+      params: { weeks, store_id: storeId || undefined },
     })
     return data.weeks
   } catch {

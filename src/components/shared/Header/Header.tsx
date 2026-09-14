@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import styles from './Header.module.css'
 import { useUserStore } from '@/store/userStore'
@@ -32,6 +33,7 @@ function formatRole(role?: string): string {
 }
 
 export default function Header({ title, subtitle, children }: HeaderProps) {
+  const router = useRouter()
   const { data: session } = useSession()
   const role = session?.user?.role
   const showStoreSelector = role === 'owner' || role === 'manager' || role === 'superadmin'
@@ -286,6 +288,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                       onClick={() => {
                         setCurrentStore(store)
                         setOpen(false)
+                        router.refresh()
                       }}
                     >
                       <span className={`font-sans font-medium text-[13px] flex-1 whitespace-nowrap overflow-hidden text-ellipsis ${active ? 'text-accent' : 'text-primary'}`}>

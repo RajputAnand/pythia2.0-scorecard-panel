@@ -1,4 +1,5 @@
 import { unstable_rethrow } from 'next/navigation'
+import { cookies } from 'next/headers'
 import Header from '@/components/shared/Header/Header'
 import ManagerListPanel from '@/components/ManagerListPanel/ManagerListPanel'
 import { fetchManagers } from '@/queries/managers'
@@ -17,11 +18,14 @@ export default async function OwnerManagersPage() {
   const session = await auth()
   const token = session?.user?.pythia2Token
 
+  const cookieStore = await cookies()
+  const selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
+
   let initialData: ApiResponseV2Paginated<ApiManager[]> | null = null
   let initialStores: TenantStore[] = []
   if (token) {
     const [managersResult, storesResult] = await Promise.allSettled([
-      fetchManagers({ token, skip: 0, limit: 15 }),
+      fetchManagers({ token, skip: 0, limit: 15, storeId: selectedStoreId }),
       fetchStoresForTenant({ token, limit: 100 }),
     ])
     if (managersResult.status === 'rejected') unstable_rethrow(managersResult.reason)
