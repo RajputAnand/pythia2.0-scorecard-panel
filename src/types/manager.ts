@@ -14,6 +14,7 @@ export interface ApiManager {
   phone?: string | null
   role_name: string
   store_ids: string[]
+  tenant_id?: string | null
   is_active: boolean
   must_change_password?: boolean
   // Only present once a manager has been archived.
@@ -28,6 +29,7 @@ export interface CreateManagerParams {
   email?: string
   phone?: string
   storeIds: string[]
+  tenantId?: string
 }
 
 // Raw response from POST /managers

@@ -43,7 +43,7 @@ export async function fetchRoiAttribution({
     })
     return data
   } catch (err) {
-    console.error('Failed to fetch ROI attribution, falling back to preview:', err)
+    console.warn('Failed to fetch ROI attribution, falling back to preview:', (err as any)?.message || err)
     return fakeGetRoiAttribution({
       store_id,
       period_type,

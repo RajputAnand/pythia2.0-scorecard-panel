@@ -14,7 +14,7 @@ export const metadata = {
 export default async function OwnerStoresPage() {
   const session = await auth()
   const token = session?.user?.pythia2Token
-  const tenantId = session?.user?.tenantId || 'ten_lionmart'
+  const tenantId = session?.user?.tenantId
 
   let initialData: ApiResponseV2Paginated<TenantStore[]> | null = null
   if (token) {

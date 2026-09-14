@@ -28,9 +28,10 @@ interface CreateManagerModalProps {
   onClose: () => void
   onCreated: (manager: ApiManager) => void
   stores?: StoreOption[]
+  tenantId?: string
 }
 
-export default function CreateManagerModal({ token, onClose, onCreated, stores }: CreateManagerModalProps) {
+export default function CreateManagerModal({ token, onClose, onCreated, stores, tenantId }: CreateManagerModalProps) {
   const [step, setStep] = useState<'form' | 'credentials'>('form')
   const [isPending, setIsPending] = useState(false)
   const [serverError, setServerError] = useState<string | undefined>()
@@ -46,6 +47,8 @@ export default function CreateManagerModal({ token, onClose, onCreated, stores }
   const [storeError, setStoreError] = useState<string | undefined>()
 
   const createdName = useRef('')
+  const createdEmail = useRef('')
+  const createdPhone = useRef<string | null>(null)
 
   useEffect(() => {
     if (stores && stores.length > 0) {
@@ -62,7 +65,7 @@ export default function CreateManagerModal({ token, onClose, onCreated, stores }
     let cancelled = false
     setIsLoadingStores(true)
 
-    fetchStoresForTenant({ token, limit: 100 })
+    fetchStoresForTenant({ token, tenantId, limit: 100 })
       .then((res) => {
         if (cancelled) return
         if (res.data && res.data.length > 0) {
@@ -87,7 +90,7 @@ export default function CreateManagerModal({ token, onClose, onCreated, stores }
     return () => {
       cancelled = true
     }
-  }, [token, stores])
+  }, [token, stores, tenantId])
 
   async function handleSubmit(values: CreateManagerSchema) {
     if (storeOptions.length === 0) {
@@ -109,8 +112,11 @@ export default function CreateManagerModal({ token, onClose, onCreated, stores }
         email: values.email || undefined,
         phone: values.phone || undefined,
         storeIds: storeIds.map(String),
+        tenantId,
       })
       createdName.current = `${values.firstName} ${values.lastName}`.trim()
+      createdEmail.current = values.email || ''
+      createdPhone.current = values.phone || null
       setTempPassword(response.temp_password)
       setCreatedUserId(response.user_id)
       setStep('credentials')
@@ -127,17 +133,26 @@ export default function CreateManagerModal({ token, onClose, onCreated, stores }
       user_id: createdUserId,
       first_name: createdName.current.split(' ')[0] ?? '',
       last_name: createdName.current.split(' ').slice(1).join(' '),
-      email: '',
-      phone: null,
+      email: createdEmail.current,
+      phone: createdPhone.current,
       role_name: 'manager',
       store_ids: storeIds.map(String),
+      tenant_id: tenantId || null,
       is_active: true,
       must_change_password: true,
     })
   }
 
+  const handleDismiss = () => {
+    if (step === 'credentials') {
+      handleDone()
+    } else {
+      onClose()
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={handleDismiss}>
       <div
         className="w-full max-w-[440px] bg-surface border border-border rounded-2xl shadow-lg p-6"
         onClick={(e) => e.stopPropagation()}
@@ -148,7 +163,7 @@ export default function CreateManagerModal({ token, onClose, onCreated, stores }
               <h2 className="text-[16px] font-semibold text-primary">New Manager</h2>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleDismiss}
                 aria-label="Close"
                 className="text-muted hover:text-primary cursor-pointer"
               >

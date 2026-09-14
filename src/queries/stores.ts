@@ -86,6 +86,7 @@ export async function fetchStoresForTenant({
           skip,
           limit,
           is_active: isActive,
+          tenant_id: tenantId || undefined,
         },
       },
     )
@@ -214,7 +215,7 @@ export async function createStore({
     return fakeCreateStore(data)
   }
 
-  const payload = {
+  const payload: Record<string, any> = {
     store_code: (data.storeNo || '').trim(),
     store_name: (data.name || '').trim(),
     location_city: (data.location || data.city || '').trim(),
@@ -222,6 +223,9 @@ export async function createStore({
     full_address: (data.fullAddress || data.street || '').trim(),
     pairing_code: (data.pairingCode || `PAIR-${Date.now().toString(36).toUpperCase()}`).trim(),
     timezone: data.timezone || 'America/New_York',
+  }
+  if (data.tenantId) {
+    payload.tenant_id = data.tenantId
   }
   const { data: response } = await pythia2Client.post<ApiResponseV2<any>>(
     PYTHIA_2_API.stores.create,

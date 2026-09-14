@@ -86,10 +86,11 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
 
   useEffect(() => {
     const token = session?.user?.pythia2Token || session?.user?.token
+    const tenantId = session?.user?.tenantId
     if (!token || !showStoreSelector) return
 
     let cancelled = false
-    fetchStoresForTenant({ token, limit: 100 })
+    fetchStoresForTenant({ token, tenantId, limit: 100 })
       .then((res) => {
         if (cancelled) return
         if (res.data && res.data.length > 0) {
@@ -106,6 +107,8 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
             __v: 0,
           }))
           useUserStore.getState().setStores(userStores)
+        } else if (res.data && res.data.length === 0) {
+          useUserStore.getState().setStores([])
         }
       })
       .catch((err) => {
@@ -115,7 +118,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
     return () => {
       cancelled = true
     }
-  }, [session?.user?.pythia2Token, session?.user?.token, showStoreSelector])
+  }, [session?.user?.pythia2Token, session?.user?.token, session?.user?.tenantId, showStoreSelector])
 
   async function handleManagePayments() {
     setIsOpeningPortal(true)

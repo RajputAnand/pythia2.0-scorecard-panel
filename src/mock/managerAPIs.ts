@@ -30,16 +30,25 @@ interface ListParams {
   search?: string
   skip?: number
   limit?: number
+  tenantId?: string
+  storeId?: string
 }
 
-function paginate(source: ApiManager[], { search = '', skip = 0, limit = 15 }: ListParams) {
+function paginate(source: ApiManager[], { search = '', skip = 0, limit = 15, tenantId, storeId }: ListParams) {
+  let filtered = source
+  if (tenantId) {
+    filtered = filtered.filter((m) => m.tenant_id === tenantId || (!m.tenant_id && tenantId === 'ten_lionmart'))
+  }
+  if (storeId) {
+    filtered = filtered.filter((m) => m.store_ids && m.store_ids.includes(storeId))
+  }
   const term = search.trim().toLowerCase()
-  const filtered = term
-    ? source.filter((m) => {
-        const name = getEmployeeName(m).toLowerCase()
-        return name.includes(term) || m.email.toLowerCase().includes(term) || m.user_id.toLowerCase().includes(term)
-      })
-    : source
+  if (term) {
+    filtered = filtered.filter((m) => {
+      const name = getEmployeeName(m).toLowerCase()
+      return name.includes(term) || m.email.toLowerCase().includes(term) || m.user_id.toLowerCase().includes(term)
+    })
+  }
 
   const page = filtered.slice(skip, skip + limit)
   const response: ApiResponseV2Paginated<ApiManager[]> = {
@@ -64,9 +73,10 @@ interface CreateArgs {
   email?: string
   phone?: string
   storeIds: string[]
+  tenantId?: string
 }
 
-export function fakeCreateManager({ firstName, lastName, email, phone, storeIds }: CreateArgs): Promise<CreateManagerResponse> {
+export function fakeCreateManager({ firstName, lastName, email, phone, storeIds, tenantId }: CreateArgs): Promise<CreateManagerResponse> {
   const userId = `MGR-${Math.floor(1000 + Math.random() * 9000)}`
   const tempPassword = randomPassword()
   const record: ApiManager = {
@@ -78,6 +88,7 @@ export function fakeCreateManager({ firstName, lastName, email, phone, storeIds 
     phone: phone || null,
     role_name: 'manager',
     store_ids: storeIds,
+    tenant_id: tenantId || null,
     is_active: true,
     must_change_password: true,
   }

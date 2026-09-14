@@ -24,9 +24,10 @@ export default async function OwnerManagersPage() {
   let initialData: ApiResponseV2Paginated<ApiManager[]> | null = null
   let initialStores: TenantStore[] = []
   if (token) {
+    const tenantId = session?.user?.tenantId
     const [managersResult, storesResult] = await Promise.allSettled([
-      fetchManagers({ token, skip: 0, limit: 15, storeId: selectedStoreId }),
-      fetchStoresForTenant({ token, limit: 100 }),
+      fetchManagers({ token, tenantId, skip: 0, limit: 15, storeId: selectedStoreId }),
+      fetchStoresForTenant({ token, tenantId, limit: 100 }),
     ])
     if (managersResult.status === 'rejected') unstable_rethrow(managersResult.reason)
     if (managersResult.status === 'fulfilled') initialData = managersResult.value
