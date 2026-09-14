@@ -20,6 +20,7 @@ import type { ApiResponseV2Paginated, ApiMeta } from '@/types/api'
 import type { DataTableColumn } from '@/types/data-table'
 
 const PAGE_SIZE = 15
+const SHOW_TEST_HEARTBEAT = false
 
 function TableSkeleton() {
   return (
@@ -69,16 +70,18 @@ function PanelEmpty({ search, view }: { search: string; view: 'active' | 'deacti
 interface StoreListPanelProps {
   initialData: ApiResponseV2Paginated<TenantStore[]> | null
   tenantId?: string
+  token?: string
   readOnly?: boolean
 }
 
 export default function StoreListPanel({
   initialData,
   tenantId = 'ten_lionmart',
+  token: propToken,
   readOnly = false,
 }: StoreListPanelProps) {
   const { data: session } = useSession()
-  const token = session?.user?.pythia2Token || session?.user?.token || 'mock_owner_token'
+  const token = propToken || session?.user?.pythia2Token || session?.user?.token || 'mock_owner_token'
   const { showToast } = useToast()
   const [isHeartbeating, startTransition] = useTransition()
 
@@ -218,7 +221,15 @@ export default function StoreListPanel({
       try {
         const res = await simulateStoreHeartbeat({ token, storeId })
         if (res.success && res.data) {
-          setStores((prev) => prev.map((s) => (s.id === storeId ? res.data : s)))
+          const matchStore = (s: TenantStore) =>
+            s.id === storeId ||
+            s.storeNo === storeId ||
+            s._id === storeId ||
+            (res.data.storeNo && s.storeNo === res.data.storeNo) ||
+            (res.data.id && s.id === res.data.id) ||
+            (res.data._id && s._id === res.data._id)
+
+          setStores((prev) => prev.map((s) => (matchStore(s) ? res.data : s)))
           showToast(`Store ${res.data.storeNo} received heartbeat and is LIVE!`)
         }
       } catch (err) {
@@ -235,9 +246,14 @@ export default function StoreListPanel({
 
   function handleUpdated(updatedStore: TenantStore) {
     setEditingStore(null)
-    setStores((prev) => prev.map((s) => (s.id === updatedStore.id ? updatedStore : s)))
+    const matchStore = (s: TenantStore) =>
+      s.id === updatedStore.id ||
+      (updatedStore.storeNo && s.storeNo === updatedStore.storeNo) ||
+      (updatedStore._id && s._id === updatedStore._id)
+
+    setStores((prev) => prev.map((s) => (matchStore(s) ? updatedStore : s)))
     if (hasLoadedDeactivated.current) {
-      setDeactivatedStores((prev) => prev.map((s) => (s.id === updatedStore.id ? updatedStore : s)))
+      setDeactivatedStores((prev) => prev.map((s) => (matchStore(s) ? updatedStore : s)))
     }
     showToast(`Store "${updatedStore.name}" updated!`)
   }
@@ -245,9 +261,15 @@ export default function StoreListPanel({
   async function handleConfirmDeactivate() {
     if (!pendingDeactivate) return
     setIsDeactivating(true)
+    const targetCode = pendingDeactivate.storeNo || pendingDeactivate.id || pendingDeactivate._id
     try {
-      await deactivateStore({ token, storeId: pendingDeactivate.id })
-      setStores((prev) => prev.filter((s) => s.id !== pendingDeactivate.id))
+      await deactivateStore({ token, storeId: targetCode })
+      const matchStore = (s: TenantStore) =>
+        s.id === pendingDeactivate.id ||
+        (pendingDeactivate.storeNo && s.storeNo === pendingDeactivate.storeNo) ||
+        (pendingDeactivate._id && s._id === pendingDeactivate._id)
+
+      setStores((prev) => prev.filter((s) => !matchStore(s)))
       setMeta((prev) => (prev ? { ...prev, total: Math.max(0, prev.total - 1) } : prev))
       showToast(`Store "${pendingDeactivate.name}" was deactivated`)
       setPendingDeactivate(null)
@@ -263,10 +285,16 @@ export default function StoreListPanel({
 
   async function handleActivate(store: TenantStore) {
     if (activatingId) return
+    const targetCode = store.storeNo || store.id || store._id
     setActivatingId(store.id)
     try {
-      await activateStore({ token, storeId: store.id })
-      setDeactivatedStores((prev) => prev.filter((s) => s.id !== store.id))
+      await activateStore({ token, storeId: targetCode })
+      const matchStore = (s: TenantStore) =>
+        s.id === store.id ||
+        (store.storeNo && s.storeNo === store.storeNo) ||
+        (store._id && s._id === store._id)
+
+      setDeactivatedStores((prev) => prev.filter((s) => !matchStore(s)))
       setDeactivatedMeta((prev) => (prev ? { ...prev, total: Math.max(0, prev.total - 1) } : prev))
       showToast(`Store "${store.name}" was activated`)
       setRetryToken((n) => n + 1)
@@ -373,10 +401,11 @@ export default function StoreListPanel({
       align: 'right',
       render: (s) => (
         <div className="flex items-center justify-end gap-2.5">
-          {s.status !== 'live' && !readOnly && (
+          {/* Test Heartbeat button hidden as of now */}
+          {SHOW_TEST_HEARTBEAT && s.status !== 'live' && !readOnly && (
             <button
               type="button"
-              onClick={() => handleSimulateHeartbeat(s.id)}
+              onClick={() => handleSimulateHeartbeat(s.storeNo || s.id || s._id)}
               disabled={isHeartbeating}
               className="text-[11px] bg-accent hover:bg-accent-mid text-white px-2.5 py-1 rounded-md font-medium cursor-pointer transition-colors"
             >
@@ -580,6 +609,7 @@ export default function StoreListPanel({
       {/* Modals */}
       {isCreating && (
         <CreateStoreModal
+          token={token}
           tenantId={tenantId}
           onClose={() => setIsCreating(false)}
           onCreated={handleCreated}
@@ -588,6 +618,7 @@ export default function StoreListPanel({
 
       {editingStore && (
         <EditStoreModal
+          token={token}
           store={editingStore}
           onClose={() => setEditingStore(null)}
           onUpdated={handleUpdated}

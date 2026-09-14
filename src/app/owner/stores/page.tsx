@@ -29,7 +29,7 @@ export default async function OwnerStoresPage() {
     <>
       <Header title="Store Management" subtitle="Owner Tools" />
       <div className="px-[30px] py-[26px]">
-        <StoreListPanel initialData={initialData} tenantId={tenantId} />
+        <StoreListPanel initialData={initialData} tenantId={tenantId} token={token} />
       </div>
     </>
   )

@@ -689,7 +689,7 @@ export function fakeListDeactivatedStores(params?: {
 }
 
 export function fakeDeactivateStore(storeId: string): Promise<ApiResponseV2<TenantStore>> {
-  const idx = stores.findIndex((s) => s.id === storeId || s._id === storeId)
+  const idx = stores.findIndex((s) => s.id === storeId || s._id === storeId || s.storeNo === storeId)
   if (idx === -1) {
     return Promise.reject({
       response: { status: 404, data: { detail: 'Store not found in active list.' } },
@@ -716,7 +716,7 @@ export function fakeDeactivateStore(storeId: string): Promise<ApiResponseV2<Tena
 }
 
 export function fakeActivateStore(storeId: string): Promise<ApiResponseV2<TenantStore>> {
-  const idx = deactivatedStores.findIndex((s) => s.id === storeId || s._id === storeId)
+  const idx = deactivatedStores.findIndex((s) => s.id === storeId || s._id === storeId || s.storeNo === storeId)
   if (idx === -1) {
     return Promise.reject({
       response: { status: 404, data: { detail: 'Store not found in deactivated list.' } },
@@ -837,7 +837,7 @@ export function fakeBulkCreateStores(params: BulkCreateStoresParams): Promise<Ap
 }
 
 export function fakeSimulateHeartbeat(storeId: string): Promise<ApiResponseV2<TenantStore>> {
-  const idx = stores.findIndex((s) => s.id === storeId || s._id === storeId)
+  const idx = stores.findIndex((s) => s.id === storeId || s._id === storeId || s.storeNo === storeId)
   if (idx === -1) {
     return Promise.reject({
       response: { status: 404, data: { detail: 'Store not found.' } },
@@ -865,13 +865,13 @@ export function fakeUpdateStore(
   storeId: string,
   updates: Partial<TenantStore>
 ): Promise<ApiResponseV2<TenantStore>> {
-  const idx = stores.findIndex((s) => s.id === storeId || s._id === storeId)
+  const idx = stores.findIndex((s) => s.id === storeId || s._id === storeId || s.storeNo === storeId)
   if (idx !== -1) {
     stores[idx] = { ...stores[idx], ...updates, updatedAt: new Date().toISOString() }
     return delay({ success: true, data: { ...stores[idx] } })
   }
 
-  const deactIdx = deactivatedStores.findIndex((s) => s.id === storeId || s._id === storeId)
+  const deactIdx = deactivatedStores.findIndex((s) => s.id === storeId || s._id === storeId || s.storeNo === storeId)
   if (deactIdx !== -1) {
     deactivatedStores[deactIdx] = { ...deactivatedStores[deactIdx], ...updates, updatedAt: new Date().toISOString() }
     return delay({ success: true, data: { ...deactivatedStores[deactIdx] } })
