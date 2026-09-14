@@ -116,8 +116,8 @@ export default function TenantLoginForm() {
     {
       id: 'email',
       type: 'text',
-      label: 'Username or Email',
-      placeholder: selectedRole === 'employee' ? 'marcus.4821 or you@company.com' : 'you@company.com',
+      label: 'Email or User ID',
+      placeholder: selectedRole === 'employee' ? 'marcus.4821 or you@company.com' : 'you@company.com or user ID',
       defaultValue: email || undefined,
     },
     {

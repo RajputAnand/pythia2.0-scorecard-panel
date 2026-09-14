@@ -2,12 +2,17 @@ export default function SuperAdminEmployeeOverviewLoading() {
   return (
     <div className="animate-pulse">
       {/* Header skeleton */}
-      <div className="flex items-center justify-between px-[30px] py-[18px] border-b border-border">
-        <div className="flex flex-col gap-2">
-          <div className="h-5 w-36 rounded bg-border" />
-          <div className="h-3.5 w-52 rounded bg-border" />
+      <div className="flex items-center justify-between px-[30px] py-[14px] border-b border-border">
+        <div className="flex items-center gap-[14px]">
+          <div className="h-5 w-44 rounded bg-border" />
+          <div className="h-4 w-28 rounded-full bg-border" />
+        </div>
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-40 rounded-lg bg-border" />
+          <div className="h-8 w-32 rounded-lg bg-border" />
         </div>
       </div>
+
 
       <div className="grid px-[30px] py-[24px] gap-5">
         {/* HeroBanner skeleton */}

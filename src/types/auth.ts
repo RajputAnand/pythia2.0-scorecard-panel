@@ -26,6 +26,7 @@ export interface ApiAuthUser {
   role_name: string
   hierarchy_level: number
   store_ids: string[]
+  tenant_id?: string | null
   is_active: boolean
   points: number
   must_change_password: boolean

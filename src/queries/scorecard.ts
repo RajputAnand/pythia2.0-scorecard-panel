@@ -61,7 +61,7 @@ export async function fetchDashboardSummary({
   }
 }
 
-export async function fetchCoachingMoments(token: string): Promise<CoachingMomentsResult> {
+export async function fetchCoachingMoments(token: string, employeeId?: string): Promise<CoachingMomentsResult> {
   if (token.includes('mock')) {
     return {
       items: PREVIEW_COACHING_MOMENTS,
@@ -72,7 +72,10 @@ export async function fetchCoachingMoments(token: string): Promise<CoachingMomen
     const { data: response } = await pythia2Client.post<CoachingMomentsResponse>(
       PYTHIA_2_API.coaching.moments,
       undefined,
-      { headers: { Authorization: `Bearer ${token}` }, params: { use_cached: true } },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { use_cached: true, ...(employeeId ? { employee_id: employeeId } : {}) },
+      },
     )
     return {
       items: response.coaching_tips,
@@ -90,11 +93,13 @@ export async function fetchShiftHighlights({
   token,
   shiftStart,
   shiftStatus,
+  employeeId,
   signal,
 }: {
   token: string
   shiftStart: string
   shiftStatus: 'complete' | 'in_progress'
+  employeeId?: string
   signal?: AbortSignal
 }): Promise<ShiftHighlightsResult> {
   if (token.includes('mock')) {
@@ -108,7 +113,11 @@ export async function fetchShiftHighlights({
       PYTHIA_2_API.dashboard.shiftSummaryHighlights,
       {
         headers: { Authorization: `Bearer ${token}` },
-        params: { shift_start: shiftStart, shift_status: shiftStatus },
+        params: {
+          shift_start: shiftStart,
+          shift_status: shiftStatus,
+          ...(employeeId ? { employee_id: employeeId } : {}),
+        },
         signal,
       },
     )
@@ -123,3 +132,4 @@ export async function fetchShiftHighlights({
     }
   }
 }
+
