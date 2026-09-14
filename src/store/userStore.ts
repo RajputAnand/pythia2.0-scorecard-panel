@@ -42,15 +42,17 @@ export const useUserStore = create<UserStoreState>()(
 
       setStores(stores) {
         set((state) => {
-          const stillValid = state.currentStore && stores.some((s) => s._id === state.currentStore!._id)
+          const stillValid =
+            state.currentStore &&
+            stores.some((s) => (s.storeNo || s._id) === (state.currentStore?.storeNo || state.currentStore?._id))
           const newCurrentStore = stillValid ? state.currentStore : (stores[0] ?? null)
-          syncStoreCookie(newCurrentStore?._id)
+          syncStoreCookie(newCurrentStore?.storeNo || newCurrentStore?._id)
           return { stores, currentStore: newCurrentStore }
         })
       },
 
       setCurrentStore(store) {
-        syncStoreCookie(store?._id)
+        syncStoreCookie(store?.storeNo || store?._id)
         set({ currentStore: store })
       },
 

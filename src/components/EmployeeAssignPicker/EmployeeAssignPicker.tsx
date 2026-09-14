@@ -64,7 +64,13 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
     if (!token) return
     let cancelled = false
     setIsLoading(true)
-    fetchEmployees({ token, search: debouncedSearch, skip, limit: PAGE_LIMIT })
+    fetchEmployees({
+      token,
+      search: debouncedSearch,
+      skip,
+      limit: PAGE_LIMIT,
+      storeId: identity.store_id || undefined,
+    })
       .then((response) => {
         if (cancelled) return
         setEmployees(response.data ?? [])
@@ -77,7 +83,7 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
     return () => {
       cancelled = true
     }
-  }, [token, debouncedSearch, skip, refreshKey])
+  }, [token, debouncedSearch, skip, refreshKey, identity.store_id])
 
   const page = meta ? Math.floor(meta.skip / meta.limit) : 0
   const totalPages = meta ? Math.max(1, Math.ceil(meta.total / meta.limit)) : 1

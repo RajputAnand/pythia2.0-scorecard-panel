@@ -1,7 +1,9 @@
 import { unstable_rethrow } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { auth } from '@/auth'
 import SuperAdminEmployeeOverviewContent from '@/components/SuperAdminEmployeeOverviewContent/SuperAdminEmployeeOverviewContent'
 import { fetchEmployees } from '@/queries/employees'
+import { fetchStoresForTenant } from '@/queries/stores'
 import { fetchOverview } from '@/queries/overview'
 import { fetchCoachingMoments, fetchDashboardSummary, fetchShiftHighlights } from '@/queries/scorecard'
 import type { ApiEmployee } from '@/types/employee'
@@ -16,6 +18,18 @@ export const metadata = {
 export default async function SuperAdminEmployeeOverviewPage() {
   const session = await auth()
   const token = session?.user?.pythia2Token ?? ''
+
+  const cookieStore = await cookies()
+  let selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
+
+  if (!selectedStoreId && token) {
+    try {
+      const storesRes = await fetchStoresForTenant({ token, limit: 1 })
+      selectedStoreId = storesRes.data?.[0]?.storeNo || storesRes.data?.[0]?.id || storesRes.data?.[0]?._id
+    } catch {
+      // fallback
+    }
+  }
 
   let overview: OverviewPageData | null = null
   const [overviewResult] = await Promise.allSettled([fetchOverview()])
@@ -33,7 +47,7 @@ export default async function SuperAdminEmployeeOverviewPage() {
 
   if (token) {
     const [employeesResult] = await Promise.allSettled([
-      fetchEmployees({ token, skip: 0, limit: 100 }),
+      fetchEmployees({ token, skip: 0, limit: 100, storeId: selectedStoreId }),
     ])
     if (employeesResult.status === 'rejected') {
       unstable_rethrow(employeesResult.reason)

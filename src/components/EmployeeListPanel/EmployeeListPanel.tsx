@@ -73,7 +73,7 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
   const token = session?.user?.pythia2Token
   const { showToast } = useToast()
   const currentStore = useUserStore((s) => s.currentStore)
-  const currentStoreId = currentStore?._id
+  const currentStoreId = currentStore?.storeNo || currentStore?._id
 
   const [view, setView] = useState<'active' | 'archived'>('active')
 
@@ -91,6 +91,15 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
   const [skip, setSkip] = useState(0)
   const [employees, setEmployees] = useState<ApiEmployee[]>(initialData?.data ?? [])
   const [meta, setMeta] = useState<ApiMeta | undefined>(initialData?.meta)
+
+  // Sync state if initialData changes (e.g. from server refresh on store switch)
+  useEffect(() => {
+    if (initialData) {
+      setEmployees(initialData.data ?? [])
+      setMeta(initialData.meta)
+      setIsLoading(false)
+    }
+  }, [initialData])
   const [isLoading, setIsLoading] = useState(!trustedInitialData)
   const [isError, setIsError] = useState(false)
   const [revealingId, setRevealingId] = useState<string | null>(null)

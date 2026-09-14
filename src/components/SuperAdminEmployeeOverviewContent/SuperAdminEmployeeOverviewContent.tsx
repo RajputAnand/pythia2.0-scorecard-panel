@@ -8,6 +8,7 @@ import Header from '@/components/shared/Header/Header'
 import EmployeeSelector from '@/components/shared/EmployeeSelector/EmployeeSelector'
 import WeekNavButtons from '@/components/shared/WeekNavButtons/WeekNavButtons'
 import DatePicker from '@/components/shared/DatePicker/DatePicker'
+import { useUserStore } from '@/store/userStore'
 import HeroBanner from '@/components/HeroBanner/HeroBanner'
 import ShiftSummary from '@/components/ShiftSummary/ShiftSummary'
 import CoachingMoments from '@/components/CoachingMoments/CoachingMoments'
@@ -99,6 +100,8 @@ export default function SuperAdminEmployeeOverviewContent({
 }: SuperAdminEmployeeOverviewContentProps) {
   const { data: session } = useSession()
   const activeToken = token || session?.user?.pythia2Token || ''
+  const currentStore = useUserStore((s) => s.currentStore)
+  const currentStoreId = currentStore?.storeNo || currentStore?._id
 
   const [employees, setEmployees] = useState<ApiEmployee[]>(initialEmployees)
   const [employeesLoading, setEmployeesLoading] = useState(false)
@@ -123,6 +126,51 @@ export default function SuperAdminEmployeeOverviewContent({
 
   const isFirstMount = useRef(true)
 
+  // Sync state if initialEmployees changes (e.g. from server refresh on store switch)
+  useEffect(() => {
+    setEmployees(initialEmployees)
+    if (initialEmployees.length > 0) {
+      const stillPresent = initialEmployees.some(
+        (e) => (e.user_id || e._id) === (selectedEmployee?.user_id || selectedEmployee?._id)
+      )
+      if (!stillPresent) {
+        setSelectedEmployee(initialSelectedEmployee || initialEmployees[0])
+      }
+    } else {
+      setSelectedEmployee(null)
+    }
+  }, [initialEmployees, initialSelectedEmployee])
+
+  // Re-fetch employees when current store changes
+  const lastStoreId = useRef(currentStoreId)
+  useEffect(() => {
+    if (lastStoreId.current !== currentStoreId) {
+      lastStoreId.current = currentStoreId
+      if (!activeToken) return
+      let cancelled = false
+      setEmployeesLoading(true)
+      fetchEmployees({ token: activeToken, skip: 0, limit: 100, storeId: currentStoreId })
+        .then((res) => {
+          if (cancelled) return
+          const list = res.data ?? []
+          setEmployees(list)
+          const stillPresent = list.some(
+            (e) => (e.user_id || e._id) === (selectedEmployee?.user_id || selectedEmployee?._id)
+          )
+          if (!stillPresent) {
+            setSelectedEmployee(list[0] ?? null)
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (!cancelled) setEmployeesLoading(false)
+        })
+      return () => {
+        cancelled = true
+      }
+    }
+  }, [currentStoreId, activeToken, selectedEmployee])
+
   // Fetch employees client-side if initial list was empty
   useEffect(() => {
     if (employees.length === 0 && activeToken) {
@@ -130,7 +178,7 @@ export default function SuperAdminEmployeeOverviewContent({
       queueMicrotask(() => {
         if (!cancelled) setEmployeesLoading(true)
       })
-      fetchEmployees({ token: activeToken, skip: 0, limit: 100 })
+      fetchEmployees({ token: activeToken, skip: 0, limit: 100, storeId: currentStoreId })
         .then((res) => {
           if (cancelled) return
           const list = res.data ?? []
@@ -147,7 +195,7 @@ export default function SuperAdminEmployeeOverviewContent({
         cancelled = true
       }
     }
-  }, [activeToken, employees.length, selectedEmployee])
+  }, [activeToken, employees.length, selectedEmployee, currentStoreId])
 
   // Fetch live scorecard data when selectedEmployee, weekOffset, or activeToken changes
   useEffect(() => {
