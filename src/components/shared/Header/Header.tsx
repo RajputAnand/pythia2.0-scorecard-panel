@@ -124,7 +124,8 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
     setIsOpeningPortal(true)
     setPortalError(null)
     try {
-      const res = await createStripeCustomerPortalSession(window.location.href)
+      const token = session?.user?.pythia2Token || session?.user?.token
+      const res = await createStripeCustomerPortalSession(window.location.href, token)
       if (res.success && res.url) {
         setProfileOpen(false)
         window.location.href = res.url

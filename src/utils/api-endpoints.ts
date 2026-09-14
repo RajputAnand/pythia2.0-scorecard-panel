@@ -25,6 +25,9 @@ export const PYTHIA_2_API = {
     attribution: '/roi/attribution',
     shareWithInvestor: '/roi/attribution/share',
   },
+  billing: {
+    manageSubscriptionUrl: '/billing/manage-subscription-url',
+  },
   coaching: {
     moments: '/coaching-moments',
   },
