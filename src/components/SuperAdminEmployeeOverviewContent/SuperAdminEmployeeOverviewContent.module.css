@@ -1,0 +1,8 @@
+@reference "../../app/globals.css";
+
+.container {
+  display: grid;
+  padding: 24px 30px;
+  gap: 20px;
+}
+

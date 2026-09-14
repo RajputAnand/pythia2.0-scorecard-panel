@@ -2,7 +2,7 @@
 
 import { signIn, signOut } from "@/auth"
 import { AuthError } from "next-auth"
-import { User } from "@/types/user"
+import { User, type UserRole } from "@/types/user"
 import { pythia1Client, pythia2Client } from "@/lib/api-client"
 import { PYTHIA_2_API } from "@/utils/api-endpoints"
 import { extractApiErrorMessage } from "@/utils/common"
@@ -119,13 +119,14 @@ export async function login(_prev: string | null | undefined, formData: FormData
     }
 
     if (!result.success) {
-      return 'Invalid email or password.'
+      return 'Invalid email, user ID, or password.'
     }
 
     const apiUser = result.user
     const token = result.access_token
 
-    const roleSlug = apiUser.role_name?.toLowerCase() || ''
+    const rawRole = (apiUser.role_name || '').toLowerCase().replace(/[\s_]+/g, '')
+    const roleSlug = (rawRole === 'superadmin' ? 'superadmin' : (apiUser.role_name?.toLowerCase() || '')) as UserRole
     const firstName = apiUser.first_name || ''
     const lastName = apiUser.last_name || ''
     const userId = apiUser.user_id
@@ -146,13 +147,16 @@ export async function login(_prev: string | null | undefined, formData: FormData
         score: roleSlug === 'employee' ? 0 : undefined,
         jobTitle: jobTitle,
         points: apiUser.points ?? 0,
+        tenantId: apiUser.tenant_id,
+        store_ids: apiUser.store_ids ?? [],
+        storeIds: apiUser.store_ids ?? [],
       }),
       redirect: false,
     })
     return null
   } catch (error) {
     if (error instanceof AuthError) {
-      return 'Invalid email or password.'
+      return 'Invalid email, user ID, or password.'
     }
     throw error
   }
@@ -205,6 +209,8 @@ export async function loginTenant(_prev: string | null | undefined, formData: Fo
         tenantId: u.tenantId,
         tenantName: u.tenantName,
         tenantCode: u.tenantCode,
+        store_ids: (u as any).store_ids || (u as any).storeIds || [],
+        storeIds: (u as any).store_ids || (u as any).storeIds || [],
       }),
       redirect: false,
     })

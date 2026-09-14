@@ -45,15 +45,15 @@ export default function LoginForm({ role }: LoginFormProps) {
   const mtEnabled = isMultiTenantEnabled()
 
   const config = roleConfig[role]
-  const schema = role === 'employee' ? employeeLoginSchema : loginSchema
+  const schema = loginSchema
 
   // Field config for DynamicForm
   const fields: FormField[] = [
     {
       id: 'email',
-      type: 'email',
-      label: 'Email',
-      placeholder: 'you@company.com',
+      type: 'text',
+      label: 'Email or User ID',
+      placeholder: role === 'employee' ? 'EMP-101 or you@company.com' : 'you@company.com or user ID',
     },
     {
       id: 'password',

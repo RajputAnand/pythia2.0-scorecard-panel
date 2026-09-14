@@ -1,56 +1,99 @@
-import Header from '@/components/shared/Header/Header'
-import HeroBanner from '@/components/HeroBanner/HeroBanner'
-import CoachingMoments from '@/components/CoachingMoments/CoachingMoments'
-import ProgressChart from '@/components/ProgressChart/ProgressChart'
-import Leaderboard from '@/components/Leaderboard/Leaderboard'
-import SwagStore from '@/components/SwagStore/SwagStore'
-import KpiVisibilityGate from '@/components/shared/KpiVisibilityGate/KpiVisibilityGate'
-import { KPI_IDS } from '@/lib/admin-config-data'
-import {
-  PREVIEW_HERO_BANNER_DATA,
-  PREVIEW_WEEKLY_STATS,
-  PREVIEW_COACHING_MOMENTS,
-  PREVIEW_PROGRESS_DATA,
-  PREVIEW_TEAM_RANKING,
-} from '@/lib/kpi-preview-data'
+import { unstable_rethrow } from 'next/navigation'
+import { auth } from '@/auth'
+import SuperAdminEmployeeOverviewContent from '@/components/SuperAdminEmployeeOverviewContent/SuperAdminEmployeeOverviewContent'
+import { fetchEmployees } from '@/queries/employees'
+import { fetchOverview } from '@/queries/overview'
+import { fetchCoachingMoments, fetchDashboardSummary, fetchShiftHighlights } from '@/queries/scorecard'
+import type { ApiEmployee } from '@/types/employee'
+import type { CoachingMoment, DashboardSummaryResponse, OverviewPageData } from '@/types/overview'
+import type { ShiftHighlight } from '@/types/shift'
 
 export const metadata = {
   title: 'Pythia — Employee Overview (Super Admin)',
-  description: 'Super Admin static preview of the Employee Overview page.',
+  description: 'Super Admin live performance overview and scorecard of selected employees.',
 }
 
-// Static preview of /dashboard/overview for the Super Admin panel — renders
-// the real employee-facing components with sample data, the same convention
-// used by KpiVisibilityPanel's hover previews. Not wired to live
-// per-employee data yet.
-//
-// Deliberately does NOT pass `previewMode` to CoachingMoments/Leaderboard/
-// ProgressChart — that prop bypasses a component's own KPI-visibility check,
-// which is right for the admin's "preview a hidden card" hover but wrong
-// here: a KPI/page the Super Admin has toggled off for employees should stay
-// hidden in this mirror too, so these render with their normal visibility
-// check intact. SwagStore is the one exception — its `previewMode` also
-// swaps in a static catalog (avoiding a real fetch), so it's kept on and
-// gated separately via KpiVisibilityGate instead.
-export default function SuperAdminEmployeeOverviewPage() {
+export default async function SuperAdminEmployeeOverviewPage() {
+  const session = await auth()
+  const token = session?.user?.pythia2Token ?? ''
+
+  let overview: OverviewPageData | null = null
+  const [overviewResult] = await Promise.allSettled([fetchOverview()])
+  if (overviewResult.status === 'fulfilled') {
+    overview = overviewResult.value
+  }
+
+  let initialEmployees: ApiEmployee[] = []
+  let initialSelectedEmployee: ApiEmployee | null = null
+  let initialSummary: DashboardSummaryResponse | null = null
+  let initialCoachingMoments: CoachingMoment[] = []
+  let initialCoachingGenerationInProgress = false
+  let initialShiftHighlights: ShiftHighlight[] = []
+  let initialShiftHighlightsGenerating = false
+
+  if (token) {
+    const [employeesResult] = await Promise.allSettled([
+      fetchEmployees({ token, skip: 0, limit: 100 }),
+    ])
+    if (employeesResult.status === 'rejected') {
+      unstable_rethrow(employeesResult.reason)
+    }
+    if (employeesResult.status === 'fulfilled') {
+      initialEmployees = employeesResult.value.data ?? []
+      initialSelectedEmployee = initialEmployees[0] ?? null
+    }
+
+    if (initialSelectedEmployee) {
+      const empId = initialSelectedEmployee.user_id || initialSelectedEmployee._id
+      const [summaryResult, coachingResult] = await Promise.allSettled([
+        fetchDashboardSummary({ token, weekOffset: 0, employeeId: empId }),
+        fetchCoachingMoments(token, empId),
+      ])
+
+      if (summaryResult.status === 'rejected') {
+        unstable_rethrow(summaryResult.reason)
+      } else {
+        initialSummary = summaryResult.value
+      }
+
+      if (coachingResult.status === 'rejected') {
+        unstable_rethrow(coachingResult.reason)
+      } else {
+        initialCoachingMoments = coachingResult.value.items
+        initialCoachingGenerationInProgress = coachingResult.value.generationInProgress
+      }
+
+      const shiftStart = initialSummary?.today?.shift_start
+      const shiftStatus = initialSummary?.today?.data?.shift_status
+      if (shiftStart && shiftStatus && shiftStatus !== 'no_data') {
+        try {
+          const highlightsResult = await fetchShiftHighlights({
+            token,
+            shiftStart,
+            shiftStatus,
+            employeeId: empId,
+          })
+          initialShiftHighlights = highlightsResult.items
+          initialShiftHighlightsGenerating = highlightsResult.generationInProgress
+        } catch (err) {
+          unstable_rethrow(err)
+        }
+      }
+    }
+  }
+
   return (
-    <>
-      <Header title="My Dashboard" subtitle="Super Admin · Sample data preview" />
-
-      <div className="grid px-[30px] py-[24px] gap-5">
-        <HeroBanner data={PREVIEW_HERO_BANNER_DATA} weeklyStats={PREVIEW_WEEKLY_STATS} />
-
-        <div className="grid grid-cols-2 items-start gap-[18px]">
-          <CoachingMoments items={PREVIEW_COACHING_MOMENTS} />
-          <Leaderboard data={PREVIEW_TEAM_RANKING} />
-        </div>
-
-        <ProgressChart data={PREVIEW_PROGRESS_DATA} />
-
-        <KpiVisibilityGate id={KPI_IDS.employeeSwagStore}>
-          <SwagStore previewMode />
-        </KpiVisibilityGate>
-      </div>
-    </>
+    <SuperAdminEmployeeOverviewContent
+      initialEmployees={initialEmployees}
+      initialSelectedEmployee={initialSelectedEmployee}
+      initialSummary={initialSummary}
+      initialCoachingMoments={initialCoachingMoments}
+      initialCoachingGenerationInProgress={initialCoachingGenerationInProgress}
+      initialShiftHighlights={initialShiftHighlights}
+      initialShiftHighlightsGenerating={initialShiftHighlightsGenerating}
+      overview={overview}
+      token={token}
+    />
   )
 }
+

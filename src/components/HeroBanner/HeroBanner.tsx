@@ -37,12 +37,22 @@ function deltaLabel(delta: number, suffix: string): string {
   return `→ same as ${suffix}`
 }
 
-export default function HeroBanner({ data, weeklyStats }: { data: HeroBannerData, weeklyStats: WeeklyStats }) {
+export default function HeroBanner({
+  data,
+  weeklyStats,
+  employeeName,
+}: {
+  data: HeroBannerData
+  weeklyStats: WeeklyStats
+  employeeName?: string
+}) {
   const { data: user } = useSession()
   const metricsVisible = useAdminConfigStore((s) => s.visibility[KPI_IDS.employeeHeroMetrics] ?? true)
   if (!weeklyStats) return <></>
   const points = weeklyStats.points ?? 0
   const ringOffset = RING_CIRCUMFERENCE * (1 - Math.round(weeklyStats.overall_score ?? 0) / 100)
+  const displayName = employeeName || user?.user?.name || 'Employee'
+  const firstName = displayName.split(' ')[0]
   return (
     <div
       className={`${styles.bannerPseudo} relative rounded-2xl overflow-hidden grid items-center`}
@@ -73,7 +83,7 @@ export default function HeroBanner({ data, weeklyStats }: { data: HeroBannerData
       {/* Center */}
       <div className="flex flex-col gap-[10px]">
         <div className="font-bold text-white leading-tight text-[20px]">
-          {getGreeting()}, <span style={{ color: '#78C99A' }}>{(user!.user.name)?.split(" ")[0]}.</span>
+          {getGreeting()}, <span style={{ color: '#78C99A' }}>{firstName}.</span>
           <br />You&apos;re on a {weeklyStats.streak_weeks}-week improvement streak. 🔥
         </div>
         <div className="text-white leading-relaxed text-[13px]">
