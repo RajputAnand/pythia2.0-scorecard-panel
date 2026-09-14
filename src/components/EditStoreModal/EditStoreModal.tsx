@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { updateStore } from '@/queries/stores'
 import Select from '@/components/shared/Select/Select'
 import { extractApiErrorMessage } from '@/utils/common'
+import { useToast } from '@/context/ToastContext'
 import type { TenantStore, StoreProvisionStatus } from '@/types/tenant'
 
 const STORE_STATUS_OPTIONS = [
@@ -14,20 +16,45 @@ const STORE_STATUS_OPTIONS = [
 ]
 
 interface EditStoreModalProps {
+  token?: string
   store: TenantStore
   onClose: () => void
   onUpdated: (updated: TenantStore) => void
 }
 
-export default function EditStoreModal({ store, onClose, onUpdated }: EditStoreModalProps) {
+function generatePairingCode(): string {
+  const num = Math.floor(1000 + Math.random() * 9000)
+  const letters = Math.random().toString(36).substring(2, 6).toUpperCase()
+  return `PAIR-${num}-${letters}`
+}
+
+export default function EditStoreModal({ token, store, onClose, onUpdated }: EditStoreModalProps) {
+  const { data: session } = useSession()
+  const authToken = token || session?.user?.pythia2Token || session?.user?.token
+  const { showToast } = useToast()
+
   const [name, setName] = useState(store.name)
   const [location, setLocation] = useState(store.location)
   const [district, setDistrict] = useState(store.district)
   const [fullAddress, setFullAddress] = useState(store.fullAddress || (store.address ? `${store.address.street || ''}, ${store.address.city || ''}, ${store.address.state || ''} ${store.address.zip || ''}`.trim() : ''))
+  const [pairingCode, setPairingCode] = useState(store.pairingCode || '')
   const [status, setStatus] = useState<StoreProvisionStatus>(store.status)
   const [timezone, setTimezone] = useState(store.timezone)
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  function handleRegeneratePairingCode() {
+    const newCode = generatePairingCode()
+    setPairingCode(newCode)
+    showToast('Generated new edge device pairing code')
+  }
+
+  function handleCopyCode() {
+    if (typeof navigator !== 'undefined' && navigator.clipboard && pairingCode) {
+      navigator.clipboard.writeText(pairingCode)
+      showToast('Pairing code copied to clipboard!')
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -35,9 +62,11 @@ export default function EditStoreModal({ store, onClose, onUpdated }: EditStoreM
     setError(null)
 
     try {
+      const storeCode = store.storeNo || store.id || store._id
       const res = await updateStore({
-        storeId: store.id,
-        updates: { name, location, district, fullAddress, status, timezone },
+        token: authToken,
+        storeId: storeCode,
+        updates: { name, location, district, fullAddress, pairingCode, status, timezone },
       })
       if (res.success && res.data) {
         onUpdated(res.data)
@@ -110,6 +139,41 @@ export default function EditStoreModal({ store, onClose, onUpdated }: EditStoreM
               onChange={(e) => setFullAddress(e.target.value)}
               className="w-full bg-surface border border-border rounded-lg px-3 py-1.5 text-[12.5px] outline-none focus:border-accent resize-none"
             />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-medium text-secondary uppercase">
+                Edge Device Pairing Code
+              </label>
+              <button
+                type="button"
+                onClick={handleRegeneratePairingCode}
+                className="text-[11px] font-semibold text-accent hover:text-accent-mid cursor-pointer flex items-center gap-1"
+              >
+                <span>🔄</span> Regenerate
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 flex items-center justify-between bg-surface border border-border rounded-lg px-3 py-1.5">
+                <span className="font-mono text-[12px] font-bold text-accent tracking-wider">
+                  {pairingCode || '—'}
+                </span>
+                <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-accent-light text-accent">
+                  Assigned
+                </span>
+              </div>
+              {pairingCode && (
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  title="Copy Pairing Code"
+                  className="p-2 rounded-lg border border-border bg-surface hover:bg-surface-alt text-secondary hover:text-primary transition-colors cursor-pointer shrink-0 text-[12px]"
+                >
+                  📋
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2.5">
