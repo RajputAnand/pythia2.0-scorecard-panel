@@ -41,10 +41,12 @@ export default function HeroBanner({
   data,
   weeklyStats,
   employeeName,
+  isCustomRange,
 }: {
   data: HeroBannerData
   weeklyStats: WeeklyStats
   employeeName?: string
+  isCustomRange?: boolean
 }) {
   const { data: user } = useSession()
   const metricsVisible = useAdminConfigStore((s) => s.visibility[KPI_IDS.employeeHeroMetrics] ?? true)
@@ -53,6 +55,9 @@ export default function HeroBanner({
   const ringOffset = RING_CIRCUMFERENCE * (1 - Math.round(weeklyStats.overall_score ?? 0) / 100)
   const displayName = employeeName || user?.user?.name || 'Employee'
   const firstName = displayName.split(' ')[0]
+  const periodSuffix = isCustomRange ? 'prev period' : 'this week'
+  const currentPeriodLabel = isCustomRange ? 'This period' : 'This week'
+
   return (
     <div
       className={`${styles.bannerPseudo} relative rounded-2xl overflow-hidden grid items-center`}
@@ -91,16 +96,16 @@ export default function HeroBanner({
         </div>
         {metricsVisible && (
           <div className="flex flex-wrap gap-[10px]">
-            <Metric key={"Hospitality"} change={deltaLabel(weeklyStats.hospitality_delta, 'this week')} label='Hospitality' value={(weeklyStats.hospitality ?? 0).toString()} valueColor='#78C99A' />
+            <Metric key={"Hospitality"} change={deltaLabel(weeklyStats.hospitality_delta, periodSuffix)} label='Hospitality' value={(weeklyStats.hospitality ?? 0).toString()} valueColor='#78C99A' />
             <Metric
               key={"Checkout Spd"}
-              change={weeklyStats.checkout_coaching_active ? '→ Coaching active' : 'This week'}
+              change={weeklyStats.checkout_coaching_active ? '→ Coaching active' : currentPeriodLabel}
               label='Checkout Spd'
               value={(weeklyStats.checkout_speed ?? 0).toString()}
               valueColor={weeklyStats.checkout_coaching_active ? '#F5C842' : '#FFFFFF'}
             />
-            <Metric key={"Time to Svc"} change={deltaLabel(weeklyStats.time_to_service_delta, 'this week')} label='Time to Svc' value={(weeklyStats.time_to_service ?? 0).toString()} valueColor='#78C99A' />
-            <Metric key={"Shift Hours"} change='This week' label='Shift Hours' value={`${weeklyStats.shift_hours ?? 0}h`} />
+            <Metric key={"Time to Svc"} change={deltaLabel(weeklyStats.time_to_service_delta, periodSuffix)} label='Time to Svc' value={(weeklyStats.time_to_service ?? 0).toString()} valueColor='#78C99A' />
+            <Metric key={"Shift Hours"} change={currentPeriodLabel} label='Shift Hours' value={`${weeklyStats.shift_hours ?? 0}h`} />
           </div>
         )}
       </div>
@@ -118,7 +123,7 @@ export default function HeroBanner({
             className="uppercase tracking-[.09em] text-[10px] mt-[3px]"
             style={{ color: 'rgba(255,255,255,0.4)' }}
           >
-            Points This Week
+            Points {isCustomRange ? 'in Range' : 'This Week'}
           </div>
         </div>
         <div
