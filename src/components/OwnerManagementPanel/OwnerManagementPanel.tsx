@@ -74,8 +74,26 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
     })
   }, [owners, statusFilter, search])
 
+  const canCurrentUserManageSub = useMemo(() => {
+    const me = owners.find((o) => o.user_id === currentUserId)
+    if (me) {
+      return Boolean(me.is_root_owner || me.can_manage_subscription)
+    }
+    return Boolean(session?.user?.can_manage_subscription || session?.user?.is_root_owner)
+  }, [owners, currentUserId, session?.user?.can_manage_subscription, session?.user?.is_root_owner])
+
+  const isCurrentUserRoot = useMemo(() => {
+    const me = owners.find((o) => o.user_id === currentUserId)
+    if (me) return Boolean(me.is_root_owner)
+    return Boolean(session?.user?.is_root_owner)
+  }, [owners, currentUserId, session?.user?.is_root_owner])
+
   async function handleRevealCredentials(owner: OrganizationOwner) {
-    if (!token) return
+    if (!token || owner.is_root_owner || owner.user_id === currentUserId) return
+    if (!isCurrentUserRoot && owner.created_by && owner.created_by !== currentUserId) {
+      showToast('You can only reveal credentials for co-owners you created.')
+      return
+    }
     setRevealingId(owner.user_id)
     try {
       const res = await fetchSubOwnerCredentials({ token, userId: owner.user_id })
@@ -92,7 +110,7 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
   }
 
   async function handleToggleSubscription(owner: OrganizationOwner) {
-    if (!token || owner.is_root_owner) return
+    if (!token || owner.is_root_owner || !canCurrentUserManageSub || owner.user_id === currentUserId) return
     const newPermission = !owner.can_manage_subscription
     setTogglingId(owner.user_id)
     try {
@@ -115,7 +133,11 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
   }
 
   async function handleDeactivate(owner: OrganizationOwner) {
-    if (!token || owner.is_root_owner) return
+    if (!token || owner.is_root_owner || owner.user_id === currentUserId) return
+    if (!isCurrentUserRoot && owner.created_by && owner.created_by !== currentUserId) {
+      showToast('You can only deactivate co-owners you created.')
+      return
+    }
     const confirm = window.confirm(
       `Are you sure you want to deactivate ${owner.first_name} ${owner.last_name}? They will lose access to the system immediately.`
     )
@@ -231,6 +253,8 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
                 {filteredOwners.map((owner) => {
                   const initials = `${owner.first_name[0] || ''}${owner.last_name[0] || ''}`.toUpperCase() || 'O'
                   const isSelf = owner.user_id === currentUserId
+                  const canRevealThisOwner = !isSelf && !owner.is_root_owner && (isCurrentUserRoot || (Boolean(owner.created_by) && owner.created_by === currentUserId))
+                  const canDeactivateThisOwner = !isSelf && !owner.is_root_owner && owner.is_active && (isCurrentUserRoot || (Boolean(owner.created_by) && owner.created_by === currentUserId))
                   return (
                     <tr key={owner.user_id} className="hover:bg-surface-alt/40 transition-colors">
                       {/* Owner Column */}
@@ -286,18 +310,20 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
                             >
                               {owner.can_manage_subscription ? 'Allowed' : 'No Access'}
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => handleToggleSubscription(owner)}
-                              disabled={togglingId === owner.user_id}
-                              className="text-[11px] text-accent hover:underline cursor-pointer disabled:opacity-50"
-                            >
-                              {togglingId === owner.user_id
-                                ? 'Updating...'
-                                : owner.can_manage_subscription
-                                ? 'Revoke'
-                                : 'Grant'}
-                            </button>
+                            {canCurrentUserManageSub && !isSelf && (
+                              <button
+                                type="button"
+                                onClick={() => handleToggleSubscription(owner)}
+                                disabled={togglingId === owner.user_id}
+                                className="text-[11px] text-accent hover:underline cursor-pointer disabled:opacity-50"
+                              >
+                                {togglingId === owner.user_id
+                                  ? 'Updating...'
+                                  : owner.can_manage_subscription
+                                  ? 'Revoke'
+                                  : 'Grant'}
+                              </button>
+                            )}
                           </div>
                         )}
                       </td>
@@ -318,27 +344,29 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
                       {/* Actions Column */}
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleRevealCredentials(owner)}
-                            disabled={revealingId === owner.user_id}
-                            className="p-1 text-secondary hover:text-primary rounded hover:bg-surface-alt transition-colors cursor-pointer disabled:opacity-50"
-                            title="Reveal login credentials"
-                          >
-                            {revealingId === owner.user_id ? (
-                              <svg className="w-4 h-4 animate-spin text-accent" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                              </svg>
-                            ) : (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                              </svg>
-                            )}
-                          </button>
+                          {canRevealThisOwner && (
+                            <button
+                              type="button"
+                              onClick={() => handleRevealCredentials(owner)}
+                              disabled={revealingId === owner.user_id}
+                              className="p-1 text-secondary hover:text-primary rounded hover:bg-surface-alt transition-colors cursor-pointer disabled:opacity-50"
+                              title="Reveal login credentials"
+                            >
+                              {revealingId === owner.user_id ? (
+                                <svg className="w-4 h-4 animate-spin text-accent" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                </svg>
+                              ) : (
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                </svg>
+                              )}
+                            </button>
+                          )}
 
-                          {!owner.is_root_owner && owner.is_active && (
+                          {canDeactivateThisOwner && (
                             <button
                               type="button"
                               onClick={() => handleDeactivate(owner)}
@@ -364,6 +392,7 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
       {isCreating && (
         <CreateSubOwnerModal
           token={token}
+          canManageSubscriptionAllowed={canCurrentUserManageSub}
           onClose={() => setIsCreating(false)}
           onCreated={handleOwnerCreated}
         />

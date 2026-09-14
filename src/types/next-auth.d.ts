@@ -20,6 +20,8 @@ declare module "next-auth" {
     tenantCode?: string
     store_ids?: string[]
     storeIds?: string[]
+    can_manage_subscription?: boolean
+    is_root_owner?: boolean
   }
 }
 
@@ -38,5 +40,7 @@ declare module "next-auth/jwt" {
     tenantCode?: string
     store_ids?: string[]
     storeIds?: string[]
+    can_manage_subscription?: boolean
+    is_root_owner?: boolean
   }
 }

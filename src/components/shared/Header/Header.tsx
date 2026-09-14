@@ -9,6 +9,7 @@ import { useTenantStore, isMultiTenantEnabled } from '@/store/tenantStore'
 import { fetchStoresForTenant } from '@/queries/stores'
 import { logout } from '@/actions/auth'
 import { createStripeCustomerPortalSession } from '@/actions/stripe'
+import { fetchOrganizationOwners } from '@/queries/organization-owners'
 import type { User } from '@/types/user'
 
 interface HeaderProps {
@@ -55,6 +56,47 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
   const profileDropdownRef = useRef<HTMLDivElement>(null)
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
   const [portalError, setPortalError] = useState<string | null>(null)
+  const [canManageSubscription, setCanManageSubscription] = useState<boolean>(() => {
+    if (session?.user?.can_manage_subscription !== undefined || session?.user?.is_root_owner !== undefined) {
+      return Boolean(session?.user?.can_manage_subscription || session?.user?.is_root_owner)
+    }
+    return false
+  })
+
+  useEffect(() => {
+    if (role !== 'owner') {
+      setCanManageSubscription(false)
+      return
+    }
+
+    if (session?.user?.can_manage_subscription !== undefined || session?.user?.is_root_owner !== undefined) {
+      setCanManageSubscription(Boolean(session.user.can_manage_subscription || session.user.is_root_owner))
+      return
+    }
+
+    let cancelled = false
+    const token = session?.user?.pythia2Token || session?.user?.token
+    if (!token) return
+
+    fetchOrganizationOwners({ token })
+      .then((res) => {
+        if (cancelled) return
+        const currentUserId = session?.user?.id
+        const me = res.data?.find((o) => o.user_id === currentUserId)
+        if (me) {
+          setCanManageSubscription(Boolean(me.is_root_owner || me.can_manage_subscription))
+        } else {
+          setCanManageSubscription(false)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setCanManageSubscription(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [role, session?.user?.can_manage_subscription, session?.user?.is_root_owner, session?.user?.pythia2Token, session?.user?.token, session?.user?.id])
 
   useEffect(() => {
     if (!open && !tenantOpen && !profileOpen) return
@@ -351,7 +393,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                   </div>
                 )}
 
-                {role === 'owner' && (
+                {role === 'owner' && canManageSubscription && (
                   <>
                     <button
                       type="button"

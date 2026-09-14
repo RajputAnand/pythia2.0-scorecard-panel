@@ -150,6 +150,8 @@ export async function login(_prev: string | null | undefined, formData: FormData
         tenantId: apiUser.tenant_id,
         store_ids: apiUser.store_ids ?? [],
         storeIds: apiUser.store_ids ?? [],
+        can_manage_subscription: apiUser.can_manage_subscription ?? false,
+        is_root_owner: apiUser.is_root_owner ?? false,
       }),
       redirect: false,
     })
@@ -211,6 +213,8 @@ export async function loginTenant(_prev: string | null | undefined, formData: Fo
         tenantCode: u.tenantCode,
         store_ids: (u as any).store_ids || (u as any).storeIds || [],
         storeIds: (u as any).store_ids || (u as any).storeIds || [],
+        can_manage_subscription: (u as any).can_manage_subscription ?? (u.role === 'owner'),
+        is_root_owner: (u as any).is_root_owner ?? (u.role === 'owner'),
       }),
       redirect: false,
     })
