@@ -7,6 +7,7 @@ import styles from './SuperAdminEmployeeOverviewContent.module.css'
 import Header from '@/components/shared/Header/Header'
 import EmployeeSelector from '@/components/shared/EmployeeSelector/EmployeeSelector'
 import WeekNavButtons from '@/components/shared/WeekNavButtons/WeekNavButtons'
+import DatePicker from '@/components/shared/DatePicker/DatePicker'
 import HeroBanner from '@/components/HeroBanner/HeroBanner'
 import ShiftSummary from '@/components/ShiftSummary/ShiftSummary'
 import CoachingMoments from '@/components/CoachingMoments/CoachingMoments'
@@ -18,7 +19,7 @@ import { KPI_IDS } from '@/lib/admin-config-data'
 import { PREVIEW_HERO_BANNER_DATA } from '@/lib/kpi-preview-data'
 import { fetchEmployees } from '@/queries/employees'
 import { fetchCoachingMoments, fetchDashboardSummary, fetchShiftHighlights } from '@/queries/scorecard'
-import { extractApiErrorMessage, formatWeekRange, getEmployeeName, getWeekSubtitle } from '@/utils/common'
+import { extractApiErrorMessage, formatDateRange, formatWeekRange, getEmployeeName, getWeekSubtitle } from '@/utils/common'
 import type { ApiEmployee } from '@/types/employee'
 import type { CoachingMoment, DashboardSummaryResponse, OverviewPageData } from '@/types/overview'
 import type { ShiftHighlight } from '@/types/shift'
@@ -113,6 +114,13 @@ export default function SuperAdminEmployeeOverviewContent({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+
+  const hasActiveDateFilter = Boolean(dateFrom && dateTo)
+  const appliedDateFrom = hasActiveDateFilter ? dateFrom : ''
+  const appliedDateTo = hasActiveDateFilter ? dateTo : ''
+
   const isFirstMount = useRef(true)
 
   // Fetch employees client-side if initial list was empty
@@ -143,13 +151,14 @@ export default function SuperAdminEmployeeOverviewContent({
 
   // Fetch live scorecard data when selectedEmployee, weekOffset, or activeToken changes
   useEffect(() => {
-    // Skip on first mount only if page.tsx already seeded initial summary data
-    if (isFirstMount.current) {
+    // Skip on first mount only if page.tsx already seeded initial summary data and no custom date is active
+    if (isFirstMount.current && !appliedDateFrom && !appliedDateTo) {
       isFirstMount.current = false
       if (initialSummary) {
         return
       }
     }
+    isFirstMount.current = false
 
     if (!selectedEmployee || !activeToken) {
       queueMicrotask(() => {
@@ -173,7 +182,14 @@ export default function SuperAdminEmployeeOverviewContent({
     const empId = selectedEmployee.user_id || selectedEmployee._id
 
     Promise.allSettled([
-      fetchDashboardSummary({ token: activeToken, weekOffset, employeeId: empId, signal: controller.signal }),
+      fetchDashboardSummary({
+        token: activeToken,
+        weekOffset,
+        employeeId: empId,
+        startDate: appliedDateFrom || undefined,
+        endDate: appliedDateTo || undefined,
+        signal: controller.signal,
+      }),
       fetchCoachingMoments(activeToken, empId),
     ])
       .then(async ([summaryRes, coachingRes]) => {
@@ -220,9 +236,10 @@ export default function SuperAdminEmployeeOverviewContent({
         }
       })
       .catch((err) => {
-        if (cancelled || axios.isCancel(err)) return
-        setSummary(null)
-        setError(extractApiErrorMessage(err, 'Failed to fetch employee records.'))
+        if (!cancelled && !axios.isCancel(err)) {
+          setSummary(null)
+          setError(extractApiErrorMessage(err, 'Unable to load employee dashboard data.'))
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -232,15 +249,22 @@ export default function SuperAdminEmployeeOverviewContent({
       cancelled = true
       controller.abort()
     }
-  }, [selectedEmployee, weekOffset, activeToken])
+  }, [selectedEmployee, weekOffset, activeToken, appliedDateFrom, appliedDateTo])
 
-  const weekLabel = summary
-    ? formatWeekRange(summary.weekly.week_start, summary.weekly.week_end)
-    : (() => {
-        const refDate = new Date()
-        refDate.setDate(refDate.getDate() - 7 * weekOffset)
-        return getWeekSubtitle(refDate)
-      })()
+  const clearDateFilter = () => {
+    setDateFrom('')
+    setDateTo('')
+  }
+
+  const weekLabel = hasActiveDateFilter
+    ? formatDateRange(appliedDateFrom, appliedDateTo)
+    : summary
+      ? formatWeekRange(summary.weekly.week_start, summary.weekly.week_end)
+      : (() => {
+          const refDate = new Date()
+          refDate.setDate(refDate.getDate() - 7 * weekOffset)
+          return getWeekSubtitle(refDate)
+        })()
 
   // Ensure the selected employee's row is highlighted on the leaderboard
   const rawLeaderboardData = summary?.leaderboard?.data
@@ -273,20 +297,43 @@ export default function SuperAdminEmployeeOverviewContent({
         title="Employee Overview"
         subtitle={weekLabel}
       >
-        <EmployeeSelector
-          employees={employees}
-          selectedEmployee={selectedEmployee}
-          onSelectEmployee={(emp) => {
-            setSelectedEmployee(emp)
-          }}
-          loading={employeesLoading}
-        />
-        <WeekNavButtons
-          weekOffset={weekOffset}
-          loading={loading}
-          onPrevious={() => setWeekOffset((n) => Math.min(1, n + 1))}
-          onNext={() => setWeekOffset((n) => Math.max(0, n - 1))}
-        />
+        <div className="flex items-center gap-2">
+          <EmployeeSelector
+            employees={employees}
+            selectedEmployee={selectedEmployee}
+            onSelectEmployee={(emp) => {
+              setSelectedEmployee(emp)
+            }}
+            loading={employeesLoading}
+          />
+          {!hasActiveDateFilter && (
+            <WeekNavButtons
+              weekOffset={weekOffset}
+              loading={loading}
+              onPrevious={() => setWeekOffset((n) => Math.min(1, n + 1))}
+              onNext={() => setWeekOffset((n) => Math.max(0, n - 1))}
+            />
+          )}
+          {!hasActiveDateFilter && <div className="bg-border shrink-0 w-px h-5" />}
+          <div className="flex items-center gap-[6px]">
+            <DatePicker ariaLabel="Filter start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
+            <span className="text-muted text-[11px]">to</span>
+            <DatePicker ariaLabel="Filter end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
+          </div>
+          {hasActiveDateFilter && (
+            <button
+              type="button"
+              onClick={clearDateFilter}
+              className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-sans font-medium text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent hover:text-accent"
+            >
+              <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              Clear filter
+            </button>
+          )}
+        </div>
       </Header>
 
       <div className={styles.container}>
@@ -306,6 +353,7 @@ export default function SuperAdminEmployeeOverviewContent({
               data={overview?.heroBanner ?? PREVIEW_HERO_BANNER_DATA}
               weeklyStats={summary.weekly.data}
               employeeName={getEmployeeName(selectedEmployee)}
+              isCustomRange={hasActiveDateFilter}
             />
 
             <ShiftSummary
