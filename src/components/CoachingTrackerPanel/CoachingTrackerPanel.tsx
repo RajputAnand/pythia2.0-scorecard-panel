@@ -11,6 +11,10 @@ import type { CoachingEmployeeChip, CoachingEmployeeDetail } from '@/types/coach
 
 interface Props {
   initialEmployees: CoachingEmployeeChip[]
+  selectedStoreId?: string
+  startDate?: string
+  endDate?: string
+  view?: string
 }
 
 const healthDotClass: Record<CoachingEmployeeChip['health'], string> = {
@@ -33,7 +37,13 @@ function DrilldownSkeleton() {
   )
 }
 
-export default function CoachingTrackerPanel({ initialEmployees }: Props) {
+export default function CoachingTrackerPanel({
+  initialEmployees,
+  selectedStoreId,
+  startDate,
+  endDate,
+  view,
+}: Props) {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
 
@@ -67,7 +77,12 @@ export default function CoachingTrackerPanel({ initialEmployees }: Props) {
   // resolving or editing a plan inside the popup updates this same state and
   // the banner behind it reflects it immediately, instead of each reading
   // its own independent fetch that only agrees again after a refetch.
-  const stalledPlans = useStalledCoachingPlans()
+  const stalledPlans = useStalledCoachingPlans({
+    storeId: selectedStoreId,
+    startDate,
+    endDate,
+    view,
+  })
   const { isLoading: isLoadingStalled, groups: stalledGroups, openCount: stalledIssueCount } = stalledPlans
   const stalledNames = stalledGroups.map((g) => g.name)
   const showStalledAlert = !isLoadingStalled && stalledIssueCount > 0
@@ -77,7 +92,14 @@ export default function CoachingTrackerPanel({ initialEmployees }: Props) {
     let cancelled = false
     setIsLoadingDetail(true)
     setIsDetailError(false)
-    fetchEmployeeCoachingDetail({ token, userId: activeId })
+    fetchEmployeeCoachingDetail({
+      token,
+      userId: activeId,
+      startDate,
+      endDate,
+      view,
+      storeId: selectedStoreId,
+    })
       .then((result) => {
         if (!cancelled) setDetail(result)
       })
@@ -90,7 +112,7 @@ export default function CoachingTrackerPanel({ initialEmployees }: Props) {
     return () => {
       cancelled = true
     }
-  }, [token, activeId, detailRetryToken])
+  }, [token, activeId, detailRetryToken, startDate, endDate, view, selectedStoreId])
 
   const totalIssues = initialEmployees.reduce((sum, e) => sum + e.total_issues, 0)
 

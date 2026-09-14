@@ -27,15 +27,25 @@ export interface UseStalledCoachingPlansResult {
   patchPlan: (updated: ManagerCoachingPlan) => void
 }
 
+export interface UseStalledCoachingPlansParams {
+  storeId?: string
+  startDate?: string
+  endDate?: string
+  view?: string
+}
+
 // Shared by CoachingTrackerPanel (the "View all" alert banner — count + who's
 // affected) and StalledPlansPanel (the popup's full detail view), so both
 // reflect the exact same live data instead of drifting or double-implementing
 // the fetch/group logic.
-export function useStalledCoachingPlans(): UseStalledCoachingPlansResult {
+export function useStalledCoachingPlans(params?: UseStalledCoachingPlansParams): UseStalledCoachingPlansResult {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
   const currentStore = useUserStore((s) => s.currentStore)
-  const storeId = currentStore?.storeNo || currentStore?._id
+  const storeId = params?.storeId ?? (currentStore?.storeNo || currentStore?._id)
+  const startDate = params?.startDate
+  const endDate = params?.endDate
+  const view = params?.view
 
   const [plans, setPlans] = useState<ManagerCoachingPlan[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -55,6 +65,9 @@ export function useStalledCoachingPlans(): UseStalledCoachingPlansResult {
       token,
       status: ['open', 'acknowledged', 'in_progress'],
       storeId: storeId || undefined,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+      view: view || undefined,
     })
       .then((result) => {
         if (!cancelled) setPlans(result)
@@ -68,7 +81,7 @@ export function useStalledCoachingPlans(): UseStalledCoachingPlansResult {
     return () => {
       cancelled = true
     }
-  }, [token, retryToken, storeId])
+  }, [token, retryToken, storeId, startDate, endDate, view])
 
   // Resolve employee display info for every user_id referenced by a plan —
   // the manager-coaching endpoints only return user_id, not a display name.
@@ -99,8 +112,16 @@ export function useStalledCoachingPlans(): UseStalledCoachingPlansResult {
   // patchPlan merges in a "resolved" result from resolvePlan/saveEdit, without
   // needing a refetch.
   const visiblePlans = useMemo(
-    () => plans.filter((p) => p.status !== 'dismissed' && p.status !== 'resolved'),
-    [plans],
+    () =>
+      plans.filter((p) => {
+        if (p.status === 'dismissed' || p.status === 'resolved') return false
+        if (startDate && endDate) {
+          const planDate = (p.created_at || p.first_flagged_at || '').slice(0, 10)
+          if (planDate && (planDate < startDate || planDate > endDate)) return false
+        }
+        return true
+      }),
+    [plans, startDate, endDate],
   )
 
   const groups = useMemo(() => {

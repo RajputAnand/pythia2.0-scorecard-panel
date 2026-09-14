@@ -28,6 +28,9 @@ export interface FetchManagerCoachingPlansParams {
   employeeId?: string
   status?: ManagerPlanStatus | ManagerPlanStatus[]
   storeId?: string
+  startDate?: string
+  endDate?: string
+  view?: string
 }
 
 export async function fetchManagerCoachingPlans({
@@ -35,6 +38,9 @@ export async function fetchManagerCoachingPlans({
   employeeId,
   status,
   storeId,
+  startDate,
+  endDate,
+  view,
 }: FetchManagerCoachingPlansParams): Promise<ManagerCoachingPlan[]> {
   if (token.includes('mock')) {
     return []
@@ -46,6 +52,9 @@ export async function fetchManagerCoachingPlans({
         employee_id: employeeId || undefined,
         status: Array.isArray(status) ? status.join(',') : status || undefined,
         store_id: storeId || undefined,
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
+        view: view || undefined,
       },
     })
     return data.signals || []
@@ -98,16 +107,36 @@ export interface FetchCoachingViewParams {
   token: string
   view?: CoachingView
   storeId?: string
+  startDate?: string
+  endDate?: string
 }
 
-export async function fetchCoachingSummary({ token, view = 'month', storeId }: FetchCoachingViewParams): Promise<CoachingSummary> {
+export async function fetchCoachingSummary({
+  token,
+  view = 'month',
+  storeId,
+  startDate,
+  endDate,
+}: FetchCoachingViewParams): Promise<CoachingSummary> {
   if (token.includes('mock')) {
+    if (startDate && endDate) {
+      return {
+        ...PREVIEW_COACHING_SUMMARY,
+        view: 'custom',
+        month_start: startDate,
+      }
+    }
     return PREVIEW_COACHING_SUMMARY
   }
   try {
     const { data } = await pythia2Client.get<SummaryResponse>(PYTHIA_2_API.managerCoaching.summary, {
       headers: { Authorization: `Bearer ${token}` },
-      params: { view, store_id: storeId || undefined },
+      params: {
+        view,
+        store_id: storeId || undefined,
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
+      },
     })
     return data
   } catch {
@@ -119,6 +148,8 @@ export async function fetchCoachingEffectiveness({
   token,
   view = 'month',
   storeId,
+  startDate,
+  endDate,
 }: FetchCoachingViewParams): Promise<CoachingEffectivenessRow[]> {
   if (token.includes('mock')) {
     return []
@@ -126,7 +157,12 @@ export async function fetchCoachingEffectiveness({
   try {
     const { data } = await pythia2Client.get<EffectivenessResponse>(PYTHIA_2_API.managerCoaching.effectiveness, {
       headers: { Authorization: `Bearer ${token}` },
-      params: { view, store_id: storeId || undefined },
+      params: {
+        view,
+        store_id: storeId || undefined,
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
+      },
     })
     return data.categories || []
   } catch {
@@ -134,14 +170,33 @@ export async function fetchCoachingEffectiveness({
   }
 }
 
-export async function fetchCoachingEmployees({ token, storeId }: { token: string; storeId?: string }): Promise<CoachingEmployeeChip[]> {
+export interface FetchCoachingEmployeesParams {
+  token: string
+  storeId?: string
+  startDate?: string
+  endDate?: string
+  view?: CoachingView
+}
+
+export async function fetchCoachingEmployees({
+  token,
+  storeId,
+  startDate,
+  endDate,
+  view,
+}: FetchCoachingEmployeesParams): Promise<CoachingEmployeeChip[]> {
   if (token.includes('mock')) {
     return []
   }
   try {
     const { data } = await pythia2Client.get<EmployeesResponse>(PYTHIA_2_API.managerCoaching.employees, {
       headers: { Authorization: `Bearer ${token}` },
-      params: { store_id: storeId || undefined },
+      params: {
+        store_id: storeId || undefined,
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
+        view: view || undefined,
+      },
     })
     return data.employees || []
   } catch {
@@ -153,12 +208,20 @@ export interface FetchEmployeeCoachingDetailParams {
   token: string
   userId: string
   days?: number
+  startDate?: string
+  endDate?: string
+  view?: string
+  storeId?: string
 }
 
 export async function fetchEmployeeCoachingDetail({
   token,
   userId,
   days,
+  startDate,
+  endDate,
+  view,
+  storeId,
 }: FetchEmployeeCoachingDetailParams): Promise<CoachingEmployeeDetail> {
   if (token.includes('mock')) {
     return {
@@ -175,7 +238,13 @@ export async function fetchEmployeeCoachingDetail({
   }
   const { data } = await pythia2Client.get<EmployeeDetailResponse>(PYTHIA_2_API.managerCoaching.employeeDetail(userId), {
     headers: { Authorization: `Bearer ${token}` },
-    params: { days: days ?? undefined },
+    params: {
+      days: days ?? undefined,
+      start_date: startDate || undefined,
+      end_date: endDate || undefined,
+      view: view || undefined,
+      store_id: storeId || undefined,
+    },
   })
   return data
 }

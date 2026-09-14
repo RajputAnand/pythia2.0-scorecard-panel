@@ -9,6 +9,7 @@ import UnknownIdentitiesAlertCard from '@/components/UnknownIdentitiesAlertCard/
 import CoachingHealthSnapshot from '@/components/CoachingHealthSnapshot/CoachingHealthSnapshot'
 import DemographicShifts from '@/components/DemographicShifts/DemographicShifts'
 import CustomerSegmentShifts from '@/components/CustomerSegmentShifts/CustomerSegmentShifts'
+import ManagerDashboardContent from '@/components/ManagerDashboardContent/ManagerDashboardContent'
 import { fetchManagerDashboardSummary, fetchManagerDashboardLeaderboard, fetchManagerDashboardTrend } from '@/queries/manager-dashboard'
 import { fetchUnknownIdentitiesCount } from '@/queries/unknown-identities'
 import { fetchCoachingSummary } from '@/queries/manager-coaching'
@@ -78,23 +79,16 @@ export default async function ManagerDashboardPage() {
   }
 
   return (
-    <>
-      <Header title="Manager Dashboard" />
-
-      <div className="px-[30px] py-[26px] flex flex-col gap-5">
-        <UnknownIdentitiesAlertCard count={unknownIdentitiesCount} />
-        <EmployeeSpotlightCard topEmployee={employees[0] ?? null} view="all" />
-        <ManagerDashboardKpiStrip summary={summary} />
-        <ManagerDashboardLeaderboard initialEmployees={employees} initialView="all" />
-        <div className="grid grid-cols-[1fr_1fr] gap-[18px] items-start">
-          <DemographicShifts ageData={ageData} genderData={genderData} />
-          <CustomerSegmentShifts customerSegmentsData={customerSegmentsData} />
-        </div>
-        <div className="grid grid-cols-2 gap-5 items-start">
-          <CoachingHealthSnapshot summary={coachingSummary} />
-          <ManagerDashboardTrendChart weeks={trendWeeks} />
-        </div>
-      </div>
-    </>
+    <ManagerDashboardContent
+      initialSummary={summary}
+      initialEmployees={employees}
+      initialTrendWeeks={trendWeeks}
+      initialUnknownIdentitiesCount={unknownIdentitiesCount}
+      initialCoachingSummary={coachingSummary}
+      initialAgeData={ageData}
+      initialGenderData={genderData}
+      initialCustomerSegmentsData={customerSegmentsData}
+      selectedStoreId={selectedStoreId}
+    />
   )
 }
