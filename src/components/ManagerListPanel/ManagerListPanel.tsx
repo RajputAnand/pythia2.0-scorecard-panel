@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import {
@@ -10,6 +10,7 @@ import {
   archiveManager,
   unarchiveManager,
 } from '@/queries/managers'
+import { fetchStoresForTenant } from '@/queries/stores'
 import { getEmployeeName, getEmployeeInitials, extractApiErrorMessage } from '@/utils/common'
 import { useToast } from '@/context/ToastContext'
 import { STORES } from '@/lib/store-data'
@@ -20,15 +21,9 @@ import CreateManagerModal from '@/components/CreateManagerModal/CreateManagerMod
 import type { ApiManager } from '@/types/manager'
 import type { ApiMeta, ApiResponseV2Paginated } from '@/types/api'
 import type { DataTableColumn } from '@/types/data-table'
+import type { TenantStore } from '@/types/tenant'
 
 const PAGE_SIZE = 15
-
-const STORE_NAME_BY_ID: Record<string, string> = Object.fromEntries(STORES.map((s) => [s._id, s.name]))
-
-function storeLabels(storeIds: string[]): string {
-  if (!storeIds || storeIds.length === 0) return '—'
-  return storeIds.map((id) => STORE_NAME_BY_ID[id] ?? id).join(', ')
-}
 
 function TableSkeleton() {
   return (
@@ -74,12 +69,64 @@ function PanelEmpty({ search, view }: { search: string; view: 'active' | 'archiv
 
 interface ManagerListPanelProps {
   initialData: ApiResponseV2Paginated<ApiManager[]> | null
+  initialStores?: TenantStore[]
 }
 
-export default function ManagerListPanel({ initialData }: ManagerListPanelProps) {
+export default function ManagerListPanel({ initialData, initialStores }: ManagerListPanelProps) {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token || session?.user?.token || 'mock_owner_token'
   const { showToast } = useToast()
+
+  const [stores, setStores] = useState<TenantStore[]>(initialStores || [])
+
+  useEffect(() => {
+    if (initialStores && initialStores.length > 0) return
+    if (!token) return
+
+    let cancelled = false
+    fetchStoresForTenant({ token, limit: 100 })
+      .then((res) => {
+        if (cancelled) return
+        if (res.data && res.data.length > 0) {
+          setStores(res.data)
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load stores for ManagerListPanel:', err)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [token, initialStores])
+
+  const storeNameMap = useMemo(() => {
+    const map: Record<string, string> = Object.fromEntries(STORES.map((s) => [s._id, s.name]))
+    for (const s of stores) {
+      if (s.storeNo) map[s.storeNo] = s.name
+      if (s._id) map[s._id] = s.name
+      if (s.id) map[s.id] = s.name
+    }
+    return map
+  }, [stores])
+
+  const storeLabels = useCallback(
+    (storeIds: string[]): string => {
+      if (!storeIds || storeIds.length === 0) return '—'
+      return storeIds.map((id) => storeNameMap[id] ?? id).join(', ')
+    },
+    [storeNameMap]
+  )
+
+  const storeOptions = useMemo(() => {
+    if (stores.length > 0) {
+      return stores.map((s) => ({
+        label: `${s.name || s.storeNo} · ${s.location || s.district || ''}`.trim().replace(/ · $/, ''),
+        value: s.storeNo || s.id || s._id,
+      }))
+    }
+    return STORES.map((s) => ({ label: `${s.name} · ${s.location}`, value: s._id }))
+  }, [stores])
 
   const [view, setView] = useState<'active' | 'archived'>('active')
   const [isCreating, setIsCreating] = useState(false)
@@ -478,7 +525,12 @@ export default function ManagerListPanel({ initialData }: ManagerListPanelProps)
       )}
 
       {isCreating && token && (
-        <CreateManagerModal token={token} onClose={() => setIsCreating(false)} onCreated={handleCreated} />
+        <CreateManagerModal
+          token={token}
+          stores={storeOptions}
+          onClose={() => setIsCreating(false)}
+          onCreated={handleCreated}
+        />
       )}
 
       {revealed && (

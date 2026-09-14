@@ -18,6 +18,8 @@ declare module "next-auth" {
     tenantId?: string
     tenantName?: string
     tenantCode?: string
+    store_ids?: string[]
+    storeIds?: string[]
   }
 }
 
@@ -34,5 +36,7 @@ declare module "next-auth/jwt" {
     tenantId?: string
     tenantName?: string
     tenantCode?: string
+    store_ids?: string[]
+    storeIds?: string[]
   }
 }

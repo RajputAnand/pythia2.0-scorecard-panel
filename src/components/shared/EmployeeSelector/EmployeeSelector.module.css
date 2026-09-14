@@ -1,0 +1,21 @@
+@reference "../../../app/globals.css";
+
+.dropdownContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.menuList {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.menuList::-webkit-scrollbar {
+  width: 5px;
+}
+
+.menuList::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 4px;
+}
+

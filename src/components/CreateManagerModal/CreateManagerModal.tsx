@@ -1,7 +1,8 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createManager } from '@/queries/managers'
+import { fetchStoresForTenant } from '@/queries/stores'
 import { createManagerSchema, type CreateManagerSchema } from '@/schemas/manager'
 import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
 import MultiSelect from '@/components/shared/MultiSelect/MultiSelect'
@@ -18,20 +19,27 @@ const FIELDS: FormField[] = [
   { id: 'phone', type: 'text', label: 'Phone (optional)', placeholder: '+1 555 0100' },
 ]
 
-const STORE_OPTIONS = STORES.map((store) => ({ label: `${store.name} · ${store.location}`, value: store._id }))
+export interface StoreOption {
+  label: string
+  value: string
+}
 
 interface CreateManagerModalProps {
   token: string
   onClose: () => void
   onCreated: (manager: ApiManager) => void
+  stores?: StoreOption[]
 }
 
-export default function CreateManagerModal({ token, onClose, onCreated }: CreateManagerModalProps) {
+export default function CreateManagerModal({ token, onClose, onCreated, stores }: CreateManagerModalProps) {
   const [step, setStep] = useState<'form' | 'credentials'>('form')
   const [isPending, setIsPending] = useState(false)
   const [serverError, setServerError] = useState<string | undefined>()
   const [tempPassword, setTempPassword] = useState('')
   const [createdUserId, setCreatedUserId] = useState('')
+
+  const [storeOptions, setStoreOptions] = useState<StoreOption[]>(stores || [])
+  const [isLoadingStores, setIsLoadingStores] = useState(!stores || stores.length === 0)
 
   // Store assignment lives outside DynamicForm (it has no multi-select field
   // type) — same pattern CreateEmployeeModal uses for its photos section.
@@ -40,7 +48,59 @@ export default function CreateManagerModal({ token, onClose, onCreated }: Create
 
   const createdName = useRef('')
 
+  useEffect(() => {
+    if (stores && stores.length > 0) {
+      setStoreOptions(stores)
+      setIsLoadingStores(false)
+      return
+    }
+
+    if (!token) {
+      setIsLoadingStores(false)
+      return
+    }
+
+    let cancelled = false
+    setIsLoadingStores(true)
+
+    fetchStoresForTenant({ token, limit: 100 })
+      .then((res) => {
+        if (cancelled) return
+        if (res.data && res.data.length > 0) {
+          const opts: StoreOption[] = res.data.map((s) => ({
+            label: `${s.name || s.storeNo} · ${s.location || s.district || ''}`.trim().replace(/ · $/, ''),
+            value: s.storeNo || s.id || s._id,
+          }))
+          setStoreOptions(opts)
+        } else if (token.includes('mock')) {
+          setStoreOptions(STORES.map((s) => ({ label: `${s.name} · ${s.location}`, value: s._id })))
+        } else {
+          setStoreOptions([])
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return
+        console.warn('Failed to load stores for manager creation:', err)
+        if (token.includes('mock')) {
+          setStoreOptions(STORES.map((s) => ({ label: `${s.name} · ${s.location}`, value: s._id })))
+        } else {
+          setStoreOptions([])
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingStores(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [token, stores])
+
   async function handleSubmit(values: CreateManagerSchema) {
+    if (storeOptions.length === 0) {
+      setStoreError('No stores are available to assign. Please create a store first.')
+      return
+    }
     if (storeIds.length === 0) {
       setStoreError('Assign the manager to at least one store.')
       return
@@ -111,6 +171,12 @@ export default function CreateManagerModal({ token, onClose, onCreated }: Create
             </p>
 
             <div className="flex flex-col gap-4">
+              {!isLoadingStores && storeOptions.length === 0 && (
+                <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-[12px] text-amber-600 dark:text-amber-400">
+                  No accessible stores found for your account. Please create or assign a store location first before creating a manager.
+                </div>
+              )}
+
               <div className="flex flex-col gap-[6px]">
                 <label
                   htmlFor="manager-stores"
@@ -120,8 +186,8 @@ export default function CreateManagerModal({ token, onClose, onCreated }: Create
                 </label>
                 <MultiSelect
                   ariaLabel="Assign to stores"
-                  placeholder="Select one or more stores"
-                  options={STORE_OPTIONS}
+                  placeholder={isLoadingStores ? 'Loading stores…' : storeOptions.length === 0 ? 'No stores available' : 'Select one or more stores'}
+                  options={storeOptions}
                   values={storeIds}
                   onChange={(next) => {
                     setStoreIds(next)
