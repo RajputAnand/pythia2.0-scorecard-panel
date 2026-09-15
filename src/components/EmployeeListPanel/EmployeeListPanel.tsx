@@ -561,6 +561,7 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
       {isCreating && (
         <CreateEmployeeModal
           token={token || 'mock-token'}
+          storeId={currentStoreId}
           onClose={() => setIsCreating(false)}
           onCreated={(newEmployee) => {
             setEmployees((prev) => [newEmployee, ...prev.filter((e) => e.user_id !== newEmployee.user_id)])

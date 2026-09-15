@@ -99,6 +99,21 @@ function getOwnerNav(mtEnabled: boolean): NavSection[] {
             ),
           },
           {
+            label: "Employees",
+            href: "/owner/employees",
+            icon: (
+              <svg
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+              </svg>
+            ),
+          },
+          {
             label: "Co-Owners",
             href: "/owner/owners",
             icon: (
@@ -156,6 +171,21 @@ function getOwnerNav(mtEnabled: boolean): NavSection[] {
         {
           label: "Managers",
           href: "/owner/managers",
+          icon: (
+            <svg
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="12" cy="8" r="4" />
+              <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+            </svg>
+          ),
+        },
+        {
+          label: "Employees",
+          href: "/owner/employees",
           icon: (
             <svg
               fill="none"
@@ -611,6 +641,22 @@ function getSuperAdminNavByView(
               ),
             },
             {
+              label: "Employees",
+              href: "/super-admin/owner/employees",
+              mirrorsHref: "/owner/employees",
+              icon: (
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+                </svg>
+              ),
+            },
+            {
               label: "Swag Store",
               href: "/super-admin/owner/swag-store",
               mirrorsHref: "/owner/swag-store",
@@ -891,6 +937,22 @@ function getSuperAdminNavByView(
             label: "Managers",
             href: "/super-admin/owner/managers",
             mirrorsHref: "/owner/managers",
+            icon: (
+              <svg
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+              </svg>
+            ),
+          },
+          {
+            label: "Employees",
+            href: "/super-admin/owner/employees",
+            mirrorsHref: "/owner/employees",
             icon: (
               <svg
                 fill="none"

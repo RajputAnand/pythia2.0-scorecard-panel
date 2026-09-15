@@ -33,6 +33,8 @@ export interface CreateEmployeeParams {
   email?: string
   phone?: string
   images?: File[]
+  storeId?: string
+  storeIds?: string[]
 }
 
 // Raw response from POST /employees (multipart/form-data request)
