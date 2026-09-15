@@ -2,12 +2,11 @@
 
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import styles from './Header.module.css'
 import { useUserStore } from '@/store/userStore'
 import { useTenantStore, isMultiTenantEnabled } from '@/store/tenantStore'
 import { fetchStoresForTenant } from '@/queries/stores'
-import { logout } from '@/actions/auth'
 import { createStripeCustomerPortalSession } from '@/actions/stripe'
 import { fetchOrganizationOwners } from '@/queries/organization-owners'
 import type { User } from '@/types/user'
@@ -179,6 +178,18 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
     } finally {
       setIsOpeningPortal(false)
     }
+  }
+
+  async function handleSignOut() {
+    let loginPage = '/login/employee'
+    if (role === 'owner') {
+      loginPage = '/login/owner'
+    } else if (role === 'manager') {
+      loginPage = '/login/manager'
+    } else if (role === 'superadmin') {
+      loginPage = '/login/superadmin'
+    }
+    await signOut({ callbackUrl: loginPage })
   }
 
   return (
@@ -426,25 +437,24 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                   </>
                 )}
 
-                <form action={logout.bind(null, session.user as unknown as User)} className="w-full">
-                  <button
-                    type="submit"
-                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] font-medium text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer text-left"
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] font-medium text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer text-left"
+                >
+                  <svg
+                    className="shrink-0 w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      className="shrink-0 w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                      <polyline points="16 17 21 12 16 7" />
-                      <line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
-                    <span>Sign out</span>
-                  </button>
-                </form>
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  <span>Sign out</span>
+                </button>
               </div>
             )}
           </div>

@@ -2,7 +2,7 @@ import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   // Required on any host that isn't Vercel/Cloudflare Pages (e.g. AWS Amplify) —
   // without it, auth.js throws UntrustedHost on every request in production
   // because it won't trust the incoming Host header by default.
@@ -27,6 +27,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
+    redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return url
+      try {
+        if (new URL(url).origin === new URL(baseUrl).origin) return url
+      } catch {}
+      return url.startsWith("/") ? url : baseUrl
+    },
     jwt({ token, user }) {
       if (user) {
         token.role = user.role
