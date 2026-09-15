@@ -46,7 +46,7 @@ export default async function SuperAdminManagerEmployeesPage() {
       <Header title="Employees" subtitle="Super Admin · Manage your team and credentials" />
 
       <div className="px-[30px] py-[26px]">
-        <EmployeeListPanel initialData={initialData} />
+        <EmployeeListPanel initialData={initialData} readOnly={true} />
       </div>
     </>
   )

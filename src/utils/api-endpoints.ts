@@ -139,4 +139,16 @@ export const PYTHIA_2_API = {
     credentials: (userId: string) => `/organizations/owners/${userId}/credentials`,
     subscriptionPermission: (userId: string) => `/organizations/owners/${userId}/subscription-permission`,
   },
+  swagStore: {
+    rewards: '/swag-store/rewards',
+    reward: (rewardId: string) => `/swag-store/rewards/${rewardId}`,
+    archiveReward: (rewardId: string) => `/swag-store/rewards/${rewardId}/archive`,
+    unarchiveReward: (rewardId: string) => `/swag-store/rewards/${rewardId}/unarchive`,
+    redemptions: '/swag-store/redemptions',
+    myRedemptions: '/swag-store/redemptions/mine',
+    fulfillRedemption: (redemptionId: string) => `/swag-store/redemptions/${redemptionId}/fulfill`,
+    rejectRedemption: (redemptionId: string) => `/swag-store/redemptions/${redemptionId}/reject`,
+    cancelRedemption: (redemptionId: string) => `/swag-store/redemptions/${redemptionId}/cancel`,
+    stats: '/swag-store/stats',
+  },
 } as const

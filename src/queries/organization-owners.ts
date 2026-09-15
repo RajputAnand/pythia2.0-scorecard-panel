@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { pythia2Client } from '@/lib/api-client'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
 import { fakeListOwners, fakeCreateOwner, fakeGetOwnerCredentials } from '@/mock/tenantAPIs'
@@ -18,30 +19,46 @@ export interface FetchOrganizationOwnersParams {
 const mockPermissions = new Map<string, boolean>()
 const mockInactive = new Set<string>()
 
-function isNetworkError(err: any): boolean {
-  return err?.code === 'ERR_NETWORK' || err?.message === 'Network Error' || !err?.response
+function isNetworkError(err: unknown): boolean {
+  if (axios.isAxiosError(err)) {
+    return err.code === 'ERR_NETWORK' || err.message === 'Network Error' || !err.response
+  }
+  return false
+}
+
+function isFallbackableError(err: unknown): boolean {
+  if (isNetworkError(err)) return true
+  if (axios.isAxiosError(err)) {
+    const status = err.response?.status
+    const detail = String((err.response?.data as { detail?: string } | undefined)?.detail || '')
+    if (status === 400 && detail.toLowerCase().includes('not associated with an organization')) {
+      return true
+    }
+  }
+  return false
 }
 
 async function getMockOwners(search?: string, isActive?: boolean): Promise<{ success: boolean; data: OrganizationOwner[]; total: number }> {
   const res = await fakeListOwners({ search })
-  let mapped: OrganizationOwner[] = res.data.map((o: any, idx: number) => {
+  let mapped: OrganizationOwner[] = res.data.map((raw: unknown, idx: number) => {
+    const o = (raw || {}) as Record<string, unknown>
     const isRoot = idx === 0 || o.user_id === 'OWN-101' || o.is_root_owner === true
-    const active = mockInactive.has(o.user_id) ? false : (o.is_active !== undefined ? o.is_active : o.status === 'active')
-    const canSub = isRoot ? true : (mockPermissions.get(o.user_id) ?? Boolean(o.can_manage_subscription))
+    const active = mockInactive.has(String(o.user_id)) ? false : (o.is_active !== undefined ? Boolean(o.is_active) : o.status === 'active')
+    const canSub = isRoot ? true : (mockPermissions.get(String(o.user_id)) ?? Boolean(o.can_manage_subscription))
 
     return {
-      user_id: o.user_id || o.id,
-      first_name: o.first_name || o.firstName || '',
-      last_name: o.last_name || o.lastName || '',
-      email: o.email || '',
-      phone: o.phone || null,
-      role_name: o.role_name || 'Owner',
-      tenant_id: o.tenant_id || o.tenantId || 'ten_lionmart',
+      user_id: String(o.user_id || o.id || ''),
+      first_name: String(o.first_name || o.firstName || ''),
+      last_name: String(o.last_name || o.lastName || ''),
+      email: String(o.email || ''),
+      phone: o.phone ? String(o.phone) : null,
+      role_name: String(o.role_name || 'Owner'),
+      tenant_id: String(o.tenant_id || o.tenantId || 'ten_lionmart'),
       is_active: active,
       can_manage_subscription: canSub,
       is_root_owner: isRoot,
       created_by: isRoot ? 'stripe_webhook' : 'Root Owner',
-      created_at: o.created_at || o.createdAt || new Date().toISOString(),
+      created_at: String(o.created_at || o.createdAt || new Date().toISOString()),
     }
   })
 
@@ -80,9 +97,9 @@ export async function fetchOrganizationOwners({
     })
 
     return data
-  } catch (err: any) {
-    if (isNetworkError(err)) {
-      console.warn('fetchOrganizationOwners backend unreachable, falling back to mock:', err)
+  } catch (err: unknown) {
+    if (isFallbackableError(err)) {
+      console.warn('fetchOrganizationOwners backend error or unreachable, falling back to mock:', err)
       return getMockOwners(search, isActive)
     }
     throw err
@@ -133,9 +150,9 @@ export async function createSubOwner({
     )
 
     return data
-  } catch (err: any) {
-    if (isNetworkError(err)) {
-      console.warn('createSubOwner backend unreachable, falling back to mock:', err)
+  } catch (err: unknown) {
+    if (isFallbackableError(err)) {
+      console.warn('createSubOwner backend error or unreachable, falling back to mock:', err)
       const created = await fakeCreateOwner({
         token: token || 'mock-token',
         tenantId: 'ten_lionmart',
@@ -180,9 +197,9 @@ export async function deactivateSubOwner({
     )
 
     return data
-  } catch (err: any) {
-    if (isNetworkError(err)) {
-      console.warn('deactivateSubOwner backend unreachable, falling back to mock:', err)
+  } catch (err: unknown) {
+    if (isFallbackableError(err)) {
+      console.warn('deactivateSubOwner backend error or unreachable, falling back to mock:', err)
       mockInactive.add(userId)
       return { success: true, user_id: userId, is_active: false, already_inactive: false }
     }
@@ -225,9 +242,9 @@ export async function fetchSubOwnerCredentials({
     )
 
     return data
-  } catch (err: any) {
-    if (isNetworkError(err)) {
-      console.warn('fetchSubOwnerCredentials backend unreachable, falling back to mock:', err)
+  } catch (err: unknown) {
+    if (isFallbackableError(err)) {
+      console.warn('fetchSubOwnerCredentials backend error or unreachable, falling back to mock:', err)
       return {
         success: true,
         user_id: userId,
@@ -265,9 +282,9 @@ export async function toggleSubOwnerSubscriptionPermission({
     )
 
     return data
-  } catch (err: any) {
-    if (isNetworkError(err)) {
-      console.warn('toggleSubOwnerSubscriptionPermission backend unreachable, falling back to mock:', err)
+  } catch (err: unknown) {
+    if (isFallbackableError(err)) {
+      console.warn('toggleSubOwnerSubscriptionPermission backend error or unreachable, falling back to mock:', err)
       mockPermissions.set(userId, canManageSubscription)
       return { success: true, user_id: userId, can_manage_subscription: canManageSubscription }
     }

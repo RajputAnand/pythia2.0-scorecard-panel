@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useSyncExternalStore } from 'react'
 import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import Panel from '@/components/shared/Panel/Panel'
@@ -39,12 +39,25 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
   const isDedicatedPage = pathname?.includes('/swag')
   const { showToast } = useToast()
 
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  )
 
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.employeeSwagStore] ?? true)
+
+  const storePoints = useUserStore((s) => s.points) ?? 0
+  const currentStore = useUserStore((s) => s.currentStore)
+  const { data: session } = useSession()
+  const token = session?.user?.pythia2Token || session?.user?.token
+  const storeId =
+    currentStore?.storeNo ||
+    currentStore?._id ||
+    session?.user?.store_ids?.[0] ||
+    ((session?.user as Record<string, unknown> | undefined)?.storeIds as string[] | undefined)?.[0] ||
+    '69c19e66a27efce5858b6487'
+  const points = previewMode ? PREVIEW_POINTS : storePoints
 
   const {
     catalog: storeItems,
@@ -53,18 +66,18 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
     error,
     redeemingId,
     fetchCatalog,
+    fetchMyOrders,
     redeemItem,
     cancelOrder,
   } = useSwagStore()
   const isError = !!error
 
   useEffect(() => {
-    if (!previewMode) fetchCatalog()
-  }, [fetchCatalog, previewMode])
-
-  const storePoints = useUserStore((s) => s.points) ?? 0
-  const { data: session } = useSession()
-  const points = previewMode ? PREVIEW_POINTS : storePoints
+    if (!previewMode) {
+      fetchCatalog({ token, storeId, status: 'active' })
+      fetchMyOrders({ token, storeId })
+    }
+  }, [fetchCatalog, fetchMyOrders, previewMode, token, storeId])
 
   const currentEmployeeName = session?.user?.name || 'Marcus Reynolds'
   const currentEmployeeEmail = session?.user?.email || 'emp_marcus'
@@ -112,11 +125,6 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
 
   const myCompletedOrders = useMemo(
     () => (myOrders ?? []).filter((o) => o?.status === 'completed'),
-    [myOrders]
-  )
-
-  const myCancelledOrRejectedOrders = useMemo(
-    () => (myOrders ?? []).filter((o) => o?.status === 'cancelled' || o?.status === 'rejected'),
     [myOrders]
   )
 
@@ -178,9 +186,9 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
     }
     if (points < item.cost || redeemingId) return
 
-    const success = await redeemItem(item, currentEmployeeName, currentEmployeeEmail)
+    const res = await redeemItem(item, currentEmployeeName, currentEmployeeEmail, { token, storeId })
 
-    if (success) {
+    if (res.success) {
       const remaining = useUserStore.getState().points ?? 0
       showToast(
         `${item.emoji} "${item.name}" claimed! ${remaining.toLocaleString(
@@ -188,13 +196,13 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
         )} pts remaining. Awaiting manager handover.`
       )
     } else {
-      showToast(`Failed to redeem "${item.name}". Please try again.`)
+      showToast(res.error || `Failed to redeem "${item.name}". Please try again.`)
     }
   }
 
-  function handleConfirmCancel() {
+  async function handleConfirmCancel() {
     if (!cancellingOrder) return
-    const res = cancelOrder(cancellingOrder.id, currentEmployeeName)
+    const res = await cancelOrder(cancellingOrder.id, currentEmployeeName, { token, storeId })
     if (res.success) {
       showToast(
         `Order #${cancellingOrder.id} cancelled. ${cancellingOrder.pointsCost.toLocaleString('en-US')} pts refunded to your balance!`

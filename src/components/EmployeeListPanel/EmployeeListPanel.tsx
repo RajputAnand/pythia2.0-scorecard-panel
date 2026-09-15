@@ -16,6 +16,7 @@ import { useToast } from '@/context/ToastContext'
 import DataTable from '@/components/shared/DataTable/DataTable'
 import RevealCredentialsModal from '@/components/RevealCredentialsModal/RevealCredentialsModal'
 import ConfirmArchiveEmployeeModal from '@/components/ConfirmArchiveEmployeeModal/ConfirmArchiveEmployeeModal'
+import CreateEmployeeModal from '@/components/CreateEmployeeModal/CreateEmployeeModal'
 import type { ApiEmployee } from '@/types/employee'
 import type { ApiMeta, ApiResponseV2Paginated } from '@/types/api'
 import type { DataTableColumn } from '@/types/data-table'
@@ -48,7 +49,17 @@ function PanelError({ onRetry }: { onRetry: () => void }) {
   )
 }
 
-function PanelEmpty({ search, view }: { search: string; view: 'active' | 'archived' }) {
+function PanelEmpty({
+  search,
+  view,
+  onAddEmployee,
+  readOnly,
+}: {
+  search: string
+  view: 'active' | 'archived'
+  onAddEmployee?: () => void
+  readOnly?: boolean
+}) {
   return (
     <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-16">
       <span className="text-[32px]">{view === 'archived' ? '🗄️' : '🔍'}</span>
@@ -59,23 +70,38 @@ function PanelEmpty({ search, view }: { search: string; view: 'active' | 'archiv
         <p className="text-[11.5px] text-muted">No results for &quot;{search}&quot;.</p>
       ) : view === 'archived' ? (
         <p className="text-[11.5px] text-muted">Employees you archive will show up here and can be unarchived.</p>
-      ) : null}
+      ) : (
+        <>
+          <p className="text-[11.5px] text-muted">No employees have been added to this store yet.</p>
+          {!readOnly && onAddEmployee && (
+            <button
+              type="button"
+              onClick={onAddEmployee}
+              className="mt-2 rounded-[8px] bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:bg-accent-mid transition-colors cursor-pointer shadow-sm"
+            >
+              + Add First Employee
+            </button>
+          )}
+        </>
+      )}
     </div>
   )
 }
 
 interface EmployeeListPanelProps {
   initialData: ApiResponseV2Paginated<ApiEmployee[]> | null
+  readOnly?: boolean
 }
 
-export default function EmployeeListPanel({ initialData }: EmployeeListPanelProps) {
+export default function EmployeeListPanel({ initialData, readOnly = false }: EmployeeListPanelProps) {
   const { data: session } = useSession()
-  const token = session?.user?.pythia2Token
+  const token = session?.user?.pythia2Token || session?.user?.token || ''
   const { showToast } = useToast()
   const currentStore = useUserStore((s) => s.currentStore)
   const currentStoreId = currentStore?.storeNo || currentStore?._id
 
   const [view, setView] = useState<'active' | 'archived'>('active')
+  const [isCreating, setIsCreating] = useState(false)
 
   // ---- Active employees ----
 
@@ -411,25 +437,42 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setView('active')}
-          className={`rounded-full px-[14px] py-[6px] text-[12px] font-semibold transition-colors duration-150 cursor-pointer ${
-            view === 'active' ? 'bg-accent text-white' : 'bg-surface border border-border text-secondary hover:text-primary'
-          }`}
-        >
-          Active
-        </button>
-        <button
-          type="button"
-          onClick={() => setView('archived')}
-          className={`rounded-full px-[14px] py-[6px] text-[12px] font-semibold transition-colors duration-150 cursor-pointer ${
-            view === 'archived' ? 'bg-accent text-white' : 'bg-surface border border-border text-secondary hover:text-primary'
-          }`}
-        >
-          Archived
-        </button>
+      {/* Action Bar: View Tabs + Add Employee button */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setView('active')}
+            className={`rounded-full px-[14px] py-[6px] text-[12px] font-semibold transition-colors duration-150 cursor-pointer ${
+              view === 'active' ? 'bg-accent text-white' : 'bg-surface border border-border text-secondary hover:text-primary'
+            }`}
+          >
+            Active
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('archived')}
+            className={`rounded-full px-[14px] py-[6px] text-[12px] font-semibold transition-colors duration-150 cursor-pointer ${
+              view === 'archived' ? 'bg-accent text-white' : 'bg-surface border border-border text-secondary hover:text-primary'
+            }`}
+          >
+            Archived
+          </button>
+        </div>
+
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={() => setIsCreating(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-accent text-white text-[12.5px] font-semibold hover:bg-accent-mid transition-colors cursor-pointer whitespace-nowrap shadow-sm ml-auto"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Add Employee
+          </button>
+        )}
       </div>
 
       <input
@@ -446,7 +489,12 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
         ) : isLoading ? (
           <TableSkeleton />
         ) : employees.length === 0 ? (
-          <PanelEmpty search={debouncedSearch} view="active" />
+          <PanelEmpty
+            search={debouncedSearch}
+            view="active"
+            onAddEmployee={() => setIsCreating(true)}
+            readOnly={readOnly}
+          />
         ) : (
           <DataTable
             columns={activeColumns}
@@ -497,6 +545,19 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
           isArchiving={isArchiving}
           onConfirm={handleConfirmArchive}
           onCancel={() => setPendingArchive(null)}
+        />
+      )}
+
+      {isCreating && (
+        <CreateEmployeeModal
+          token={token || 'mock-token'}
+          onClose={() => setIsCreating(false)}
+          onCreated={(newEmployee) => {
+            setEmployees((prev) => [newEmployee, ...prev.filter((e) => e.user_id !== newEmployee.user_id)])
+            setMeta((prev) => (prev ? { ...prev, total: prev.total + 1 } : undefined))
+            setIsCreating(false)
+            showToast(`Employee ${getEmployeeName(newEmployee)} created successfully.`)
+          }}
         />
       )}
     </div>

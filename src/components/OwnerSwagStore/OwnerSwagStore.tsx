@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useUserStore } from '@/store/userStore'
 import { useSwagStore } from '@/store/swagStore'
 import { useToast } from '@/context/ToastContext'
 import type { SwagProduct, SwagOrder } from '@/types/swagstore'
@@ -21,9 +23,23 @@ export default function OwnerSwagStore({
   readOnly = false,
   actorTitle = 'Store Owner',
 }: OwnerSwagStoreProps) {
+  const { data: session } = useSession()
+  const token = session?.user?.pythia2Token || session?.user?.token
+  const currentStore = useUserStore((s) => s.currentStore)
+  const storeId =
+    currentStore?.storeNo ||
+    currentStore?._id ||
+    session?.user?.store_ids?.[0] ||
+    ((session?.user as Record<string, unknown> | undefined)?.storeIds as string[] | undefined)?.[0] ||
+    '69c19e66a27efce5858b6487'
+
   const {
     catalog,
     orders,
+    stats,
+    fetchCatalog,
+    fetchOrders,
+    fetchStats,
     addProduct,
     updateProduct,
     archiveProduct,
@@ -34,6 +50,12 @@ export default function OwnerSwagStore({
     rejectOrder,
     resetToDefaults,
   } = useSwagStore()
+
+  useEffect(() => {
+    fetchCatalog({ token, storeId, status: 'all' })
+    fetchOrders({ token, storeId })
+    fetchStats({ token, storeId })
+  }, [fetchCatalog, fetchOrders, fetchStats, token, storeId])
 
   const { showToast } = useToast()
 
@@ -105,13 +127,13 @@ export default function OwnerSwagStore({
   }, [currentTabProducts, searchQuery, selectedCategory])
 
   // Handlers
-  const handleSaveProduct = (data: Omit<SwagProduct, 'id' | 'createdAt' | 'status'>) => {
+  const handleSaveProduct = async (data: Omit<SwagProduct, 'id' | 'createdAt' | 'status'>) => {
     if (editingProduct) {
-      updateProduct(editingProduct.id, data)
+      await updateProduct(editingProduct.id, data, { token, storeId })
       showToast(`Updated "${data.name}" successfully.`)
       setEditingProduct(null)
     } else {
-      const created = addProduct(data)
+      const created = await addProduct(data, { token, storeId })
       showToast(`Added "${created.name}" to the swag store!`)
       setIsCreateModalOpen(false)
     }
@@ -126,9 +148,9 @@ export default function OwnerSwagStore({
     }
   }
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deletingProduct) return
-    const res = deleteProduct(deletingProduct.id)
+    const res = await deleteProduct(deletingProduct.id, { token, storeId })
     if (res.success) {
       showToast(`Deleted "${deletingProduct.name}" from catalog.`)
     } else {
@@ -137,26 +159,26 @@ export default function OwnerSwagStore({
     setDeletingProduct(null)
   }
 
-  const handleConfirmArchive = () => {
+  const handleConfirmArchive = async () => {
     if (!archivingProduct) return
-    archiveProduct(archivingProduct.id)
+    await archiveProduct(archivingProduct.id, { token, storeId })
     showToast(`Archived "${archivingProduct.name}". Hidden from employee store.`)
     setArchivingProduct(null)
   }
 
-  const handleUnarchive = (product: SwagProduct) => {
-    unarchiveProduct(product.id)
+  const handleUnarchive = async (product: SwagProduct) => {
+    await unarchiveProduct(product.id, { token, storeId })
     showToast(`Restored "${product.name}" to the active catalog!`)
   }
 
-  const handleCompleteOrder = (orderId: string, productName: string, employeeName: string) => {
-    completeOrder(orderId, actorTitle.includes('Manager') ? 'Manager' : 'Owner')
+  const handleCompleteOrder = async (orderId: string, productName: string, employeeName: string) => {
+    await completeOrder(orderId, actorTitle.includes('Manager') ? 'Manager' : 'Owner', { token, storeId })
     showToast(`Fulfilled order for ${employeeName} (${productName})!`)
   }
 
-  const handleConfirmReject = (reason: string) => {
+  const handleConfirmReject = async (reason: string) => {
     if (!rejectingOrder) return
-    const res = rejectOrder(rejectingOrder.id, reason, actorTitle)
+    const res = await rejectOrder(rejectingOrder.id, reason, actorTitle, { token, storeId })
     if (res.success) {
       showToast(
         `Order #${rejectingOrder.id} rejected. ${rejectingOrder.pointsCost.toLocaleString('en-US')} pts refunded to ${rejectingOrder.employeeName}.`
@@ -166,6 +188,13 @@ export default function OwnerSwagStore({
     }
     setRejectingOrder(null)
   }
+
+  const activeCount = stats?.active_rewards ?? activeProducts.length
+  const archivedCount = stats?.archived_rewards ?? archivedProducts.length
+  const pendingCount = stats?.pending_fulfillment ?? pendingOrders.length
+  const completedCount = stats?.fulfilled_orders ?? completedOrders.length
+  const totalPoints = stats?.total_points_claimed ?? totalPointsRedeemed
+  const totalOrdersCount = stats?.total_orders ?? orders.length
 
   return (
     <div className="flex flex-col gap-6">
@@ -178,10 +207,10 @@ export default function OwnerSwagStore({
           </span>
           <div className="mt-2 flex items-baseline justify-between">
             <span className="text-[26px] font-bold text-primary font-mono">
-              {activeProducts.length}
+              {activeCount}
             </span>
             <span className="text-[12px] text-muted">
-              {archivedProducts.length} archived
+              {archivedCount} archived
             </span>
           </div>
         </div>
@@ -194,13 +223,13 @@ export default function OwnerSwagStore({
           <div className="mt-2 flex items-baseline justify-between">
             <span
               className={`text-[26px] font-bold font-mono ${
-                pendingOrders.length > 0 ? 'text-amber' : 'text-primary'
+                pendingCount > 0 ? 'text-amber' : 'text-primary'
               }`}
             >
-              {pendingOrders.length}
+              {pendingCount}
             </span>
             <span className="text-[11.5px] text-muted">
-              {pendingOrders.length > 0 ? 'Awaiting action' : 'All clear'}
+              {pendingCount > 0 ? 'Awaiting action' : 'All clear'}
             </span>
           </div>
         </div>
@@ -213,7 +242,7 @@ export default function OwnerSwagStore({
           <div className="mt-2 flex items-baseline justify-between">
             <span className="text-[26px] font-bold font-mono text-gold flex items-center gap-1.5">
               <span>🪙</span>
-              {totalPointsRedeemed.toLocaleString('en-US')}
+              {totalPoints.toLocaleString('en-US')}
             </span>
             <span className="text-[11.5px] text-muted font-medium">pts total</span>
           </div>
@@ -226,10 +255,10 @@ export default function OwnerSwagStore({
           </span>
           <div className="mt-2 flex items-baseline justify-between">
             <span className="text-[26px] font-bold font-mono text-accent">
-              {completedOrders.length}
+              {completedCount}
             </span>
             <span className="text-[11.5px] text-muted">
-              {orders.length} total orders
+              {totalOrdersCount} total orders
             </span>
           </div>
         </div>
