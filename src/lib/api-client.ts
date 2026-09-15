@@ -1,5 +1,4 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios'
-import { redirect } from 'next/navigation'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
 import { ROLE_LOGIN_ROUTES } from '@/utils/routes'
 import type { UserRole } from '@/types/user'
@@ -102,11 +101,7 @@ function createClient(baseURL: string | undefined): AxiosInstance {
             }
           }
 
-          const loginRoute = await resolveLoginRoute()
           if (typeof window !== 'undefined') {
-            window.location.href = loginRoute
-          } else {
-            redirect(loginRoute)
             const { signOut } = await import('next-auth/react')
             const loginRoute = await resolveLoginRoute()
             await signOut({ callbackUrl: loginRoute })
