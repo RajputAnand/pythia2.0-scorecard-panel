@@ -107,7 +107,14 @@ function createClient(baseURL: string | undefined): AxiosInstance {
             window.location.href = loginRoute
           } else {
             redirect(loginRoute)
+            const { signOut } = await import('next-auth/react')
+            const loginRoute = await resolveLoginRoute()
+            await signOut({ callbackUrl: loginRoute })
           }
+          // On server side, do NOT call redirect(loginRoute). Redirecting from a server-side
+          // Axios interceptor throws NEXT_REDIRECT while NextAuth session cookies are still active,
+          // causing middleware (proxy.ts) to bounce the request back to defaultRoute in an infinite loop.
+          // By rejecting here, Server Components can catch the error and render an error UI.
         }
       }
       return Promise.reject(error)

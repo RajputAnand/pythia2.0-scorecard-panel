@@ -13,6 +13,7 @@ import CostPerCoaching from '@/components/CostPerCoaching/CostPerCoaching'
 import ProjectionSummary from '@/components/ProjectionSummary/ProjectionSummary'
 import { fetchRoiAttribution } from '@/queries/owner-roi'
 import { auth } from '@/auth'
+import { extractApiErrorMessage } from '@/utils/common'
 import type { RoiAttributionResponse, RoiAttributionParams } from '@/types/owner-roi'
 
 export default async function RoiAttributionPage(props: {
@@ -61,9 +62,12 @@ export default async function RoiAttributionPage(props: {
         unstable_rethrow(roiResult.reason)
         console.error(roiResult.reason)
         error = roiResult.reason?.response?.data?.message || roiResult.reason?.message || 'Failed to load ROI data'
+        error = extractApiErrorMessage(roiResult.reason, 'Failed to load ROI data')
       } else {
         data = roiResult.value
       }
+  } else {
+    error = 'Authentication token missing. Please sign in again.'
   }
 
   const periodSlug = (data?.meta?.period?.label ?? 'report')
