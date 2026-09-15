@@ -37,28 +37,20 @@ export async function fetchManagers({
     return fakeListManagers({ search, skip, limit, tenantId, storeId })
   }
 
-  try {
-    const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<ApiManager[]>>(
-      PYTHIA_2_API.managers.list,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          search: search || undefined,
-          skip,
-          limit,
-          store_id: storeId || undefined,
-          tenant_id: tenantId || undefined,
-        },
+  const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<ApiManager[]>>(
+    PYTHIA_2_API.managers.list,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: {
+        search: search || undefined,
+        skip,
+        limit,
+        store_id: storeId || undefined,
+        tenant_id: tenantId || undefined,
       },
-    )
-    return response
-  } catch (err: any) {
-    if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error' || !err?.response) {
-      console.warn('fetchManagers backend unreachable, falling back to mock:', err)
-      return fakeListManagers({ search, skip, limit, tenantId, storeId })
-    }
-    throw err
-  }
+    },
+  )
+  return response
 }
 
 export async function fetchArchivedManagers({
@@ -73,28 +65,20 @@ export async function fetchArchivedManagers({
     return fakeListArchivedManagers({ search, skip, limit, tenantId, storeId })
   }
 
-  try {
-    const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<ApiManager[]>>(
-      PYTHIA_2_API.managers.archived,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          search: search || undefined,
-          skip,
-          limit,
-          store_id: storeId || undefined,
-          tenant_id: tenantId || undefined,
-        },
+  const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<ApiManager[]>>(
+    PYTHIA_2_API.managers.archived,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: {
+        search: search || undefined,
+        skip,
+        limit,
+        store_id: storeId || undefined,
+        tenant_id: tenantId || undefined,
       },
-    )
-    return response
-  } catch (err: any) {
-    if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error' || !err?.response) {
-      console.warn('fetchArchivedManagers backend unreachable, falling back to mock:', err)
-      return fakeListArchivedManagers({ search, skip, limit, tenantId, storeId })
-    }
-    throw err
-  }
+    },
+  )
+  return response
 }
 
 export async function createManager({
@@ -110,29 +94,21 @@ export async function createManager({
     return fakeCreateManager({ firstName, lastName, email, phone, storeIds, tenantId })
   }
 
-  try {
-    const { data: response } = await pythia2Client.post<CreateManagerResponse>(
-      PYTHIA_2_API.managers.create,
-      {
-        first_name: firstName,
-        last_name: lastName,
-        email: email || undefined,
-        phone: phone || undefined,
-        store_ids: storeIds,
-        tenant_id: tenantId || undefined,
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    )
-    return response
-  } catch (err: any) {
-    if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error' || !err?.response) {
-      console.warn('createManager backend unreachable, falling back to mock:', err)
-      return fakeCreateManager({ firstName, lastName, email, phone, storeIds, tenantId })
-    }
-    throw err
-  }
+  const { data: response } = await pythia2Client.post<CreateManagerResponse>(
+    PYTHIA_2_API.managers.create,
+    {
+      first_name: firstName,
+      last_name: lastName,
+      email: email || undefined,
+      phone: phone || undefined,
+      store_ids: storeIds,
+      tenant_id: tenantId || undefined,
+    },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  )
+  return response
 }
 
 export async function fetchManager({
@@ -181,21 +157,13 @@ export async function fetchManagerCredentials({
     return fakeGetManagerCredentials(userId)
   }
 
-  try {
-    const { data: response } = await pythia2Client.get<ApiResponseV2<ManagerCredentials>>(
-      PYTHIA_2_API.managers.credentials(userId),
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    )
-    return response.data
-  } catch (err: any) {
-    if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error' || !err?.response) {
-      console.warn('fetchManagerCredentials backend unreachable, falling back to mock:', err)
-      return fakeGetManagerCredentials(userId)
-    }
-    throw err
-  }
+  const { data: response } = await pythia2Client.get<ApiResponseV2<ManagerCredentials>>(
+    PYTHIA_2_API.managers.credentials(userId),
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  )
+  return response.data
 }
 
 export async function archiveManager({
@@ -209,21 +177,13 @@ export async function archiveManager({
     return fakeArchiveManager(userId)
   }
 
-  try {
-    await pythia2Client.post(
-      PYTHIA_2_API.managers.archive(userId),
-      null,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    )
-  } catch (err: any) {
-    if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error' || !err?.response) {
-      console.warn('archiveManager backend unreachable, falling back to mock:', err)
-      return fakeArchiveManager(userId)
-    }
-    throw err
-  }
+  await pythia2Client.post(
+    PYTHIA_2_API.managers.archive(userId),
+    null,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  )
 }
 
 export async function unarchiveManager({
@@ -237,19 +197,11 @@ export async function unarchiveManager({
     return fakeUnarchiveManager(userId)
   }
 
-  try {
-    await pythia2Client.post(
-      PYTHIA_2_API.managers.unarchive(userId),
-      null,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    )
-  } catch (err: any) {
-    if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error' || !err?.response) {
-      console.warn('unarchiveManager backend unreachable, falling back to mock:', err)
-      return fakeUnarchiveManager(userId)
-    }
-    throw err
-  }
+  await pythia2Client.post(
+    PYTHIA_2_API.managers.unarchive(userId),
+    null,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  )
 }

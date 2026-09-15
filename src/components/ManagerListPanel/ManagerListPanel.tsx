@@ -35,12 +35,12 @@ function TableSkeleton() {
   )
 }
 
-function PanelError({ onRetry }: { onRetry: () => void }) {
+function PanelError({ message, onRetry }: { message?: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16 text-center px-4">
       <span className="text-[32px]">⚠️</span>
       <p className="font-semibold text-[14px]">Failed to load managers</p>
-      <p className="text-[12px] text-muted">Check your connection and try again.</p>
+      <p className="text-[12px] text-muted max-w-md">{message || 'Check your connection and try again.'}</p>
       <button
         className="mt-1 rounded-[8px] border-0 bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:opacity-85 cursor-pointer"
         onClick={onRetry}
@@ -143,6 +143,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
   const [meta, setMeta] = useState<ApiMeta | undefined>(initialData?.meta)
   const [isLoading, setIsLoading] = useState(!trustedInitialData)
   const [isError, setIsError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [revealingId, setRevealingId] = useState<string | null>(null)
   const [unrevealableIds, setUnrevealableIds] = useState<Set<string>>(new Set())
   const [revealed, setRevealed] = useState<{ name: string; userId: string; password: string } | null>(null)
@@ -186,14 +187,18 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     let cancelled = false
     setIsLoading(true)
     setIsError(false)
+    setErrorMessage(null)
     fetchManagers({ token, tenantId, search: debouncedSearch, skip, limit: PAGE_SIZE, storeId: currentStoreId })
       .then((response) => {
         if (cancelled) return
         setManagers(response.data ?? [])
         setMeta(response.meta)
       })
-      .catch(() => {
-        if (!cancelled) setIsError(true)
+      .catch((err) => {
+        if (!cancelled) {
+          setIsError(true)
+          setErrorMessage(extractApiErrorMessage(err, 'Failed to load managers'))
+        }
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)
@@ -215,6 +220,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
   const [archivedMeta, setArchivedMeta] = useState<ApiMeta | undefined>(undefined)
   const [isLoadingArchived, setIsLoadingArchived] = useState(false)
   const [isErrorArchived, setIsErrorArchived] = useState(false)
+  const [archivedErrorMessage, setArchivedErrorMessage] = useState<string | null>(null)
   const [unarchivingId, setUnarchivingId] = useState<string | null>(null)
   const [archivedRetryToken, setArchivedRetryToken] = useState(0)
   const hasLoadedArchived = useRef(false)
@@ -235,12 +241,16 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     hasLoadedArchived.current = true
     setIsLoadingArchived(true)
     setIsErrorArchived(false)
+    setArchivedErrorMessage(null)
     fetchArchivedManagers({ token, tenantId, search: archivedDebouncedSearch, skip: archivedSkip, limit: PAGE_SIZE, storeId: currentStoreId })
       .then((response) => {
         setArchivedManagers(response.data ?? [])
         setArchivedMeta(response.meta)
       })
-      .catch(() => setIsErrorArchived(true))
+      .catch((err) => {
+        setIsErrorArchived(true)
+        setArchivedErrorMessage(extractApiErrorMessage(err, 'Failed to load archived managers'))
+      })
       .finally(() => setIsLoadingArchived(false))
   }, [token, tenantId, archivedDebouncedSearch, archivedSkip, currentStoreId])
 
@@ -502,7 +512,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
 
       {view === 'active' ? (
         isError ? (
-          <PanelError onRetry={() => setRetryToken((n) => n + 1)} />
+          <PanelError message={errorMessage ?? undefined} onRetry={() => setRetryToken((n) => n + 1)} />
         ) : isLoading ? (
           <TableSkeleton />
         ) : managers.length === 0 ? (
@@ -522,7 +532,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
           />
         )
       ) : isErrorArchived ? (
-        <PanelError onRetry={() => setArchivedRetryToken((n) => n + 1)} />
+        <PanelError message={archivedErrorMessage ?? undefined} onRetry={() => setArchivedRetryToken((n) => n + 1)} />
       ) : isLoadingArchived ? (
         <TableSkeleton />
       ) : archivedManagers.length === 0 ? (

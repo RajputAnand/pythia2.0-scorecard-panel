@@ -32,12 +32,12 @@ function TableSkeleton() {
   )
 }
 
-function PanelError({ onRetry }: { onRetry: () => void }) {
+function PanelError({ message, onRetry }: { message?: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16 text-center px-4">
       <span className="text-[32px]">⚠️</span>
       <p className="font-semibold text-[14px]">Failed to load stores</p>
-      <p className="text-[12px] text-muted">Check your connection and try again.</p>
+      <p className="text-[12px] text-muted max-w-md">{message || 'Check your connection and try again.'}</p>
       <button
         type="button"
         className="mt-1 rounded-[8px] border-0 bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:opacity-85 cursor-pointer"
@@ -105,6 +105,7 @@ export default function StoreListPanel({
   const [meta, setMeta] = useState<ApiMeta | undefined>(initialData?.meta)
   const [isLoading, setIsLoading] = useState(!trustedInitialData)
   const [isError, setIsError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [retryToken, setRetryToken] = useState(0)
   const skipNextFetch = useRef(!!trustedInitialData)
 
@@ -128,6 +129,7 @@ export default function StoreListPanel({
     let cancelled = false
     setIsLoading(true)
     setIsError(false)
+    setErrorMessage(null)
 
     fetchStoresForTenant({
       token,
@@ -141,8 +143,11 @@ export default function StoreListPanel({
         setStores(res.data ?? [])
         setMeta(res.meta)
       })
-      .catch(() => {
-        if (!cancelled) setIsError(true)
+      .catch((err) => {
+        if (!cancelled) {
+          setIsError(true)
+          setErrorMessage(extractApiErrorMessage(err, 'Failed to load stores'))
+        }
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)
@@ -164,6 +169,7 @@ export default function StoreListPanel({
   const [deactivatedMeta, setDeactivatedMeta] = useState<ApiMeta | undefined>(undefined)
   const [isLoadingDeactivated, setIsLoadingDeactivated] = useState(false)
   const [isErrorDeactivated, setIsErrorDeactivated] = useState(false)
+  const [deactivatedErrorMessage, setDeactivatedErrorMessage] = useState<string | null>(null)
   const [deactivatedRetryToken, setDeactivatedRetryToken] = useState(0)
   const hasLoadedDeactivated = useRef(false)
 
@@ -183,6 +189,7 @@ export default function StoreListPanel({
     hasLoadedDeactivated.current = true
     setIsLoadingDeactivated(true)
     setIsErrorDeactivated(false)
+    setDeactivatedErrorMessage(null)
 
     fetchDeactivatedStores({
       token,
@@ -195,7 +202,10 @@ export default function StoreListPanel({
         setDeactivatedStores(res.data ?? [])
         setDeactivatedMeta(res.meta)
       })
-      .catch(() => setIsErrorDeactivated(true))
+      .catch((err) => {
+        setIsErrorDeactivated(true)
+        setDeactivatedErrorMessage(extractApiErrorMessage(err, 'Failed to load deactivated stores'))
+      })
       .finally(() => setIsLoadingDeactivated(false))
   }, [token, effectiveTenantId, deactivatedDebouncedSearch, deactivatedSkip])
 
@@ -567,7 +577,7 @@ export default function StoreListPanel({
       {/* Table view */}
       {view === 'active' ? (
         isError ? (
-          <PanelError onRetry={() => setRetryToken((n) => n + 1)} />
+          <PanelError message={errorMessage ?? undefined} onRetry={() => setRetryToken((n) => n + 1)} />
         ) : isLoading ? (
           <TableSkeleton />
         ) : stores.length === 0 ? (
@@ -587,7 +597,7 @@ export default function StoreListPanel({
           />
         )
       ) : isErrorDeactivated ? (
-        <PanelError onRetry={() => setDeactivatedRetryToken((n) => n + 1)} />
+        <PanelError message={deactivatedErrorMessage ?? undefined} onRetry={() => setDeactivatedRetryToken((n) => n + 1)} />
       ) : isLoadingDeactivated ? (
         <TableSkeleton />
       ) : deactivatedStores.length === 0 ? (

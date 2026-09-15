@@ -29,29 +29,21 @@ export async function fetchVideoIdentities({
       data: [],
     }
   }
-  try {
-    const { data } = await pythia2Client.get<ApiResponseV2Paginated<VideoIdentityEntry[]>>(
-      PYTHIA_2_API.videoIdentities.list,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          skip,
-          limit,
-          status,
-          search: search || undefined,
-          start_date: startDate || undefined,
-          end_date: endDate || undefined,
-        },
-      }
-    )
-    return data
-  } catch {
-    return {
-      success: true,
-      meta: { total: 0, skip, limit },
-      data: [],
+  const { data } = await pythia2Client.get<ApiResponseV2Paginated<VideoIdentityEntry[]>>(
+    PYTHIA_2_API.videoIdentities.list,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: {
+        skip,
+        limit,
+        status,
+        search: search || undefined,
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
+      },
     }
-  }
+  )
+  return data
 }
 
 export async function fetchVideoIdentityStats({ token }: { token: string }): Promise<VideoIdentityStats> {
@@ -63,19 +55,10 @@ export async function fetchVideoIdentityStats({ token }: { token: string }): Pro
       avg_similarity: null,
     }
   }
-  try {
-    const { data } = await pythia2Client.get<ApiResponseV2<VideoIdentityStats>>(PYTHIA_2_API.videoIdentities.stats, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    return data.data
-  } catch {
-    return {
-      total_videos: 0,
-      identities_matched: 0,
-      unmatched: 0,
-      avg_similarity: null,
-    }
-  }
+  const { data } = await pythia2Client.get<ApiResponseV2<VideoIdentityStats>>(PYTHIA_2_API.videoIdentities.stats, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return data.data
 }
 
 export interface PresignedKey {
@@ -93,14 +76,10 @@ export async function presignVideoIdentityKeys({
   if (token.includes('mock')) {
     return keys.map((k) => ({ key: k, url: '' }))
   }
-  try {
-    const { data } = await pythia2Client.post<ApiResponseV2<PresignedKey[]>>(
-      PYTHIA_2_API.videoIdentities.presign,
-      { keys },
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
-    return data.data
-  } catch {
-    return keys.map((k) => ({ key: k, url: '' }))
-  }
+  const { data } = await pythia2Client.post<ApiResponseV2<PresignedKey[]>>(
+    PYTHIA_2_API.videoIdentities.presign,
+    { keys },
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  return data.data
 }

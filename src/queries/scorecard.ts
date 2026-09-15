@@ -60,24 +60,20 @@ export async function fetchDashboardSummary({
     return MOCK_SUMMARY
   }
 
-  try {
-    const { data } = await pythia2Client.get<DashboardSummaryResponse>(
-      PYTHIA_2_API.dashboard.summary,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          week_offset: weekOffset,
-          ...(employeeId ? { employee_id: employeeId } : {}),
-          ...(startDate ? { start_date: startDate } : {}),
-          ...(endDate ? { end_date: endDate } : {}),
-        },
-        signal,
+  const { data } = await pythia2Client.get<DashboardSummaryResponse>(
+    PYTHIA_2_API.dashboard.summary,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: {
+        week_offset: weekOffset,
+        ...(employeeId ? { employee_id: employeeId } : {}),
+        ...(startDate ? { start_date: startDate } : {}),
+        ...(endDate ? { end_date: endDate } : {}),
       },
-    )
-    return data
-  } catch {
-    return MOCK_SUMMARY
-  }
+      signal,
+    },
+  )
+  return data
 }
 
 export async function fetchCoachingMoments(token: string, employeeId?: string): Promise<CoachingMomentsResult> {
@@ -87,24 +83,17 @@ export async function fetchCoachingMoments(token: string, employeeId?: string): 
       generationInProgress: false,
     }
   }
-  try {
-    const { data: response } = await pythia2Client.post<CoachingMomentsResponse>(
-      PYTHIA_2_API.coaching.moments,
-      undefined,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { use_cached: true, ...(employeeId ? { employee_id: employeeId } : {}) },
-      },
-    )
-    return {
-      items: response.coaching_tips,
-      generationInProgress: response.generation_in_progress ?? false,
-    }
-  } catch {
-    return {
-      items: PREVIEW_COACHING_MOMENTS,
-      generationInProgress: false,
-    }
+  const { data: response } = await pythia2Client.post<CoachingMomentsResponse>(
+    PYTHIA_2_API.coaching.moments,
+    undefined,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { use_cached: true, ...(employeeId ? { employee_id: employeeId } : {}) },
+    },
+  )
+  return {
+    items: response.coaching_tips,
+    generationInProgress: response.generation_in_progress ?? false,
   }
 }
 
@@ -127,28 +116,21 @@ export async function fetchShiftHighlights({
       generationInProgress: false,
     }
   }
-  try {
-    const { data: response } = await pythia2Client.get<ShiftHighlightsResponse>(
-      PYTHIA_2_API.dashboard.shiftSummaryHighlights,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          shift_start: shiftStart,
-          shift_status: shiftStatus,
-          ...(employeeId ? { employee_id: employeeId } : {}),
-        },
-        signal,
+  const { data: response } = await pythia2Client.get<ShiftHighlightsResponse>(
+    PYTHIA_2_API.dashboard.shiftSummaryHighlights,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: {
+        shift_start: shiftStart,
+        shift_status: shiftStatus,
+        ...(employeeId ? { employee_id: employeeId } : {}),
       },
-    )
-    return {
-      items: response.events,
-      generationInProgress: response.generation_in_progress,
-    }
-  } catch {
-    return {
-      items: PREVIEW_SHIFT_HIGHLIGHTS,
-      generationInProgress: false,
-    }
+      signal,
+    },
+  )
+  return {
+    items: response.events,
+    generationInProgress: response.generation_in_progress,
   }
 }
 

@@ -75,31 +75,26 @@ export async function fetchStoresForTenant({
     return fakeListStores({ tenantId, search, status, skip, limit })
   }
 
-  try {
-    const isActive = status === 'archived' || status === 'deactivated' ? false : true
-    const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<any[]>>(
-      PYTHIA_2_API.stores.list,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          search: search || undefined,
-          skip,
-          limit,
-          is_active: isActive,
-          tenant_id: tenantId || undefined,
-        },
+  const isActive = status === 'archived' || status === 'deactivated' ? false : true
+  const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<any[]>>(
+    PYTHIA_2_API.stores.list,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: {
+        search: search || undefined,
+        skip,
+        limit,
+        is_active: isActive,
+        tenant_id: tenantId || undefined,
       },
-    )
+    },
+  )
 
-    const mapped = (response.data || []).map((s: any) => mapApiStoreToTenantStore(s, tenantId))
-    return {
-      success: true,
-      meta: response.meta || { total: mapped.length, skip, limit },
-      data: mapped,
-    }
-  } catch (err) {
-    console.warn('fetchStoresForTenant API call failed, falling back to mock:', err)
-    return fakeListStores({ tenantId, search, status, skip, limit })
+  const mapped = (response.data || []).map((s: any) => mapApiStoreToTenantStore(s, tenantId))
+  return {
+    success: true,
+    meta: response.meta || { total: mapped.length, skip, limit },
+    data: mapped,
   }
 }
 

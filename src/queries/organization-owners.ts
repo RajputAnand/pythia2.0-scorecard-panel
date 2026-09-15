@@ -1,4 +1,3 @@
-import axios from 'axios'
 import { pythia2Client } from '@/lib/api-client'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
 import { fakeListOwners, fakeCreateOwner, fakeGetOwnerCredentials } from '@/mock/tenantAPIs'
@@ -18,25 +17,6 @@ export interface FetchOrganizationOwnersParams {
 // In-memory permission state for mock mode session
 const mockPermissions = new Map<string, boolean>()
 const mockInactive = new Set<string>()
-
-function isNetworkError(err: unknown): boolean {
-  if (axios.isAxiosError(err)) {
-    return err.code === 'ERR_NETWORK' || err.message === 'Network Error' || !err.response
-  }
-  return false
-}
-
-function isFallbackableError(err: unknown): boolean {
-  if (isNetworkError(err)) return true
-  if (axios.isAxiosError(err)) {
-    const status = err.response?.status
-    const detail = String((err.response?.data as { detail?: string } | undefined)?.detail || '')
-    if (status === 400 && detail.toLowerCase().includes('not associated with an organization')) {
-      return true
-    }
-  }
-  return false
-}
 
 async function getMockOwners(search?: string, isActive?: boolean): Promise<{ success: boolean; data: OrganizationOwner[]; total: number }> {
   const res = await fakeListOwners({ search })
@@ -86,24 +66,16 @@ export async function fetchOrganizationOwners({
   if (search) params.search = search
   if (isActive !== undefined) params.is_active = isActive
 
-  try {
-    const { data } = await pythia2Client.get<{
-      success: boolean
-      data: OrganizationOwner[]
-      total: number
-    }>(PYTHIA_2_API.organizationOwners.list, {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      params,
-    })
+  const { data } = await pythia2Client.get<{
+    success: boolean
+    data: OrganizationOwner[]
+    total: number
+  }>(PYTHIA_2_API.organizationOwners.list, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    params,
+  })
 
-    return data
-  } catch (err: unknown) {
-    if (isFallbackableError(err)) {
-      console.warn('fetchOrganizationOwners backend error or unreachable, falling back to mock:', err)
-      return getMockOwners(search, isActive)
-    }
-    throw err
-  }
+  return data
 }
 
 export async function createSubOwner({
@@ -134,45 +106,21 @@ export async function createSubOwner({
     }
   }
 
-  try {
-    const { data } = await pythia2Client.post<CreateSubOwnerResult>(
-      PYTHIA_2_API.organizationOwners.create,
-      {
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        phone: phone || null,
-        can_manage_subscription: canManageSubscription,
-      },
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      }
-    )
-
-    return data
-  } catch (err: unknown) {
-    if (isFallbackableError(err)) {
-      console.warn('createSubOwner backend error or unreachable, falling back to mock:', err)
-      const created = await fakeCreateOwner({
-        token: token || 'mock-token',
-        tenantId: 'ten_lionmart',
-        firstName,
-        lastName,
-        email,
-        phone,
-        storeIds: [],
-      })
-      mockPermissions.set(created.user_id, canManageSubscription)
-      return {
-        success: true,
-        user_id: created.user_id,
-        temp_password: created.temp_password,
-        email_sent: created.email_sent,
-        can_manage_subscription: canManageSubscription,
-      }
+  const { data } = await pythia2Client.post<CreateSubOwnerResult>(
+    PYTHIA_2_API.organizationOwners.create,
+    {
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      phone: phone || null,
+      can_manage_subscription: canManageSubscription,
+    },
+    {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     }
-    throw err
-  }
+  )
+
+  return data
 }
 
 export async function deactivateSubOwner({
@@ -187,24 +135,15 @@ export async function deactivateSubOwner({
     return { success: true, user_id: userId, is_active: false, already_inactive: false }
   }
 
-  try {
-    const { data } = await pythia2Client.patch(
-      PYTHIA_2_API.organizationOwners.deactivate(userId),
-      {},
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      }
-    )
-
-    return data
-  } catch (err: unknown) {
-    if (isFallbackableError(err)) {
-      console.warn('deactivateSubOwner backend error or unreachable, falling back to mock:', err)
-      mockInactive.add(userId)
-      return { success: true, user_id: userId, is_active: false, already_inactive: false }
+  const { data } = await pythia2Client.patch(
+    PYTHIA_2_API.organizationOwners.deactivate(userId),
+    {},
+    {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     }
-    throw err
-  }
+  )
+
+  return data
 }
 
 export async function fetchSubOwnerCredentials({
@@ -233,27 +172,14 @@ export async function fetchSubOwnerCredentials({
     }
   }
 
-  try {
-    const { data } = await pythia2Client.get<OwnerCredentialsResult>(
-      PYTHIA_2_API.organizationOwners.credentials(userId),
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      }
-    )
-
-    return data
-  } catch (err: unknown) {
-    if (isFallbackableError(err)) {
-      console.warn('fetchSubOwnerCredentials backend error or unreachable, falling back to mock:', err)
-      return {
-        success: true,
-        user_id: userId,
-        username: userId,
-        temp_password: 'own-temp-' + Math.random().toString(36).slice(2, 6),
-      }
+  const { data } = await pythia2Client.get<OwnerCredentialsResult>(
+    PYTHIA_2_API.organizationOwners.credentials(userId),
+    {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     }
-    throw err
-  }
+  )
+
+  return data
 }
 
 export async function toggleSubOwnerSubscriptionPermission({
@@ -270,24 +196,15 @@ export async function toggleSubOwnerSubscriptionPermission({
     return { success: true, user_id: userId, can_manage_subscription: canManageSubscription }
   }
 
-  try {
-    const { data } = await pythia2Client.patch(
-      PYTHIA_2_API.organizationOwners.subscriptionPermission(userId),
-      {
-        can_manage_subscription: canManageSubscription,
-      },
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      }
-    )
-
-    return data
-  } catch (err: unknown) {
-    if (isFallbackableError(err)) {
-      console.warn('toggleSubOwnerSubscriptionPermission backend error or unreachable, falling back to mock:', err)
-      mockPermissions.set(userId, canManageSubscription)
-      return { success: true, user_id: userId, can_manage_subscription: canManageSubscription }
+  const { data } = await pythia2Client.patch(
+    PYTHIA_2_API.organizationOwners.subscriptionPermission(userId),
+    {
+      can_manage_subscription: canManageSubscription,
+    },
+    {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     }
-    throw err
-  }
+  )
+
+  return data
 }

@@ -7,7 +7,7 @@ import DatePicker from '@/components/shared/DatePicker/DatePicker'
 import CoachingWinStrip from '@/components/CoachingWinStrip/CoachingWinStrip'
 import CoachingTrackerPanel from '@/components/CoachingTrackerPanel/CoachingTrackerPanel'
 import { fetchCoachingSummary, fetchCoachingEmployees } from '@/queries/manager-coaching'
-import { formatDateRange } from '@/utils/common'
+import { formatDateRange, extractApiErrorMessage } from '@/utils/common'
 import type { CoachingSummary, CoachingEmployeeChip } from '@/types/coaching-plan'
 
 interface CoachingTrackerContentProps {
@@ -28,6 +28,7 @@ export default function CoachingTrackerContent({
 
   const [summary, setSummary] = useState<CoachingSummary | null>(initialSummary)
   const [employees, setEmployees] = useState<CoachingEmployeeChip[]>(initialEmployees)
+  const [coachingError, setCoachingError] = useState<string | null>(null)
   const [, setLoading] = useState(false)
 
   const [dateFrom, setDateFrom] = useState('')
@@ -80,9 +81,14 @@ export default function CoachingTrackerContent({
         if (cancelled) return
         if (summaryRes.status === 'fulfilled') {
           setSummary(summaryRes.value)
+          setCoachingError(null)
+        } else {
+          setCoachingError(extractApiErrorMessage(summaryRes.reason, 'Failed to update coaching data'))
         }
         if (employeesRes.status === 'fulfilled') {
           setEmployees(employeesRes.value)
+        } else if (summaryRes.status === 'fulfilled') {
+          setCoachingError(extractApiErrorMessage(employeesRes.reason, 'Failed to update coaching employees'))
         }
       })
       .finally(() => {
@@ -129,6 +135,14 @@ export default function CoachingTrackerContent({
       </Header>
 
       <div className="px-[30px] py-[26px] flex flex-col gap-5">
+        {coachingError && (
+          <div className="bg-danger-light border border-[#EAB8B3] rounded-[11px] px-4 py-3 flex items-center justify-between gap-[10px]">
+            <div className="flex items-center gap-2 text-[12.5px] text-danger leading-[1.5]">
+              <span className="text-[15px] shrink-0">⚠️</span>
+              <span>{coachingError}</span>
+            </div>
+          </div>
+        )}
         <CoachingWinStrip summary={summary} isCustomRange={hasActiveDateFilter} />
         <CoachingTrackerPanel
           initialEmployees={employees}

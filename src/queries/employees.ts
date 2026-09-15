@@ -63,22 +63,14 @@ export async function fetchEmployees({ token, search, skip = 0, limit = 8, store
     }
   }
 
-  try {
-    const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<ApiEmployee[]>>(
-      PYTHIA_2_API.employees.list,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { search: search || undefined, skip, limit, store_id: storeId || undefined },
-      },
-    )
-    return response
-  } catch {
-    return {
-      success: true,
-      meta: { total: MOCK_EMPLOYEES.length, skip, limit },
-      data: MOCK_EMPLOYEES.slice(skip, skip + limit),
-    }
-  }
+  const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<ApiEmployee[]>>(
+    PYTHIA_2_API.employees.list,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { search: search || undefined, skip, limit, store_id: storeId || undefined },
+    },
+  )
+  return response
 }
 
 export async function fetchArchivedEmployees({ token, skip = 0, limit = 8, storeId }: FetchEmployeesParams) {
@@ -89,22 +81,14 @@ export async function fetchArchivedEmployees({ token, skip = 0, limit = 8, store
       data: [],
     }
   }
-  try {
-    const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<ApiEmployee[]>>(
-      PYTHIA_2_API.employees.archived,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { skip, limit, store_id: storeId || undefined },
-      },
-    )
-    return response
-  } catch {
-    return {
-      success: true,
-      meta: { total: 0, skip, limit },
-      data: [],
-    }
-  }
+  const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<ApiEmployee[]>>(
+    PYTHIA_2_API.employees.archived,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { skip, limit, store_id: storeId || undefined },
+    },
+  )
+  return response
 }
 
 export async function createEmployee({
@@ -183,13 +167,9 @@ export async function fetchEmployeeCredentials({
   if (token.includes('mock')) {
     return { user_id: userId, temp_password: 'emp-temp-1234' }
   }
-  try {
-    const { data: response } = await pythia2Client.get<ApiResponseV2<EmployeeCredentials>>(
-      PYTHIA_2_API.employees.credentials(userId),
-      { headers: { Authorization: `Bearer ${token}` } },
-    )
-    return response.data
-  } catch {
-    return { user_id: userId, temp_password: 'emp-temp-1234' }
-  }
+  const { data: response } = await pythia2Client.get<ApiResponseV2<EmployeeCredentials>>(
+    PYTHIA_2_API.employees.credentials(userId),
+    { headers: { Authorization: `Bearer ${token}` } },
+  )
+  return response.data
 }
