@@ -44,11 +44,13 @@ interface CreateEmployeeModalProps {
   token: string
   onClose: () => void
   onCreated: (employee: ApiEmployee) => void
+  storeId?: string
   // /** The unknown identity's own captured photos — prefilled as this employee's photos. */
   // sourceImages?: UnknownIdentityImage[]
 }
 
 export default function CreateEmployeeModal({ token, onClose, onCreated }: CreateEmployeeModalProps) {
+export default function CreateEmployeeModal({ token, onClose, onCreated, storeId }: CreateEmployeeModalProps) {
   const [step, setStep] = useState<'form' | 'credentials'>('form')
   const [isPending, setIsPending] = useState(false)
   const [serverError, setServerError] = useState<string | undefined>()
@@ -139,6 +141,7 @@ export default function CreateEmployeeModal({ token, onClose, onCreated }: Creat
         lastName: values.lastName,
         email: values.email || undefined,
         phone: values.phone || undefined,
+        storeId,
         // images,
       })
       // The create response only returns `user_id`, not the Mongo `_id` the

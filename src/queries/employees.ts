@@ -98,6 +98,8 @@ export async function createEmployee({
   email,
   phone,
   images,
+  storeId,
+  storeIds,
 }: CreateEmployeeParams): Promise<CreateEmployeeResponse> {
   if (token.includes('mock')) {
     const userId = `EMP-${Math.floor(100 + Math.random() * 900)}`
@@ -115,6 +117,10 @@ export async function createEmployee({
   form.append('last_name', lastName)
   if (email) form.append('email', email)
   if (phone) form.append('phone', phone)
+  if (storeId) form.append('store_id', storeId)
+  if (storeIds && storeIds.length > 0) {
+    storeIds.forEach((sid) => form.append('store_ids', sid))
+  }
   images?.forEach((file) => form.append('images', file))
 
   const { data } = await pythia2Client.post<CreateEmployeeResponse>(
