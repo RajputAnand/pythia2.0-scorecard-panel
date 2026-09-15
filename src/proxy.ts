@@ -75,6 +75,21 @@ export const proxy = auth(async (req) => {
   }
 
   // Authenticated: redirect away from /login and /
+  // Authenticated: allow dedicated login routes, forgot/reset password
+  // (prevents redirect loops if an authenticated user was navigated to login due to session expiry)
+  if (
+    pathname === '/login/employee' ||
+    pathname === '/login/manager' ||
+    pathname === '/login/owner' ||
+    pathname === '/login/superadmin' ||
+    pathname.startsWith('/login/tenant') ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password'
+  ) {
+    return NextResponse.next()
+  }
+
+  // Authenticated: redirect away from bare /login and /
   const role = session.user.role as UserRole
   const defaultRoute = ROLE_DEFAULT_ROUTES[role]
 
