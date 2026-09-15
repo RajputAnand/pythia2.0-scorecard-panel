@@ -49,7 +49,6 @@ interface CreateEmployeeModalProps {
   // sourceImages?: UnknownIdentityImage[]
 }
 
-export default function CreateEmployeeModal({ token, onClose, onCreated }: CreateEmployeeModalProps) {
 export default function CreateEmployeeModal({ token, onClose, onCreated, storeId }: CreateEmployeeModalProps) {
   const [step, setStep] = useState<'form' | 'credentials'>('form')
   const [isPending, setIsPending] = useState(false)
