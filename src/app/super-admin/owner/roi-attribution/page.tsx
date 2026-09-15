@@ -11,7 +11,9 @@ import CheckoutSpeed from '@/components/CheckoutSpeed/CheckoutSpeed'
 import RevenueImpactTable from '@/components/RevenueImpactTable/RevenueImpactTable'
 import CostPerCoaching from '@/components/CostPerCoaching/CostPerCoaching'
 import ProjectionSummary from '@/components/ProjectionSummary/ProjectionSummary'
+import CreateStoreBanner from '@/components/shared/CreateStoreBanner/CreateStoreBanner'
 import { fetchRoiAttribution } from '@/queries/owner-roi'
+import { fetchStoresForTenant } from '@/queries/stores'
 import { auth } from '@/auth'
 import { extractApiErrorMessage } from '@/utils/common'
 import type { RoiAttributionResponse, RoiAttributionParams } from '@/types/owner-roi'
@@ -33,10 +35,20 @@ export default async function SuperAdminRoiAttributionPage(props: {
   const session = await auth()
   const token = session?.user?.pythia2Token
 
+  let hasStores = true
+  if (token) {
+    try {
+      const storesRes = await fetchStoresForTenant({ token, limit: 1 })
+      hasStores = (storesRes.data?.length ?? 0) > 0
+    } catch {
+      hasStores = true
+    }
+  }
+
   let data: RoiAttributionResponse | null = null
   let error: string | null = null
 
-  if (token) {
+  if (token && hasStores) {
     const periodMap: Record<string, RoiAttributionParams['period_type']> = {
       'This Week': 'week',
       'Month over Month': 'month',
@@ -68,7 +80,7 @@ export default async function SuperAdminRoiAttributionPage(props: {
     } else {
       data = roiResult.value
     }
-  } else {
+  } else if (!token) {
     error = 'Authentication token missing. Please sign in again.'
   }
 
@@ -79,15 +91,33 @@ export default async function SuperAdminRoiAttributionPage(props: {
 
   return (
     <>
-      <Header title="ROI Attribution" subtitle="Super Admin">
-        <ExportPdfButton targetId="roi-report-content" fileName={`roi-attribution-${periodSlug}-super-admin`} />
-        <ShareWithInvestorButton targetId="roi-report-content" fileName={`roi-attribution-${periodSlug}-super-admin`} />
+      <Header
+        title="ROI Attribution"
+        subtitle={!hasStores ? 'Super Admin · Owner View' : 'Super Admin'}
+      >
+        {hasStores && (
+          <>
+            <ExportPdfButton targetId="roi-report-content" fileName={`roi-attribution-${periodSlug}-super-admin`} />
+            <ShareWithInvestorButton targetId="roi-report-content" fileName={`roi-attribution-${periodSlug}-super-admin`} />
+          </>
+        )}
       </Header>
 
-      <TimeControls />
+      {hasStores && <TimeControls />}
 
       <div id="roi-report-content" className="grid px-[30px] py-[24px] gap-5">
-        {error ? (
+        {!hasStores ? (
+          <div className="flex flex-col gap-6">
+            <CreateStoreBanner featureName="ROI attribution" />
+            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-20 text-center">
+              <span className="text-[36px]">📊</span>
+              <p className="font-semibold text-[14px] text-primary">No store data available</p>
+              <p className="text-[12px] text-muted max-w-md">
+                Once a store location is created and active for this tenant, revenue impact, customer dwell time, and ROI metrics will populate here.
+              </p>
+            </div>
+          </div>
+        ) : error ? (
           <div className="bg-surface border border-border rounded-lg p-6 text-red-400">
             {error}
           </div>

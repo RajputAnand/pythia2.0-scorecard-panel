@@ -61,7 +61,7 @@ function PanelEmpty({ search, view }: { search: string; view: 'active' | 'deacti
       ) : view === 'deactivated' ? (
         <p className="text-[11.5px] text-muted">Stores you deactivate will show up here and can be reactivated anytime.</p>
       ) : (
-        <p className="text-[11.5px] text-muted">Click &quot;+ Add Store&quot; above to create your first store location.</p>
+        <p className="text-[11.5px] text-muted">Click &quot;+ Add Store&quot; above to create your first store location to see ROI attribution and Benchmarking.</p>
       )}
     </div>
   )

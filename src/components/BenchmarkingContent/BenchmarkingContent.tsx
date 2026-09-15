@@ -16,22 +16,32 @@ import RankMovement from '@/components/RankMovement/RankMovement'
 import Header from '@/components/shared/Header/Header'
 import headerStyles from '@/components/shared/Header/Header.module.css'
 import BenchmarkingMetricFilter from '@/components/BenchmarkingMetricFilter/BenchmarkingMetricFilter'
+import CreateStoreBanner from '@/components/shared/CreateStoreBanner/CreateStoreBanner'
 import { downloadCsv } from '@/utils/common'
 
 interface BenchmarkingContentProps {
   /** Super Admin mirror only — prefixes the Header subtitle so it's clear this is the read-only mirror, not the real owner page. */
   subtitlePrefix?: string
+  initialHasStores?: boolean | null
 }
 
-export default function BenchmarkingContent({ subtitlePrefix }: BenchmarkingContentProps = {}) {
+export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }: BenchmarkingContentProps = {}) {
   const { data: session } = useSession()
   const token = session?.user?.token
-  const { currentStore } = useUserStore()
+  const { currentStore, stores } = useUserStore()
+
+  // Determine if any stores exist:
+  const hasStores =
+    stores.length > 0
+      ? true
+      : initialHasStores !== null && initialHasStores !== undefined
+      ? initialHasStores
+      : currentStore !== null
 
   const [allStoreData, setAllStoreData] = useState<BenchmarkingStoreData[]>([])
   const [selectedStoreData, setSelectedStoreData] = useState<SelectedStoreBenchmarkingData | null>(null)
   const [meta, setMeta] = useState<BenchmarkingAllStoreDataResponse['meta'] | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(hasStores)
 
   const searchParams = useSearchParams()
 
@@ -55,7 +65,10 @@ export default function BenchmarkingContent({ subtitlePrefix }: BenchmarkingCont
   const filterMode = filterMap[filterPill] || 'all'
 
   useEffect(() => {
-    if (!token) return
+    if (!token || !hasStores) {
+      if (!hasStores) setLoading(false)
+      return
+    }
     let cancelled = false
     setLoading(true)
 
@@ -118,31 +131,53 @@ export default function BenchmarkingContent({ subtitlePrefix }: BenchmarkingCont
 
   return (
     <>
-      <Header title="Competitor Benchmarking" subtitle={subtitle}>
-        <BenchmarkingMetricFilter />
-        <button
-          className={`${headerStyles.btnPrimary} disabled:opacity-50 disabled:cursor-not-allowed`}
-          onClick={handleExportReport}
-          disabled={loading || allStoreData.length === 0}
-        >
-          Export Report
-        </button>
+      <Header
+        title="Competitor Benchmarking"
+        subtitle={!hasStores ? (subtitlePrefix ? `${subtitlePrefix} · Owner Tools` : 'Owner Tools') : subtitle}
+      >
+        {hasStores && (
+          <>
+            <BenchmarkingMetricFilter />
+            <button
+              className={`${headerStyles.btnPrimary} disabled:opacity-50 disabled:cursor-not-allowed`}
+              onClick={handleExportReport}
+              disabled={loading || allStoreData.length === 0}
+            >
+              Export Report
+            </button>
+          </>
+        )}
       </Header>
 
       <div className="grid px-[30px] py-[24px] gap-5">
-        <RankHero 
-          data={selectedStoreData} 
-          loading={loading} 
-        />
-        <NetworkLeaderboard 
-          data={allStoreData}
-          loading={loading}
-          selectedStoreId={selectedStoreId}
-          onSelectStore={(id) => setSelectedStoreId(id)}
-        />
-        <StoreComparison data={selectedStoreData} loading={loading} />
-        <TopStorePractices selectedStoreId={selectedStoreId} period={period} />
-        <RankMovement data={selectedStoreData?.rank_movement_board} loading={loading} />
+        {!hasStores ? (
+          <div className="flex flex-col gap-6">
+            <CreateStoreBanner featureName="Benchmarking" />
+            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-20 text-center">
+              <span className="text-[36px]">🏆</span>
+              <p className="font-semibold text-[14px] text-primary">No benchmarking data available</p>
+              <p className="text-[12px] text-muted max-w-md">
+                Create your first store location to start benchmarking your customer service and speed metrics against peer stores.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <RankHero 
+              data={selectedStoreData} 
+              loading={loading} 
+            />
+            <NetworkLeaderboard 
+              data={allStoreData}
+              loading={loading}
+              selectedStoreId={selectedStoreId}
+              onSelectStore={(id) => setSelectedStoreId(id)}
+            />
+            <StoreComparison data={selectedStoreData} loading={loading} />
+            <TopStorePractices selectedStoreId={selectedStoreId} period={period} />
+            <RankMovement data={selectedStoreData?.rank_movement_board} loading={loading} />
+          </>
+        )}
       </div>
     </>
   )
