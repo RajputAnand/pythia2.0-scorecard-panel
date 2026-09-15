@@ -1083,9 +1083,7 @@ export default function Sidebar({ user }: { user: User }) {
         (o) =>
           o?.status === "pending" &&
           (o?.employeeId === user.email ||
-            o?.employeeName === user?.name ||
-            o?.employeeName === "Marcus Reynolds" ||
-            o?.employeeName === "Marcus R.")
+            o?.employeeName === user?.name)
       ).length,
     [swagOrders, user]
   );
@@ -1094,10 +1092,12 @@ export default function Sidebar({ user }: { user: User }) {
   const fetchPageVisibility = useAdminConfigStore((s) => s.fetchVisibility);
 
   useEffect(() => {
-    if (useUserStore.getState().points === null) {
-      setPoints(user.points && user.points > 0 ? user.points : 1450);
+    if (user.points != null) {
+      setPoints(user.points);
+    } else if (useUserStore.getState().points === null) {
+      setPoints(0);
     }
-  }, [user.points, setPoints]);
+  }, [user.id, user.points, setPoints]);
 
   useEffect(() => {
     if (!user.token || mtEnabled) return;

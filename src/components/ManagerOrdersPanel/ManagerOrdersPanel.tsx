@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { useUserStore } from '@/store/userStore'
 import { useSwagStore } from '@/store/swagStore'
 import { useToast } from '@/context/ToastContext'
 import type { SwagOrder } from '@/types/swagstore'
@@ -17,9 +18,22 @@ interface ManagerOrdersPanelProps {
 export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPanelProps) {
   const { data: session } = useSession()
   const managerName = session?.user?.name || 'Jamie L. (Manager)'
+  const token = session?.user?.pythia2Token || session?.user?.token
+  const currentStore = useUserStore((s) => s.currentStore)
+  const storeId =
+    currentStore?.storeNo ||
+    currentStore?._id ||
+    session?.user?.store_ids?.[0] ||
+    ((session?.user as Record<string, unknown> | undefined)?.storeIds as string[] | undefined)?.[0] ||
+    '69c19e66a27efce5858b6487'
 
-  const { orders, completeOrder, rejectOrder } = useSwagStore()
+  const { orders, stats, fetchOrders, fetchStats, completeOrder, rejectOrder } = useSwagStore()
   const { showToast } = useToast()
+
+  useEffect(() => {
+    fetchOrders({ token, storeId })
+    fetchStats({ token, storeId })
+  }, [fetchOrders, fetchStats, token, storeId])
 
   const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'rejected' | 'all'>('pending')
   const [searchQuery, setSearchQuery] = useState('')
@@ -89,18 +103,18 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
     })
   }, [currentTabOrders, searchQuery, selectedCategory])
 
-  const handleConfirmFulfill = () => {
+  const handleConfirmFulfill = async () => {
     if (!fulfillingOrder) return
-    completeOrder(fulfillingOrder.id, managerName)
+    await completeOrder(fulfillingOrder.id, managerName, { token, storeId })
     showToast(
       `✓ Order #${fulfillingOrder.id} for ${fulfillingOrder.employeeName} (${fulfillingOrder.productName}) marked as fulfilled!`
     )
     setFulfillingOrder(null)
   }
 
-  const handleConfirmReject = (reason: string) => {
+  const handleConfirmReject = async (reason: string) => {
     if (!rejectingOrder) return
-    const res = rejectOrder(rejectingOrder.id, reason, managerName)
+    const res = await rejectOrder(rejectingOrder.id, reason, managerName, { token, storeId })
     if (res.success) {
       showToast(
         `Order #${rejectingOrder.id} rejected. ${rejectingOrder.pointsCost.toLocaleString('en-US')} pts refunded to ${rejectingOrder.employeeName}.`
@@ -110,6 +124,12 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
     }
     setRejectingOrder(null)
   }
+
+  const pendingCount = stats?.pending_fulfillment ?? pendingOrders.length
+  const completedCount = stats?.fulfilled_orders ?? completedOrders.length
+  const totalOrdersCount = stats?.total_orders ?? orders.length
+  const pointsDeducted = stats?.total_points_claimed ?? totalPointsRedeemed
+  const employeesRewarded = stats?.employees_rewarded ?? uniqueEmployeesCount
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,13 +143,13 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
           <div className="mt-2 flex items-baseline justify-between">
             <span
               className={`text-[26px] font-bold font-mono ${
-                pendingOrders.length > 0 ? 'text-amber' : 'text-primary'
+                pendingCount > 0 ? 'text-amber' : 'text-primary'
               }`}
             >
-              {pendingOrders.length}
+              {pendingCount}
             </span>
             <span className="text-[11.5px] text-muted">
-              {pendingOrders.length > 0 ? 'Needs action' : 'All fulfilled'}
+              {pendingCount > 0 ? 'Needs action' : 'All fulfilled'}
             </span>
           </div>
         </div>
@@ -141,10 +161,10 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
           </span>
           <div className="mt-2 flex items-baseline justify-between">
             <span className="text-[26px] font-bold font-mono text-accent">
-              {completedOrders.length}
+              {completedCount}
             </span>
             <span className="text-[11.5px] text-muted">
-              {orders.length} total orders
+              {totalOrdersCount} total orders
             </span>
           </div>
         </div>
@@ -157,7 +177,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
           <div className="mt-2 flex items-baseline justify-between">
             <span className="text-[26px] font-bold font-mono text-gold flex items-center gap-1.5">
               <span>🪙</span>
-              {totalPointsRedeemed.toLocaleString('en-US')}
+              {pointsDeducted.toLocaleString('en-US')}
             </span>
             <span className="text-[11.5px] text-muted font-medium">pts total</span>
           </div>
@@ -170,7 +190,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
           </span>
           <div className="mt-2 flex items-baseline justify-between">
             <span className="text-[26px] font-bold font-mono text-primary">
-              {uniqueEmployeesCount}
+              {employeesRewarded}
             </span>
             <span className="text-[11.5px] text-muted">team members</span>
           </div>
