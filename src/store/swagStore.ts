@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { SWAG_STORE, INITIAL_SWAG_ORDERS } from '@/lib/swagstore-data'
 import type { SwagProduct, SwagOrder, SwagStoreStats } from '@/types/swagstore'
 import { useUserStore } from './userStore'
+import { extractApiErrorMessage } from '@/utils/common'
 import {
   fetchSwagRewards,
   createSwagReward,
@@ -114,8 +115,9 @@ export const useSwagStore = create<SwagState>()(
               return { catalog: [...rewards, ...otherStatus], loading: false }
             })
           }
-        } catch {
-          set({ loading: false })
+        } catch (err: unknown) {
+          const message = extractApiErrorMessage(err, 'Failed to load catalog')
+          set({ loading: false, error: message })
         }
       },
 
@@ -127,8 +129,9 @@ export const useSwagStore = create<SwagState>()(
         try {
           const redemptions = await fetchRedemptions({ token, storeId, status })
           set({ orders: redemptions })
-        } catch {
-          // Keep current orders state
+        } catch (err: unknown) {
+          const message = extractApiErrorMessage(err, 'Failed to load orders')
+          set({ error: message })
         }
       },
 
@@ -139,8 +142,9 @@ export const useSwagStore = create<SwagState>()(
         try {
           const myRedemptions = await fetchMyRedemptions({ token, storeId })
           set({ orders: myRedemptions })
-        } catch {
-          // Keep current orders state
+        } catch (err: unknown) {
+          const message = extractApiErrorMessage(err, 'Failed to load orders')
+          set({ error: message })
         }
       },
 
@@ -151,8 +155,9 @@ export const useSwagStore = create<SwagState>()(
         try {
           const stats = await fetchSwagStoreStats({ token, storeId })
           set({ stats })
-        } catch {
-          // Keep current stats state
+        } catch (err: unknown) {
+          const message = extractApiErrorMessage(err, 'Failed to load store statistics')
+          set({ error: message })
         }
       },
 
@@ -178,17 +183,10 @@ export const useSwagStore = create<SwagState>()(
             catalog: [created, ...state.catalog],
           }))
           return created
-        } catch {
-          const fallbackProduct: SwagProduct = {
-            ...data,
-            id: `swag_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-            status: 'active',
-            createdAt: new Date().toISOString(),
-          }
-          set((state) => ({
-            catalog: [fallbackProduct, ...state.catalog],
-          }))
-          return fallbackProduct
+        } catch (err: unknown) {
+          const message = extractApiErrorMessage(err, 'Failed to create reward')
+          set({ error: message })
+          throw new Error(message)
         }
       },
 
@@ -215,11 +213,10 @@ export const useSwagStore = create<SwagState>()(
             catalog: state.catalog.map((p) => (p.id === id ? { ...p, ...updates } : p)),
           }))
           return true
-        } catch {
-          set((state) => ({
-            catalog: state.catalog.map((p) => (p.id === id ? { ...p, ...updates } : p)),
-          }))
-          return true
+        } catch (err: unknown) {
+          const message = extractApiErrorMessage(err, 'Failed to update reward')
+          set({ error: message })
+          return false
         }
       },
 
@@ -233,11 +230,10 @@ export const useSwagStore = create<SwagState>()(
             catalog: state.catalog.map((p) => (p.id === id ? { ...p, status: 'archived' } : p)),
           }))
           return true
-        } catch {
-          set((state) => ({
-            catalog: state.catalog.map((p) => (p.id === id ? { ...p, status: 'archived' } : p)),
-          }))
-          return true
+        } catch (err: unknown) {
+          const message = extractApiErrorMessage(err, 'Failed to archive reward')
+          set({ error: message })
+          return false
         }
       },
 
@@ -251,11 +247,10 @@ export const useSwagStore = create<SwagState>()(
             catalog: state.catalog.map((p) => (p.id === id ? { ...p, status: 'active' } : p)),
           }))
           return true
-        } catch {
-          set((state) => ({
-            catalog: state.catalog.map((p) => (p.id === id ? { ...p, status: 'active' } : p)),
-          }))
-          return true
+        } catch (err: unknown) {
+          const message = extractApiErrorMessage(err, 'Failed to unarchive reward')
+          set({ error: message })
+          return false
         }
       },
 
@@ -311,20 +306,10 @@ export const useSwagStore = create<SwagState>()(
             ),
           }))
           return true
-        } catch {
-          set((state) => ({
-            orders: state.orders.map((order) =>
-              order.id === orderId
-                ? {
-                    ...order,
-                    status: 'completed',
-                    completedAt: new Date().toISOString(),
-                    fulfilledBy,
-                  }
-                : order
-            ),
-          }))
-          return true
+        } catch (err: unknown) {
+          const message = extractApiErrorMessage(err, 'Failed to fulfill order')
+          set({ error: message })
+          return false
         }
       },
 
@@ -340,8 +325,10 @@ export const useSwagStore = create<SwagState>()(
 
         try {
           await cancelRedemption({ token, storeId, redemptionId: orderId })
-        } catch {
-          // Fallback to local state update below
+        } catch (err: unknown) {
+          const message = extractApiErrorMessage(err, 'Failed to cancel order')
+          set({ error: message })
+          return { success: false, reason: message }
         }
 
         // 1. Refund points to userStore
@@ -385,8 +372,10 @@ export const useSwagStore = create<SwagState>()(
 
         try {
           await rejectRedemption({ token, storeId, redemptionId: orderId })
-        } catch {
-          // Fallback to local state update below
+        } catch (err: unknown) {
+          const message = extractApiErrorMessage(err, 'Failed to reject order')
+          set({ error: message })
+          return { success: false, reason: message }
         }
 
         // 1. Refund points to userStore
@@ -456,7 +445,8 @@ export const useSwagStore = create<SwagState>()(
           return { success: true }
         } catch (err: unknown) {
           set({ redeemingId: null })
-          const message = err instanceof Error ? err.message : 'Failed to redeem reward'
+          const message = extractApiErrorMessage(err, 'Failed to redeem reward')
+          set({ error: message })
           return { success: false, error: message }
         }
       },

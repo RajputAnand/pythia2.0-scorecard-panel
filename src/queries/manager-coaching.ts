@@ -45,22 +45,18 @@ export async function fetchManagerCoachingPlans({
   if (token.includes('mock')) {
     return []
   }
-  try {
-    const { data } = await pythia2Client.get<ListSignalsResponse>(PYTHIA_2_API.managerCoaching.signals, {
-      headers: { Authorization: `Bearer ${token}` },
-      params: {
-        employee_id: employeeId || undefined,
-        status: Array.isArray(status) ? status.join(',') : status || undefined,
-        store_id: storeId || undefined,
-        start_date: startDate || undefined,
-        end_date: endDate || undefined,
-        view: view || undefined,
-      },
-    })
-    return data.signals || []
-  } catch {
-    return []
-  }
+  const { data } = await pythia2Client.get<ListSignalsResponse>(PYTHIA_2_API.managerCoaching.signals, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      employee_id: employeeId || undefined,
+      status: Array.isArray(status) ? status.join(',') : status || undefined,
+      store_id: storeId || undefined,
+      start_date: startDate || undefined,
+      end_date: endDate || undefined,
+      view: view || undefined,
+    },
+  })
+  return data.signals || []
 }
 
 export interface ApplyManagerPlanActionParams {
@@ -128,20 +124,16 @@ export async function fetchCoachingSummary({
     }
     return PREVIEW_COACHING_SUMMARY
   }
-  try {
-    const { data } = await pythia2Client.get<SummaryResponse>(PYTHIA_2_API.managerCoaching.summary, {
-      headers: { Authorization: `Bearer ${token}` },
-      params: {
-        view,
-        store_id: storeId || undefined,
-        start_date: startDate || undefined,
-        end_date: endDate || undefined,
-      },
-    })
-    return data
-  } catch {
-    return PREVIEW_COACHING_SUMMARY
-  }
+  const { data } = await pythia2Client.get<SummaryResponse>(PYTHIA_2_API.managerCoaching.summary, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      view,
+      store_id: storeId || undefined,
+      start_date: startDate || undefined,
+      end_date: endDate || undefined,
+    },
+  })
+  return data
 }
 
 export async function fetchCoachingEffectiveness({
@@ -154,20 +146,16 @@ export async function fetchCoachingEffectiveness({
   if (token.includes('mock')) {
     return []
   }
-  try {
-    const { data } = await pythia2Client.get<EffectivenessResponse>(PYTHIA_2_API.managerCoaching.effectiveness, {
-      headers: { Authorization: `Bearer ${token}` },
-      params: {
-        view,
-        store_id: storeId || undefined,
-        start_date: startDate || undefined,
-        end_date: endDate || undefined,
-      },
-    })
-    return data.categories || []
-  } catch {
-    return []
-  }
+  const { data } = await pythia2Client.get<EffectivenessResponse>(PYTHIA_2_API.managerCoaching.effectiveness, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      view,
+      store_id: storeId || undefined,
+      start_date: startDate || undefined,
+      end_date: endDate || undefined,
+    },
+  })
+  return data.categories || []
 }
 
 export interface FetchCoachingEmployeesParams {
@@ -188,20 +176,16 @@ export async function fetchCoachingEmployees({
   if (token.includes('mock')) {
     return []
   }
-  try {
-    const { data } = await pythia2Client.get<EmployeesResponse>(PYTHIA_2_API.managerCoaching.employees, {
-      headers: { Authorization: `Bearer ${token}` },
-      params: {
-        store_id: storeId || undefined,
-        start_date: startDate || undefined,
-        end_date: endDate || undefined,
-        view: view || undefined,
-      },
-    })
-    return data.employees || []
-  } catch {
-    return []
-  }
+  const { data } = await pythia2Client.get<EmployeesResponse>(PYTHIA_2_API.managerCoaching.employees, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      store_id: storeId || undefined,
+      start_date: startDate || undefined,
+      end_date: endDate || undefined,
+      view: view || undefined,
+    },
+  })
+  return data.employees || []
 }
 
 export interface FetchEmployeeCoachingDetailParams {

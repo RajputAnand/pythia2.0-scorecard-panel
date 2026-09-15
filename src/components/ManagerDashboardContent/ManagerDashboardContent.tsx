@@ -14,7 +14,7 @@ import CoachingHealthSnapshot from '@/components/CoachingHealthSnapshot/Coaching
 import ManagerDashboardTrendChart from '@/components/ManagerDashboardTrendChart/ManagerDashboardTrendChart'
 import { fetchManagerDashboardSummary } from '@/queries/manager-dashboard'
 import { fetchCoachingSummary } from '@/queries/manager-coaching'
-import { formatDateRange } from '@/utils/common'
+import { formatDateRange, extractApiErrorMessage } from '@/utils/common'
 import type { ManagerDashboardEmployeeRow, ManagerDashboardSummary, ManagerDashboardTrendWeek } from '@/types/manager-dashboard'
 import type { CoachingSummary } from '@/types/coaching-plan'
 import type { AgeDistributionResponse, GenderDistributionResponse, CustomerSegmentsResponse } from '@/types/demographics'
@@ -50,6 +50,7 @@ export default function ManagerDashboardContent({
   const [summary, setSummary] = useState<ManagerDashboardSummary | null>(initialSummary)
   const [employees, setEmployees] = useState<ManagerDashboardEmployeeRow[]>(initialEmployees)
   const [coachingSummary, setCoachingSummary] = useState<CoachingSummary | null>(initialCoachingSummary)
+  const [dashboardError, setDashboardError] = useState<string | null>(null)
   const [, setLoading] = useState(false)
 
   const [dateFrom, setDateFrom] = useState('')
@@ -106,6 +107,9 @@ export default function ManagerDashboardContent({
         if (cancelled) return
         if (summaryRes.status === 'fulfilled') {
           setSummary(summaryRes.value)
+          setDashboardError(null)
+        } else {
+          setDashboardError(extractApiErrorMessage(summaryRes.reason, 'Failed to update dashboard data'))
         }
         if (coachingRes.status === 'fulfilled') {
           setCoachingSummary(coachingRes.value)
@@ -155,6 +159,14 @@ export default function ManagerDashboardContent({
       </Header>
 
       <div className="px-[30px] py-[26px] flex flex-col gap-5">
+        {dashboardError && (
+          <div className="bg-danger-light border border-[#EAB8B3] rounded-[11px] px-4 py-3 flex items-center justify-between gap-[10px]">
+            <div className="flex items-center gap-2 text-[12.5px] text-danger leading-[1.5]">
+              <span className="text-[15px] shrink-0">⚠️</span>
+              <span>{dashboardError}</span>
+            </div>
+          </div>
+        )}
         <UnknownIdentitiesAlertCard count={initialUnknownIdentitiesCount} />
         <EmployeeSpotlightCard topEmployee={employees[0] ?? null} view="all" isCustomRange={hasActiveDateFilter} />
         <ManagerDashboardKpiStrip summary={summary} />

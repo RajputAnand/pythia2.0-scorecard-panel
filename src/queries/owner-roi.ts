@@ -30,28 +30,17 @@ export async function fetchRoiAttribution({
     })
   }
 
-  try {
-    const { data } = await pythia2Client.get<RoiAttributionResponse>(PYTHIA_2_API.roi.attribution, {
-      headers: { Authorization: `Bearer ${token}` },
-      params: {
-        store_id: store_id || undefined,
-        period_type,
-        custom_start: custom_start || undefined,
-        custom_end: custom_end || undefined,
-        view,
-      },
-    })
-    return data
-  } catch (err) {
-    console.warn('Failed to fetch ROI attribution, falling back to preview:', (err as any)?.message || err)
-    return fakeGetRoiAttribution({
-      store_id,
+  const { data } = await pythia2Client.get<RoiAttributionResponse>(PYTHIA_2_API.roi.attribution, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      store_id: store_id || undefined,
       period_type,
-      custom_start,
-      custom_end,
+      custom_start: custom_start || undefined,
+      custom_end: custom_end || undefined,
       view,
-    })
-  }
+    },
+  })
+  return data
 }
 
 export async function shareRoiAttributionPdf({

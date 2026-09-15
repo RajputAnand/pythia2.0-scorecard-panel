@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { fetchVideoIdentities, fetchVideoIdentityStats, presignVideoIdentityKeys } from '@/queries/video-identities'
-import { getAvatarColor, getInitialsFromDisplayName } from '@/utils/common'
+import { getAvatarColor, getInitialsFromDisplayName, extractApiErrorMessage } from '@/utils/common'
 import DatePicker from '@/components/shared/DatePicker/DatePicker'
 import type { ApiResponseV2Paginated } from '@/types/api'
 import type {
@@ -61,12 +61,12 @@ function PanelSkeleton() {
   )
 }
 
-function PanelError({ onRetry }: { onRetry: () => void }) {
+function PanelError({ message, onRetry }: { message?: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16 text-center px-4">
       <span className="text-[32px]">⚠️</span>
       <p className="font-semibold text-[14px]">Failed to load video identities</p>
-      <p className="text-[12px] text-muted">Check your connection and try again.</p>
+      <p className="text-[12px] text-muted max-w-md">{message || 'Check your connection and try again.'}</p>
       <button
         className="mt-1 rounded-[8px] border-0 bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:opacity-85 cursor-pointer"
         onClick={onRetry}
@@ -267,6 +267,7 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
   const [isLoading, setIsLoading] = useState(!initialData)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [isError, setIsError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const [stats, setStats] = useState<VideoIdentityStats | null>(initialStats)
   const [mediaModal, setMediaModal] = useState<MediaModalState | null>(null)
@@ -287,6 +288,7 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
     const requestId = ++requestIdRef.current
     setIsLoading(true)
     setIsError(false)
+    setErrorMessage(null)
     fetchVideoIdentities({
       token,
       skip: 0,
@@ -301,8 +303,11 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
         setEntries(response.data)
         setTotal(response.meta.total)
       })
-      .catch(() => {
-        if (requestId === requestIdRef.current) setIsError(true)
+      .catch((err) => {
+        if (requestId === requestIdRef.current) {
+          setIsError(true)
+          setErrorMessage(extractApiErrorMessage(err, 'Failed to load video identities'))
+        }
       })
       .finally(() => {
         if (requestId === requestIdRef.current) setIsLoading(false)
@@ -488,7 +493,7 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
 
       {/* Video list */}
       {isError ? (
-        <PanelError onRetry={loadFirstPage} />
+        <PanelError message={errorMessage ?? undefined} onRetry={loadFirstPage} />
       ) : isLoading ? (
         <PanelSkeleton />
       ) : entries.length === 0 ? (

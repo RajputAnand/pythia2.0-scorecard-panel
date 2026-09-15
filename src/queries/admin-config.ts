@@ -19,14 +19,10 @@ export async function fetchFieldConfigs(token: string): Promise<FieldConfig[]> {
   if (token.includes('mock')) {
     return []
   }
-  try {
-    const { data } = await pythia2Client.get<FieldConfigsResponse>(PYTHIA_2_API.superAdmin.fieldConfig, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    return data.configs || []
-  } catch {
-    return []
-  }
+  const { data } = await pythia2Client.get<FieldConfigsResponse>(PYTHIA_2_API.superAdmin.fieldConfig, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return data.configs || []
 }
 
 export async function updateFieldConfig(

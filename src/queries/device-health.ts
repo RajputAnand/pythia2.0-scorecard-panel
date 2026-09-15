@@ -34,15 +34,11 @@ export async function fetchDeviceStates({ token, signal }: FetchDeviceStatesPara
   if (token.includes('mock')) {
     return MOCK_DEVICES
   }
-  try {
-    const { data } = await pythia2Client.get<ApiResponseV2<DeviceStateSummary[]>>(PYTHIA_2_API.deviceHealth.list, {
-      headers: { Authorization: `Bearer ${token}` },
-      signal,
-    })
-    return data.data
-  } catch {
-    return MOCK_DEVICES
-  }
+  const { data } = await pythia2Client.get<ApiResponseV2<DeviceStateSummary[]>>(PYTHIA_2_API.deviceHealth.list, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  })
+  return data.data
 }
 
 export interface FetchDeviceStateParams {
@@ -55,15 +51,11 @@ export async function fetchDeviceState({ token, deviceId, signal }: FetchDeviceS
   if (token.includes('mock')) {
     return MOCK_DEVICES.find((d) => d.device_id === deviceId) || MOCK_DEVICES[0]
   }
-  try {
-    const { data } = await pythia2Client.get<ApiResponseV2<DeviceStateSummary>>(
-      PYTHIA_2_API.deviceHealth.detail(deviceId),
-      { headers: { Authorization: `Bearer ${token}` }, signal },
-    )
-    return data.data
-  } catch {
-    return MOCK_DEVICES.find((d) => d.device_id === deviceId) || MOCK_DEVICES[0]
-  }
+  const { data } = await pythia2Client.get<ApiResponseV2<DeviceStateSummary>>(
+    PYTHIA_2_API.deviceHealth.detail(deviceId),
+    { headers: { Authorization: `Bearer ${token}` }, signal },
+  )
+  return data.data
 }
 
 export function getDeviceStatesWsUrl(): string {

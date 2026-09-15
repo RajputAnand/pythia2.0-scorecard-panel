@@ -18,14 +18,7 @@ function isMockToken(token?: string): boolean {
   return !token || token.includes('mock') || token.includes('test')
 }
 
-function isNetworkError(err: unknown): boolean {
-  if (axios.isAxiosError(err)) {
-    return !err.response || err.code === 'ERR_NETWORK' || err.message === 'Network Error'
-  }
-  return false
-}
-
-// In-memory mock storage for fallback / offline / mock sessions
+// In-memory mock storage for mock sessions
 let mockCatalog: SwagProduct[] = [...SWAG_STORE.catalog]
 let mockOrders: SwagOrder[] = [...INITIAL_SWAG_ORDERS]
 
@@ -42,18 +35,14 @@ export async function fetchSwagRewards({
     return mockCatalog.filter((item) => (item.status ?? 'active') === status)
   }
 
-  try {
-    const { data } = await pythia2Client.get<{ rewards: SwagRewardApi[]; count: number; success: boolean }>(
-      PYTHIA_2_API.swagStore.rewards,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { store_id: storeId, status },
-      }
-    )
-    return (data.rewards || []).map(fromApiReward)
-  } catch {
-    return mockCatalog.filter((item) => (item.status ?? 'active') === status)
-  }
+  const { data } = await pythia2Client.get<{ rewards: SwagRewardApi[]; count: number; success: boolean }>(
+    PYTHIA_2_API.swagStore.rewards,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { store_id: storeId, status },
+    }
+  )
+  return (data.rewards || []).map(fromApiReward)
 }
 
 export async function createSwagReward({
@@ -106,9 +95,6 @@ export async function createSwagReward({
     )
     return fromApiReward(res.reward)
   } catch (err: unknown) {
-    if (isNetworkError(err)) {
-      return localCreate()
-    }
     if (axios.isAxiosError(err) && err.response?.data?.detail) {
       throw new Error(err.response.data.detail)
     }
@@ -174,9 +160,6 @@ export async function updateSwagReward({
     )
     return fromApiReward(res.reward)
   } catch (err: unknown) {
-    if (isNetworkError(err)) {
-      return localUpdate()
-    }
     if (axios.isAxiosError(err) && err.response?.data?.detail) {
       throw new Error(err.response.data.detail)
     }
@@ -221,9 +204,6 @@ export async function archiveSwagReward({
     )
     return fromApiReward(res.reward)
   } catch (err: unknown) {
-    if (isNetworkError(err)) {
-      return localArchive()
-    }
     if (axios.isAxiosError(err) && err.response?.data?.detail) {
       throw new Error(err.response.data.detail)
     }
@@ -268,9 +248,6 @@ export async function unarchiveSwagReward({
     )
     return fromApiReward(res.reward)
   } catch (err: unknown) {
-    if (isNetworkError(err)) {
-      return localUnarchive()
-    }
     if (axios.isAxiosError(err) && err.response?.data?.detail) {
       throw new Error(err.response.data.detail)
     }
@@ -310,13 +287,11 @@ export async function deleteSwagReward({
     })
     return { success: true }
   } catch (err: unknown) {
-    if (isNetworkError(err)) {
-      return localDelete()
-    }
     if (axios.isAxiosError(err) && err.response?.data?.detail) {
       return { success: false, reason: err.response.data.detail }
     }
-    return { success: false, reason: 'Failed to delete reward.' }
+    const message = err instanceof Error ? err.message : 'Failed to delete reward.'
+    return { success: false, reason: message }
   }
 }
 
@@ -369,9 +344,6 @@ export async function redeemSwagReward({
     )
     return fromApiRedemption(res.redemption)
   } catch (err: unknown) {
-    if (isNetworkError(err)) {
-      return localRedeem()
-    }
     if (axios.isAxiosError(err) && err.response?.data?.detail) {
       throw new Error(err.response.data.detail)
     }
@@ -390,18 +362,14 @@ export async function fetchMyRedemptions({
     return mockOrders
   }
 
-  try {
-    const { data } = await pythia2Client.get<{ redemptions: SwagRedemptionApi[]; count: number; success: boolean }>(
-      PYTHIA_2_API.swagStore.myRedemptions,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { store_id: storeId },
-      }
-    )
-    return (data.redemptions || []).map(fromApiRedemption)
-  } catch {
-    return mockOrders
-  }
+  const { data } = await pythia2Client.get<{ redemptions: SwagRedemptionApi[]; count: number; success: boolean }>(
+    PYTHIA_2_API.swagStore.myRedemptions,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { store_id: storeId },
+    }
+  )
+  return (data.redemptions || []).map(fromApiRedemption)
 }
 
 export async function fetchRedemptions({
@@ -420,24 +388,17 @@ export async function fetchRedemptions({
     return mockOrders
   }
 
-  try {
-    const { data } = await pythia2Client.get<{ redemptions: SwagRedemptionApi[]; count: number; success: boolean }>(
-      PYTHIA_2_API.swagStore.redemptions,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          store_id: storeId,
-          status: status && status !== 'all' ? status : undefined,
-        },
-      }
-    )
-    return (data.redemptions || []).map(fromApiRedemption)
-  } catch {
-    if (status && status !== 'all') {
-      return mockOrders.filter((o) => o.status === status)
+  const { data } = await pythia2Client.get<{ redemptions: SwagRedemptionApi[]; count: number; success: boolean }>(
+    PYTHIA_2_API.swagStore.redemptions,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: {
+        store_id: storeId,
+        status: status && status !== 'all' ? status : undefined,
+      },
     }
-    return mockOrders
-  }
+  )
+  return (data.redemptions || []).map(fromApiRedemption)
 }
 
 export async function fulfillRedemption({
@@ -482,9 +443,6 @@ export async function fulfillRedemption({
     )
     return fromApiRedemption(res.redemption)
   } catch (err: unknown) {
-    if (isNetworkError(err)) {
-      return localFulfill()
-    }
     if (axios.isAxiosError(err) && err.response?.data?.detail) {
       throw new Error(err.response.data.detail)
     }
@@ -534,9 +492,6 @@ export async function rejectRedemption({
     )
     return fromApiRedemption(res.redemption)
   } catch (err: unknown) {
-    if (isNetworkError(err)) {
-      return localReject()
-    }
     if (axios.isAxiosError(err) && err.response?.data?.detail) {
       throw new Error(err.response.data.detail)
     }
@@ -586,9 +541,6 @@ export async function cancelRedemption({
     )
     return fromApiRedemption(res.redemption)
   } catch (err: unknown) {
-    if (isNetworkError(err)) {
-      return localCancel()
-    }
     if (axios.isAxiosError(err) && err.response?.data?.detail) {
       throw new Error(err.response.data.detail)
     }
@@ -628,24 +580,20 @@ export async function fetchSwagStoreStats({
     return localCompute()
   }
 
-  try {
-    const { data } = await pythia2Client.get<SwagStoreStats & { success: boolean }>(
-      PYTHIA_2_API.swagStore.stats,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { store_id: storeId },
-      }
-    )
-    return {
-      active_rewards: data.active_rewards,
-      archived_rewards: data.archived_rewards,
-      pending_fulfillment: data.pending_fulfillment,
-      fulfilled_orders: data.fulfilled_orders,
-      total_orders: data.total_orders,
-      total_points_claimed: data.total_points_claimed,
-      employees_rewarded: data.employees_rewarded,
+  const { data } = await pythia2Client.get<SwagStoreStats & { success: boolean }>(
+    PYTHIA_2_API.swagStore.stats,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { store_id: storeId },
     }
-  } catch {
-    return localCompute()
+  )
+  return {
+    active_rewards: data.active_rewards,
+    archived_rewards: data.archived_rewards,
+    pending_fulfillment: data.pending_fulfillment,
+    fulfilled_orders: data.fulfilled_orders,
+    total_orders: data.total_orders,
+    total_points_claimed: data.total_points_claimed,
+    employees_rewarded: data.employees_rewarded,
   }
 }
