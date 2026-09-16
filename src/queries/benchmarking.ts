@@ -6,7 +6,7 @@ import type {
 
 export async function fetchAllStoreData(
   _token: string,
-  _params: {
+  _params?: {
     period?: string
     sort_by?: string
     sort_order?: string
@@ -14,7 +14,7 @@ export async function fetchAllStoreData(
     filter_mode?: string
     limit?: number
     offset?: number
-  } = {}
+  }
 ): Promise<BenchmarkingAllStoreDataResponse> {
   return fakeGetAllStoreData()
 }

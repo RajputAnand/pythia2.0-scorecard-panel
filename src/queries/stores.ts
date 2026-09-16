@@ -235,7 +235,7 @@ export async function createStore({
 }
 
 export async function bulkCreateStores({
-  token,
+  token: _token,
   data,
 }: {
   token?: string

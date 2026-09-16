@@ -1,4 +1,4 @@
-import { User, UserRole } from "@/types/user";
+import type { UserRole } from "@/types/user";
 
 interface DemoUser {
   initials: string;

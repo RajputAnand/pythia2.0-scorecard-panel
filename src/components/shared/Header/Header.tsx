@@ -9,7 +9,6 @@ import { useTenantStore, isMultiTenantEnabled } from '@/store/tenantStore'
 import { fetchStoresForTenant } from '@/queries/stores'
 import { createStripeCustomerPortalSession } from '@/actions/stripe'
 import { fetchOrganizationOwners } from '@/queries/organization-owners'
-import type { User } from '@/types/user'
 
 interface HeaderProps {
   title: string

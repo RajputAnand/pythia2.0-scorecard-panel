@@ -201,7 +201,7 @@ export function mapRoiChartData(
     ? `${apiData.correlation_r.toFixed(2)} correlation`
     : 'N/A correlation'
 
-  const xLabels: { label: string; color?: string; opacity?: number }[] = apiData.metric_a_series.map((p, i) => ({
+  const xLabels: { label: string; color?: string; opacity?: number }[] = apiData.metric_a_series.map((p) => ({
     label: formatLabel(p.period.label)
   }))
   if (hasProjected) {
