@@ -2,7 +2,6 @@
 export const PYTHIA_2_API = {
   auth: {
     login: '/auth/login',
-    loginTenant: '/auth/tenant-login',
     refresh: '/auth/refresh',
     forgotPassword: '/auth/forgot-password',
     resetPassword: '/auth/reset-password',
@@ -101,13 +100,6 @@ export const PYTHIA_2_API = {
     recommendationApply: (id: string) => `/staffing/recommendations/${id}/apply`,
     recommendationDismiss: (id: string) => `/staffing/recommendations/${id}/dismiss`,
   },
-  tenants: {
-    list: '/tenants',
-    create: '/tenants',
-    detail: (tenantId: string) => `/tenants/${tenantId}`,
-    status: (tenantId: string) => `/tenants/${tenantId}/status`,
-    checklist: (tenantId: string) => `/tenants/${tenantId}/checklist`,
-  },
   stores: {
     list: '/stores',
     create: '/stores',
@@ -117,20 +109,6 @@ export const PYTHIA_2_API = {
     deactivate: (storeCode: string) => `/stores/${storeCode}/deactivate`,
     heartbeat: (storeId: string) => `/stores/${storeId}/heartbeat`,
     pairingCode: (storeId: string) => `/stores/${storeId}/pairing-code`,
-  },
-  owners: {
-    list: '/owners',
-    create: '/owners',
-    archived: '/owners/archived',
-    detail: (userId: string) => `/owners/${userId}`,
-    credentials: (userId: string) => `/owners/${userId}/credentials`,
-    archive: (userId: string) => `/owners/${userId}/archive`,
-    unarchive: (userId: string) => `/owners/${userId}/unarchive`,
-  },
-  onboarding: {
-    wizardState: (tenantId: string) => `/super-admin/onboarding/${tenantId}`,
-    stepUpdate: (tenantId: string) => `/super-admin/onboarding/${tenantId}/step`,
-    complete: (tenantId: string) => `/super-admin/onboarding/${tenantId}/complete`,
   },
   organizationOwners: {
     list: '/organizations/owners',

@@ -1,6 +1,5 @@
 import { pythia2Client } from '@/lib/api-client'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
-import { fakeListOwners, fakeCreateOwner, fakeGetOwnerCredentials } from '@/mock/tenantAPIs'
 import type {
   OrganizationOwner,
   CreateSubOwnerParams,
@@ -14,33 +13,47 @@ export interface FetchOrganizationOwnersParams {
   isActive?: boolean
 }
 
-// In-memory permission state for mock mode session
+// In-memory permission state for offline/test session
 const mockPermissions = new Map<string, boolean>()
 const mockInactive = new Set<string>()
 
-async function getMockOwners(search?: string, isActive?: boolean): Promise<{ success: boolean; data: OrganizationOwner[]; total: number }> {
-  const res = await fakeListOwners({ search })
-  let mapped: OrganizationOwner[] = res.data.map((raw: unknown, idx: number) => {
-    const o = (raw || {}) as Record<string, unknown>
-    const isRoot = idx === 0 || o.user_id === 'OWN-101' || o.is_root_owner === true
-    const active = mockInactive.has(String(o.user_id)) ? false : (o.is_active !== undefined ? Boolean(o.is_active) : o.status === 'active')
-    const canSub = isRoot ? true : (mockPermissions.get(String(o.user_id)) ?? Boolean(o.can_manage_subscription))
+const FALLBACK_OWNERS: OrganizationOwner[] = [
+  {
+    user_id: 'OWN-101',
+    first_name: 'Arthur',
+    last_name: 'Pendelton',
+    email: 'arthur@demo.com',
+    phone: '+1 555-0199',
+    role_name: 'Owner',
+    tenant_id: 'default',
+    is_active: true,
+    can_manage_subscription: true,
+    is_root_owner: true,
+    created_by: 'stripe_webhook',
+    created_at: new Date().toISOString(),
+  },
+]
 
+function getMockOwners(search?: string, isActive?: boolean): { success: boolean; data: OrganizationOwner[]; total: number } {
+  let mapped = FALLBACK_OWNERS.map((o) => {
+    const active = mockInactive.has(o.user_id) ? false : o.is_active
+    const canSub = o.is_root_owner ? true : (mockPermissions.get(o.user_id) ?? o.can_manage_subscription)
     return {
-      user_id: String(o.user_id || o.id || ''),
-      first_name: String(o.first_name || o.firstName || ''),
-      last_name: String(o.last_name || o.lastName || ''),
-      email: String(o.email || ''),
-      phone: o.phone ? String(o.phone) : null,
-      role_name: String(o.role_name || 'Owner'),
-      tenant_id: String(o.tenant_id || o.tenantId || 'ten_lionmart'),
+      ...o,
       is_active: active,
       can_manage_subscription: canSub,
-      is_root_owner: isRoot,
-      created_by: isRoot ? 'stripe_webhook' : 'Root Owner',
-      created_at: String(o.created_at || o.createdAt || new Date().toISOString()),
     }
   })
+
+  if (search) {
+    const q = search.toLowerCase()
+    mapped = mapped.filter(
+      (o) =>
+        o.first_name.toLowerCase().includes(q) ||
+        o.last_name.toLowerCase().includes(q) ||
+        (o.email ? o.email.toLowerCase().includes(q) : false)
+    )
+  }
 
   if (isActive !== undefined) {
     mapped = mapped.filter((o) => o.is_active === isActive)
@@ -58,7 +71,7 @@ export async function fetchOrganizationOwners({
   search,
   isActive,
 }: FetchOrganizationOwnersParams): Promise<{ success: boolean; data: OrganizationOwner[]; total: number }> {
-  if (!token || token.includes('mock')) {
+  if (!token) {
     return getMockOwners(search, isActive)
   }
 
@@ -86,22 +99,14 @@ export async function createSubOwner({
   phone,
   canManageSubscription = false,
 }: CreateSubOwnerParams): Promise<CreateSubOwnerResult> {
-  if (!token || token.includes('mock')) {
-    const created = await fakeCreateOwner({
-      token: token || 'mock-token',
-      tenantId: 'ten_lionmart',
-      firstName,
-      lastName,
-      email,
-      phone,
-      storeIds: [],
-    })
-    mockPermissions.set(created.user_id, canManageSubscription)
+  if (!token) {
+    const createdId = 'OWN-' + Math.floor(100 + Math.random() * 900)
+    mockPermissions.set(createdId, canManageSubscription)
     return {
       success: true,
-      user_id: created.user_id,
-      temp_password: created.temp_password,
-      email_sent: created.email_sent,
+      user_id: createdId,
+      temp_password: 'own-temp-' + Math.random().toString(36).slice(2, 6),
+      email_sent: true,
       can_manage_subscription: canManageSubscription,
     }
   }
@@ -130,7 +135,7 @@ export async function deactivateSubOwner({
   token?: string
   userId: string
 }): Promise<{ success: boolean; user_id: string; is_active: boolean; already_inactive: boolean }> {
-  if (!token || token.includes('mock')) {
+  if (!token) {
     mockInactive.add(userId)
     return { success: true, user_id: userId, is_active: false, already_inactive: false }
   }
@@ -153,22 +158,12 @@ export async function fetchSubOwnerCredentials({
   token?: string
   userId: string
 }): Promise<OwnerCredentialsResult> {
-  if (!token || token.includes('mock')) {
-    try {
-      const creds = await fakeGetOwnerCredentials(userId)
-      return {
-        success: true,
-        user_id: userId,
-        username: userId,
-        temp_password: creds.temp_password,
-      }
-    } catch {
-      return {
-        success: true,
-        user_id: userId,
-        username: userId,
-        temp_password: 'own-temp-' + Math.random().toString(36).slice(2, 6),
-      }
+  if (!token) {
+    return {
+      success: true,
+      user_id: userId,
+      username: userId,
+      temp_password: 'own-temp-' + Math.random().toString(36).slice(2, 6),
     }
   }
 
@@ -191,7 +186,7 @@ export async function toggleSubOwnerSubscriptionPermission({
   userId: string
   canManageSubscription: boolean
 }): Promise<{ success: boolean; user_id: string; can_manage_subscription: boolean }> {
-  if (!token || token.includes('mock')) {
+  if (!token) {
     mockPermissions.set(userId, canManageSubscription)
     return { success: true, user_id: userId, can_manage_subscription: canManageSubscription }
   }

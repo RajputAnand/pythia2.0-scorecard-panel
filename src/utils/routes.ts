@@ -1,27 +1,19 @@
 import type { UserRole } from "@/types/user"
 
-function isMtEnabled(): boolean {
-  return (
-    typeof process !== 'undefined' &&
-    (process.env.NEXT_PUBLIC_ENABLE_MULTI_TENANT === 'true' ||
-      process.env.NEXT_PUBLIC_ENABLE_MULTI_TENANT === '1')
-  )
-}
-
 /** Where each role lands after authenticating. */
 export const ROLE_DEFAULT_ROUTES: Record<UserRole, string> = {
   employee: '/dashboard/overview',
-  owner: isMtEnabled() ? '/owner/stores' : '/owner/roi-attribution',
+  owner: '/owner/roi-attribution',
   manager: '/manager/employees',
-  superadmin: isMtEnabled() ? '/super-admin/tenants' : '/super-admin/kpi-visibility',
+  superadmin: '/super-admin/kpi-visibility',
 }
 
 /** Unified login page for all roles. */
 export const ROLE_LOGIN_ROUTES: Record<UserRole, string> = {
-  employee: isMtEnabled() ? '/login/tenant' : '/login',
-  owner: isMtEnabled() ? '/login/tenant' : '/login',
-  manager: isMtEnabled() ? '/login/tenant' : '/login',
-  superadmin: isMtEnabled() ? '/login/tenant' : '/login',
+  employee: '/login',
+  owner: '/login',
+  manager: '/login',
+  superadmin: '/login',
 }
 
 /** Allowed route prefixes per role. */

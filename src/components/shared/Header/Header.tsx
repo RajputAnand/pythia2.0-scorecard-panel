@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import styles from './Header.module.css'
 import { useUserStore } from '@/store/userStore'
-import { useTenantStore, isMultiTenantEnabled } from '@/store/tenantStore'
 import { fetchStoresForTenant } from '@/queries/stores'
 import { createStripeCustomerPortalSession } from '@/actions/stripe'
 import { fetchOrganizationOwners } from '@/queries/organization-owners'
@@ -36,18 +35,12 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
   const { data: session } = useSession()
   const role = session?.user?.role
   const showStoreSelector = role === 'owner' || role === 'manager' || role === 'superadmin'
-  const mtEnabled = isMultiTenantEnabled()
 
   const { stores, currentStore, setCurrentStore } = useUserStore()
-  const { tenants, activeTenant, setActiveTenant } = useTenantStore()
 
   // Store Dropdown open/close
   const [open, setOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-
-  // Tenant Dropdown open/close (Super Admin)
-  const [tenantOpen, setTenantOpen] = useState(false)
-  const tenantDropdownRef = useRef<HTMLDivElement>(null)
 
   // Profile Dropdown open/close
   const [profileOpen, setProfileOpen] = useState(false)
@@ -97,13 +90,10 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
   }, [role, session?.user?.can_manage_subscription, session?.user?.is_root_owner, session?.user?.pythia2Token, session?.user?.token, session?.user?.id])
 
   useEffect(() => {
-    if (!open && !tenantOpen && !profileOpen) return
+    if (!open && !profileOpen) return
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setOpen(false)
-      }
-      if (tenantDropdownRef.current && !tenantDropdownRef.current.contains(e.target as Node)) {
-        setTenantOpen(false)
       }
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target as Node)) {
         setProfileOpen(false)
@@ -112,7 +102,6 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
     const keyHandler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setOpen(false)
-        setTenantOpen(false)
         setProfileOpen(false)
       }
     }
@@ -122,7 +111,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
       document.removeEventListener('mousedown', handler)
       document.removeEventListener('keydown', keyHandler)
     }
-  }, [open, tenantOpen, profileOpen])
+  }, [open, profileOpen])
 
   useEffect(() => {
     const token = session?.user?.pythia2Token || session?.user?.token
@@ -195,86 +184,6 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-[10px]">
-        {/* Tenant Switcher — Super Admin only when Multi-Tenant is enabled */}
-        {role === 'superadmin' && mtEnabled && tenants.length > 0 && (
-          <div ref={tenantDropdownRef} className="relative">
-            <button
-              id="tenant-selector-trigger"
-              className="cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface-alt border border-border rounded-lg transition-all duration-150 hover:bg-border hover:text-primary text-[12.5px] px-[12px] py-[6px] whitespace-nowrap"
-              onClick={() => setTenantOpen((o) => !o)}
-              aria-haspopup="listbox"
-              aria-expanded={tenantOpen}
-            >
-              <span className="w-2 h-2 rounded-full bg-accent" />
-              <span className="max-w-[150px] overflow-hidden text-ellipsis">
-                {activeTenant?.name ?? 'Select Tenant'}
-              </span>
-              <svg
-                className={`w-[11px] h-[11px] shrink-0 text-muted transition-transform duration-200${
-                  tenantOpen ? ' rotate-180' : ''
-                }`}
-                viewBox="0 0 12 12"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M2.5 4.5L6 8L9.5 4.5"
-                  stroke="currentColor"
-                  strokeWidth="1.25"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-
-            {tenantOpen && (
-              <ul
-                role="listbox"
-                aria-label="Select tenant"
-                className="absolute top-[calc(100%+6px)] right-0 min-w-[220px] bg-surface border border-border rounded-[10px] p-[4px] shadow-lg list-none m-0 z-50 divide-y divide-border/40"
-              >
-                {tenants.map((t) => {
-                  const active = t.id === activeTenant?.id
-                  return (
-                    <li
-                      key={t.id}
-                      role="option"
-                      aria-selected={active}
-                      className={`flex items-center gap-2 rounded-md cursor-pointer transition-colors duration-100 px-[10px] py-[9px] ${
-                        active ? 'bg-accent-light' : 'hover:bg-surface-alt'
-                      }`}
-                      onClick={() => {
-                        setActiveTenant(t)
-                        setTenantOpen(false)
-                      }}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div
-                          className={`font-sans font-medium text-[13px] truncate ${
-                            active ? 'text-accent' : 'text-primary'
-                          }`}
-                        >
-                          {t.name}
-                        </div>
-                        <div className="text-[10.5px] text-muted font-mono">{t.code}</div>
-                      </div>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[9.5px] font-semibold uppercase shrink-0 ${
-                          t.status === 'active'
-                            ? 'bg-accent-light text-accent'
-                            : 'bg-warning/15 text-warning font-mono'
-                        }`}
-                      >
-                        {t.status}
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </div>
-        )}
-
         {/* Store selector — owner, manager, and super admin */}
         {showStoreSelector && stores.length > 0 && (
           <div ref={dropdownRef} className="relative">

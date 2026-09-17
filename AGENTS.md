@@ -78,7 +78,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Server Actions
 - Server actions live in `src/actions/` as `'use server'` files, one file per domain:
-  - `src/actions/auth.ts`: `login()` posts credentials to API `POST /auth/login` and invokes Auth.js `signIn('credentials', ...)`; `loginTenant()` handles org-scoped multi-tenant login; `logout()` calls Auth.js `signOut()`; `forgotPassword()` and `resetPassword()`.
+  - `src/actions/auth.ts`: `login()` posts credentials to API `POST /auth/login` and invokes Auth.js `signIn('credentials', ...)`; `logout()` calls Auth.js `signOut()`; `forgotPassword()` and `resetPassword()`.
   - `src/actions/stripe.ts`: `createStripeCustomerPortalSession(returnUrl?: string)` invokes Stripe Billing Portal API or API endpoint `/billing/manage-subscription-url` and returns hosted portal session URL for Owners to manage subscriptions and payment methods.
 - Server actions bridge client components and server logic. A file cannot mix `'use client'` and `'use server'`.
 - Client components wire actions via `useActionState(action, initialState)` or execute inside `useTransition`.
@@ -88,18 +88,17 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Role-Based Routing & Next.js 16 Proxy (`src/proxy.ts`)
 - `src/proxy.ts` enforces authentication and role-based route access on every request.
   - **Note:** Next.js 16 renamed `middleware.ts` → `proxy.ts` and `export function middleware` → `export function proxy`. Always use `proxy.ts` and the `proxy` export.
-- Unauthenticated requests to protected pages redirect to `/login/employee?redirectTo=<path>` (or `/login/tenant` if multi-tenant enabled). Public routes are `/login/employee`, `/login/manager`, `/login/owner`, `/login/superadmin`, `/login/tenant`, `/forgot-password`, `/reset-password`.
+- Unauthenticated requests to protected pages redirect to `/login?redirectTo=<path>`. Public routes are `/login`, `/login/employee`, `/login/manager`, `/login/owner`, `/login/superadmin`, `/forgot-password`, `/reset-password`.
 - Authenticated requests to `/` or `/login` redirect to the role's `ROLE_DEFAULT_ROUTES[role]`.
 - Accessing a route outside a role's allowed prefix redirects to the default page.
 - Role → allowed route prefixes → default route:
   | Role         | Allowed Prefixes           | Default Route                     | Dedicated Login Route      |
   |--------------|----------------------------|-----------------------------------|----------------------------|
-  | `employee`   | `/dashboard`               | `/dashboard/overview`             | `/login/employee`          |
-  | `manager`    | `/manager`                 | `/manager/employees`              | `/login/manager`           |
-  | `owner`      | `/owner`, `/manager`       | `/owner/stores` (MT) / `/owner/roi-attribution` | `/login/owner`             |
-  | `superadmin` | `/super-admin`             | `/super-admin/tenants` (MT) / `/super-admin/kpi-visibility` | `/login/superadmin`        |
+  | `employee`   | `/dashboard`               | `/dashboard/overview`             | `/login`                   |
+  | `manager`    | `/manager`                 | `/manager/employees`              | `/login`                   |
+  | `owner`      | `/owner`, `/manager`       | `/owner/roi-attribution`          | `/login`                   |
+  | `superadmin` | `/super-admin`             | `/super-admin/kpi-visibility`     | `/login`                   |
 - Owners oversee managers and can access all `/manager/*` routes as well as `/owner/*`. Managers cannot access `/owner/*`.
-- **Multi-Tenant Feature Gate**: When `NEXT_PUBLIC_ENABLE_MULTI_TENANT="true"` (or `"1"`), enables `/login/tenant`, `/super-admin/tenants`, `/super-admin/owners`, and `/super-admin/onboarding`. When disabled, these routes are blocked by `proxy.ts`.
 - **Dynamic KPI Visibility Route Enforcement**: `proxy.ts` derives `PAGE_HREF_TO_FIELD_ID` from `PAGE_REGISTRY`. If an authenticated user attempts to access a page that has been disabled in the Super Admin KPI visibility settings (`GET /super-admin/field-config`), the proxy intercepts the request and redirects them to their role's default route. It fails open on fetch errors to ensure platform resiliency.
 
 ---
@@ -111,9 +110,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - `employee`: Overview, Coaching, Progress, Leaderboard, Swag Store (`/dashboard/swag`) + employee score & points pill (`currentScore ?? user.score`).
   - `manager`: Navigate (Dashboard, Employees) + Manager Tools (Coaching Tracker, Staffing, Unknown Identity, Video Identities, Swag Store, Orders) + store status pill.
   - `owner`: Stores (`/owner/stores`), Managers (`/owner/managers`), Employees (`/owner/employees`), Co-Owners (`/owner/owners`), Swag Store (`/owner/swag-store`), ROI Attribution, Benchmarking, Marketing Loop + Owner/Manager view switcher + store status pill.
-  - `superadmin`: 4-Way View Switcher (`Admin`, `Manager View`, `Employee View`, `Owner View`) with bidirectional URL sync and read-only mirror pages. Admin navigation includes KPI Visibility, Device Health, Post-Demo Recaps (`/super-admin/post-demo-recaps`), plus Onboarding, Tenants, and Owners when multi-tenant is enabled.
+  - `superadmin`: 4-Way View Switcher (`Admin`, `Manager View`, `Employee View`, `Owner View`) with bidirectional URL sync and read-only mirror pages. Admin navigation includes KPI Visibility, Device Health, Post-Demo Recaps (`/super-admin/post-demo-recaps`).
 - The store pill (`storeName`, `location`) in Sidebar comes from `useUserStore(s => s.currentStore)` (Zustand).
-- **Header Store & Tenant Selectors**: Store selector dropdown renders for `owner`, `manager`, and `superadmin` when stores exist (`role !== 'employee' && stores.length > 0`). When multi-tenant mode is enabled, the Header also renders the Tenant Switcher dropdown.
+- **Header Store Selector**: Store selector dropdown renders for `owner`, `manager`, and `superadmin` when stores exist (`role !== 'employee' && stores.length > 0`).
 
 ---
 
@@ -149,7 +148,7 @@ import { pythia2Client } from '@/lib/api-client'
 ## API Endpoints (`src/utils/api-endpoints.ts`)
 
 Endpoints registered in `PYTHIA_2_API`:
-- **`auth`**: `login`, `loginTenant`, `refresh`, `forgotPassword`, `resetPassword`, `p1Profile`
+- **`auth`**: `login`, `refresh`, `forgotPassword`, `resetPassword`, `p1Profile`
 - **`dashboard`**: `summary`, `shiftSummaryHighlights`
 - **`demographics`**: `ageDistribution`, `genderDistribution`, `customerSegments`
 - **`benchmarking`**: `allStoreData`, `networkIntelligence`
@@ -218,9 +217,6 @@ Every domain has a dedicated query module exporting pure async functions using `
 4. **`staffingStore.ts`**:
    - Holds `schedule`, `roster`, `heatmap`, `insights`, `recommendations`, `criticalAlert`, `generationStatus`, `pollingRecommendations`, `savingShift`, `publishing`.
    - Actions: `hydrate`, `fetchAll`, `saveShift`, `deleteShift`, `generateSchedule`, `publishSchedule`, `generateRecommendations` (polls async batch jobs), `applyRecommendation`, `applyAllRecommendations`, `dismissRecommendation`.
-5. **`tenantStore.ts`**:
-   - Holds `tenants: Tenant[]`, `currentTenant: Tenant | null`, `loading`, `stats: TenantStats | null`.
-   - Utility: `isMultiTenantEnabled()` checks `NEXT_PUBLIC_ENABLE_MULTI_TENANT === 'true'`.
 
 ---
 
@@ -253,10 +249,6 @@ Every domain has a dedicated query module exporting pure async functions using `
 ### Post-Demo Recaps (Super Admin)
 - Page at `/super-admin/post-demo-recaps` (`PostDemoRecaps.tsx`) backed by `src/queries/recaps.ts`.
 - Manages sending follow-up summary emails after demo sessions (`POST /super-admin/manual-send`, `/super-admin/bulk-trigger`).
-
-### Multi-Tenant Architecture & Onboarding
-- Feature-flagged multi-tenant organization directory and isolation (`NEXT_PUBLIC_ENABLE_MULTI_TENANT`).
-- Onboarding Wizard (`src/components/OnboardingWizard/` at `/super-admin/onboarding`): Multi-step setup for tenant details, stores, edge device pairing, owners, and managers.
 
 ### Video Identities & Unknown Identities
 - Unknown face crop review carousel with pagination, employee assignment modal, soft-trash, and trash restoration.

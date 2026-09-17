@@ -8,7 +8,6 @@ import { loginSchema, type LoginSchema } from '@/schemas/auth'
 import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
 import type { FormField } from '@/types/dynamic-form'
 import { getSafeRedirect } from '@/utils/routes'
-import { isMultiTenantEnabled } from '@/store/tenantStore'
 import type { UserRole } from '@/types/user'
 
 interface LoginFormProps {
@@ -20,7 +19,6 @@ export default function LoginForm({ role }: LoginFormProps) {
   const [isPending, startTransition] = useTransition()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo')
-  const mtEnabled = isMultiTenantEnabled()
 
   const schema = loginSchema
 
@@ -87,15 +85,6 @@ export default function LoginForm({ role }: LoginFormProps) {
               <div className="text-[10px] text-muted mt-px">Scorecard</div>
             </div>
           </div>
-
-          {mtEnabled && (
-            <Link
-              href={redirectTo ? `/login/tenant?redirectTo=${encodeURIComponent(redirectTo)}` : '/login/tenant'}
-              className="text-[11.5px] font-medium text-accent hover:text-accent-mid transition-colors"
-            >
-              Org Login →
-            </Link>
-          )}
         </div>
 
         {/* Heading */}

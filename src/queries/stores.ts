@@ -1,15 +1,5 @@
 import { pythia2Client } from '@/lib/api-client'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
-import {
-  fakeListStores,
-  fakeListDeactivatedStores,
-  fakeDeactivateStore,
-  fakeActivateStore,
-  fakeCreateStore,
-  fakeBulkCreateStores,
-  fakeSimulateHeartbeat,
-  fakeUpdateStore,
-} from '@/mock/tenantAPIs'
 import type { ApiResponseV2, ApiResponseV2Paginated } from '@/types/api'
 import type {
   TenantStore,
@@ -71,8 +61,12 @@ export async function fetchStoresForTenant({
   skip = 0,
   limit = 20,
 }: FetchStoresParams): Promise<ApiResponseV2Paginated<TenantStore[]>> {
-  if (!token || token.includes('mock')) {
-    return fakeListStores({ tenantId, search, status, skip, limit })
+  if (!token) {
+    return {
+      success: true,
+      meta: { total: 0, skip, limit },
+      data: [],
+    }
   }
 
   const isActive = status === 'archived' || status === 'deactivated' ? false : true
@@ -105,10 +99,6 @@ export async function fetchDeactivatedStores({
   skip = 0,
   limit = 20,
 }: FetchStoresParams): Promise<ApiResponseV2Paginated<TenantStore[]>> {
-  if (!token || token.includes('mock')) {
-    return fakeListDeactivatedStores({ tenantId, search, skip, limit })
-  }
-
   return fetchStoresForTenant({
     token,
     tenantId,
@@ -126,18 +116,9 @@ export async function fetchStore({
   token?: string
   storeCode: string
 }): Promise<ApiResponseV2<TenantStore>> {
-  if (!token || token.includes('mock')) {
-    const listRes = await fakeListStores({ search: storeCode, limit: 1 })
-    const found = listRes.data.find((s) => s.id === storeCode || s.storeNo === storeCode)
-    return {
-      success: true,
-      data: found || listRes.data[0],
-    }
-  }
-
   const { data: response } = await pythia2Client.get<ApiResponseV2<any>>(
     PYTHIA_2_API.stores.detail(storeCode),
-    { headers: { Authorization: `Bearer ${token}` } },
+    { headers: token ? { Authorization: `Bearer ${token}` } : undefined },
   )
   return {
     success: true,
@@ -153,14 +134,10 @@ export async function deactivateStore({
   token?: string
   storeId: string
 }): Promise<ApiResponseV2<TenantStore>> {
-  if (!token || token.includes('mock')) {
-    return fakeDeactivateStore(storeId)
-  }
-
   const { data: response } = await pythia2Client.post<ApiResponseV2<any>>(
     PYTHIA_2_API.stores.deactivate(storeId),
     {},
-    { headers: { Authorization: `Bearer ${token}` } },
+    { headers: token ? { Authorization: `Bearer ${token}` } : undefined },
   )
   return {
     success: true,
@@ -180,14 +157,10 @@ export async function activateStore({
   token?: string
   storeId: string
 }): Promise<ApiResponseV2<TenantStore>> {
-  if (!token || token.includes('mock')) {
-    return fakeActivateStore(storeId)
-  }
-
   const { data: response } = await pythia2Client.post<ApiResponseV2<any>>(
     PYTHIA_2_API.stores.activate(storeId),
     {},
-    { headers: { Authorization: `Bearer ${token}` } },
+    { headers: token ? { Authorization: `Bearer ${token}` } : undefined },
   )
   return {
     success: true,
@@ -206,10 +179,6 @@ export async function createStore({
   token?: string
   data: CreateStoreParams
 }): Promise<ApiResponseV2<TenantStore>> {
-  if (!token || token.includes('mock')) {
-    return fakeCreateStore(data)
-  }
-
   const payload: Record<string, any> = {
     store_code: (data.storeNo || '').trim(),
     store_name: (data.name || '').trim(),
@@ -225,7 +194,7 @@ export async function createStore({
   const { data: response } = await pythia2Client.post<ApiResponseV2<any>>(
     PYTHIA_2_API.stores.create,
     payload,
-    { headers: { Authorization: `Bearer ${token}` } },
+    { headers: token ? { Authorization: `Bearer ${token}` } : undefined },
   )
   return {
     success: true,
@@ -235,13 +204,22 @@ export async function createStore({
 }
 
 export async function bulkCreateStores({
-  token: _token,
+  token,
   data,
 }: {
   token?: string
   data: BulkCreateStoresParams
 }): Promise<ApiResponseV2<TenantStore[]>> {
-  return fakeBulkCreateStores(data)
+  const { data: response } = await pythia2Client.post<ApiResponseV2<any>>(
+    PYTHIA_2_API.stores.bulkCreate,
+    data,
+    { headers: token ? { Authorization: `Bearer ${token}` } : undefined },
+  )
+  return {
+    success: true,
+    data: (response.data || []).map((s: any) => mapApiStoreToTenantStore(s)),
+    message: response.message,
+  }
 }
 
 export async function simulateStoreHeartbeat({
@@ -251,7 +229,7 @@ export async function simulateStoreHeartbeat({
   token?: string
   storeId: string
 }): Promise<ApiResponseV2<TenantStore>> {
-  if (token && !token.includes('mock')) {
+  if (token) {
     return updateStore({
       token,
       storeId,
@@ -262,7 +240,26 @@ export async function simulateStoreHeartbeat({
       } as any,
     })
   }
-  return fakeSimulateHeartbeat(storeId)
+  return {
+    success: true,
+    data: {
+      _id: storeId,
+      id: storeId,
+      tenantId: '',
+      storeNo: storeId,
+      name: `Store ${storeId}`,
+      location: 'Local',
+      district: 'Central',
+      fullAddress: '',
+      pairingCode: '',
+      timezone: 'America/New_York',
+      status: 'live',
+      is_active: true,
+      lastHeartbeat: new Date().toISOString(),
+      nodesOnline: 2,
+      createdAt: new Date().toISOString(),
+    },
+  }
 }
 
 export async function updateStore({
@@ -274,9 +271,6 @@ export async function updateStore({
   storeId: string
   updates: Partial<TenantStore> & Record<string, any>
 }): Promise<ApiResponseV2<TenantStore>> {
-  if (!token || token.includes('mock')) {
-    return fakeUpdateStore(storeId, updates)
-  }
 
   const payload: any = {}
   if (updates.name !== undefined) payload.store_name = String(updates.name).trim()

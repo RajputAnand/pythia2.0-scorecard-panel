@@ -9,7 +9,6 @@ import type { User, UserRole } from "@/types/user";
 import { useUserStore } from "@/store/userStore";
 import { useSwagStore } from "@/store/swagStore";
 import { useAdminConfigStore } from "@/store/adminConfigStore";
-import { isMultiTenantEnabled } from "@/store/tenantStore";
 import { PAGE_ID_BY_HREF } from "@/lib/admin-config-data";
 
 type NavItem = {
@@ -62,93 +61,7 @@ const EMPLOYEE_NAV: NavSection[] = [
   },
 ];
 
-function getOwnerNav(mtEnabled: boolean): NavSection[] {
-  if (mtEnabled) {
-    return [
-      {
-        section: "Owner Tools",
-        items: [
-          {
-            label: "Stores",
-            href: "/owner/stores",
-            icon: (
-              <svg
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-            ),
-          },
-          {
-            label: "Managers",
-            href: "/owner/managers",
-            icon: (
-              <svg
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="12" cy="8" r="4" />
-                <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-              </svg>
-            ),
-          },
-          {
-            label: "Employees",
-            href: "/owner/employees",
-            icon: (
-              <svg
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="12" cy="8" r="4" />
-                <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-              </svg>
-            ),
-          },
-          {
-            label: "Co-Owners",
-            href: "/owner/owners",
-            icon: (
-              <svg
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-            ),
-          },
-          {
-            label: "Swag Store",
-            href: "/owner/swag-store",
-            icon: (
-              <svg
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-            ),
-          },
-        ],
-      },
-    ];
-  }
-
+function getOwnerNav(): NavSection[] {
   return [
     {
       section: "Owner Tools",
@@ -264,60 +177,7 @@ function getOwnerNav(mtEnabled: boolean): NavSection[] {
   ];
 }
 
-function getManagerNav(mtEnabled: boolean): NavSection[] {
-  if (mtEnabled) {
-    return [
-      {
-        section: "Manager Tools",
-        items: [
-          {
-            label: "Employees",
-            href: "/manager/employees",
-            icon: (
-              <svg
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="12" cy="8" r="4" />
-                <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-              </svg>
-            ),
-          },
-          {
-            label: "Orders",
-            href: "/manager/orders",
-            icon: (
-              <svg
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-            ),
-          },
-          {
-            label: "Swag Store",
-            href: "/manager/swag-store",
-            icon: (
-              <svg
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-            ),
-          },
-        ],
-      },
-    ];
-  }
-
+function getManagerNav(): NavSection[] {
   return [
     {
       section: "Navigate",
@@ -454,229 +314,7 @@ function getManagerNav(mtEnabled: boolean): NavSection[] {
   ];
 }
 
-function getSuperAdminNavByView(
-  mtEnabled: boolean,
-): Record<SuperAdminView, NavSection[]> {
-  if (mtEnabled) {
-    return {
-      admin: [
-        {
-          section: "Super Admin",
-          items: [
-            {
-              label: "Tenants",
-              href: "/super-admin/tenants",
-              icon: (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              ),
-            },
-            {
-              label: "Onboarding",
-              href: "/super-admin/onboarding",
-              icon: (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              ),
-            },
-            {
-              label: "Owners",
-              href: "/super-admin/owners",
-              icon: (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-                </svg>
-              ),
-            },
-          ],
-        },
-      ],
-      manager: [
-        {
-          section: "Manager View",
-          items: [
-            {
-              label: "Employees",
-              href: "/super-admin/manager/employees",
-              icon: (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-                </svg>
-              ),
-            },
-            {
-              label: "Orders",
-              href: "/super-admin/manager/orders",
-              mirrorsHref: "/manager/orders",
-              icon: (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-              ),
-            },
-            {
-              label: "Swag Store",
-              href: "/super-admin/manager/swag-store",
-              mirrorsHref: "/manager/swag-store",
-              icon: (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-              ),
-            },
-          ],
-        },
-      ],
-      employee: [
-        {
-          section: "Employee View",
-          items: [
-            {
-              label: "Overview",
-              href: "/super-admin/employee/overview",
-              mirrorsHref: "/dashboard/overview",
-              icon: (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <rect x="3" y="3" width="7" height="7" rx="1" />
-                  <rect x="14" y="3" width="7" height="7" rx="1" />
-                  <rect x="3" y="14" width="7" height="7" rx="1" />
-                  <rect x="14" y="14" width="7" height="7" rx="1" />
-                </svg>
-              ),
-            },
-            {
-              label: "Swag Store",
-              href: "/super-admin/employee/swag",
-              mirrorsHref: "/dashboard/swag",
-              icon: (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-              ),
-            },
-          ],
-        },
-      ],
-      owner: [
-        {
-          section: "Owner View",
-          items: [
-            {
-              label: "Stores",
-              href: "/super-admin/owner/stores",
-              mirrorsHref: "/owner/stores",
-              icon: (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                  <polyline points="9 22 9 12 15 12 15 22" />
-                </svg>
-              ),
-            },
-            {
-              label: "Managers",
-              href: "/super-admin/owner/managers",
-              mirrorsHref: "/owner/managers",
-              icon: (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-                </svg>
-              ),
-            },
-            {
-              label: "Employees",
-              href: "/super-admin/owner/employees",
-              mirrorsHref: "/owner/employees",
-              icon: (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-                </svg>
-              ),
-            },
-            {
-              label: "Swag Store",
-              href: "/super-admin/owner/swag-store",
-              mirrorsHref: "/owner/swag-store",
-              icon: (
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-              ),
-            },
-          ],
-        },
-      ],
-    };
-  }
-
+function getSuperAdminNavByView(): Record<SuperAdminView, NavSection[]> {
   return {
     admin: [
       {
@@ -1019,24 +657,20 @@ function getSuperAdminNavByView(
 }
 
 function getViewDefaultRoutes(): Record<UserRole, string> {
-  const mt = isMultiTenantEnabled();
   return {
-    owner: mt ? "/owner/stores" : "/owner/managers",
-    manager: mt ? "/manager/employees" : "/manager/coaching-tracker",
+    owner: "/owner/managers",
+    manager: "/manager/coaching-tracker",
     employee: "/dashboard/overview",
-    superadmin: mt ? "/super-admin/tenants" : "/super-admin/kpi-visibility",
+    superadmin: "/super-admin/kpi-visibility",
   };
 }
 
 function getSuperAdminViewDefaultRoutes(): Record<SuperAdminView, string> {
-  const mt = isMultiTenantEnabled();
   return {
-    admin: mt ? "/super-admin/tenants" : "/super-admin/kpi-visibility",
-    manager: mt
-      ? "/super-admin/manager/employees"
-      : "/super-admin/manager/dashboard",
+    admin: "/super-admin/kpi-visibility",
+    manager: "/super-admin/manager/dashboard",
     employee: "/super-admin/employee/overview",
-    owner: mt ? "/super-admin/owner/stores" : "/super-admin/owner/managers",
+    owner: "/super-admin/owner/managers",
   };
 }
 
@@ -1117,7 +751,6 @@ function superAdminViewFromPath(pathname: string): SuperAdminView {
 export default function Sidebar({ user }: { user: User }) {
   const pathname = usePathname();
   const router = useRouter();
-  const mtEnabled = isMultiTenantEnabled();
 
   const [activeView, setActiveView] = useState<UserRole>(() => {
     if (user.role !== "owner") return user.role;
@@ -1162,9 +795,9 @@ export default function Sidebar({ user }: { user: User }) {
   }, [user.id, user.points, setPoints]);
 
   useEffect(() => {
-    if (!user.token || mtEnabled) return;
+    if (!user.token) return;
     fetchPageVisibility(user.token);
-  }, [fetchPageVisibility, user.token, mtEnabled]);
+  }, [fetchPageVisibility, user.token]);
 
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (pathname !== prevPathname) {
@@ -1175,13 +808,13 @@ export default function Sidebar({ user }: { user: User }) {
 
   const roleSections =
     user.role === "superadmin"
-      ? getSuperAdminNavByView(mtEnabled)[superAdminView]
+      ? getSuperAdminNavByView()[superAdminView]
       : user.role === "owner"
         ? activeView === "manager"
-          ? getManagerNav(mtEnabled)
-          : getOwnerNav(mtEnabled)
+          ? getManagerNav()
+          : getOwnerNav()
         : user.role === "manager"
-          ? getManagerNav(mtEnabled)
+          ? getManagerNav()
           : EMPLOYEE_NAV;
 
   const navSections = roleSections
@@ -1253,7 +886,7 @@ export default function Sidebar({ user }: { user: User }) {
         <div>
           <div className="text-[13.5px] font-semibold">Pythia</div>
           <div className="text-[10px] text-muted mt-px">
-            {mtEnabled ? user.tenantName || "Tenant Workspace" : "Scorecard"}
+            Scorecard
           </div>
         </div>
       </div>

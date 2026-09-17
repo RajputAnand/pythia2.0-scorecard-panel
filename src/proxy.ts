@@ -9,24 +9,10 @@ const PAGE_HREF_TO_FIELD_ID: Record<string, string> = Object.fromEntries(
   PAGE_REGISTRY.map((entry) => [entry.pageHref, entry.id])
 )
 
-const MULTI_TENANT_ROUTES = [
-  '/login/tenant',
-  '/super-admin/onboarding',
-  '/super-admin/tenants',
-  '/super-admin/owners',
-]
-
-function isMultiTenantFeatureEnabled(): boolean {
-  return (
-    process.env.NEXT_PUBLIC_ENABLE_MULTI_TENANT === 'true' ||
-    process.env.NEXT_PUBLIC_ENABLE_MULTI_TENANT === '1'
-  )
-}
-
 async function isPageHiddenByAdmin(pathname: string, token: string): Promise<boolean> {
   const fieldId = PAGE_HREF_TO_FIELD_ID[pathname]
   const apiBase = process.env.NEXT_PUBLIC_PYTHIA_2_API_URL
-  if (!fieldId || !apiBase || token.includes('mock')) return false
+  if (!fieldId || !apiBase) return false
 
   try {
     const res = await fetch(new URL('/super-admin/field-config', apiBase), {
@@ -43,17 +29,6 @@ async function isPageHiddenByAdmin(pathname: string, token: string): Promise<boo
 export const proxy = auth(async (req) => {
   const { pathname } = req.nextUrl
   const session = req.auth
-  const isMtEnabled = isMultiTenantFeatureEnabled()
-
-  // Guard multi-tenant routes when feature flag is disabled
-  if (!isMtEnabled && MULTI_TENANT_ROUTES.some((route) => pathname.startsWith(route))) {
-    if (!session?.user) {
-      return NextResponse.redirect(new URL('/login', req.url))
-    }
-    const userRole = session.user.role as UserRole
-    const defaultRoute = (userRole && ROLE_DEFAULT_ROUTES[userRole]) || '/dashboard/overview'
-    return NextResponse.redirect(new URL(defaultRoute, req.url))
-  }
 
   // Unauthenticated: allow public auth routes, redirect everything else to /login
   if (!session?.user) {
@@ -63,22 +38,19 @@ export const proxy = auth(async (req) => {
       pathname === '/login/manager' ||
       pathname === '/login/owner' ||
       pathname === '/login/superadmin' ||
-      pathname.startsWith('/login/tenant') ||
       pathname === '/forgot-password' ||
       pathname === '/reset-password'
     ) {
       return NextResponse.next()
     }
 
-    const fallbackLogin = isMtEnabled ? '/login/tenant' : '/login'
-    const loginUrl = new URL(fallbackLogin, req.url)
+    const loginUrl = new URL('/login', req.url)
     loginUrl.searchParams.set('redirectTo', pathname + req.nextUrl.search)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Authenticated: allow password reset and tenant login (for switching orgs)
+  // Authenticated: allow password reset
   if (
-    pathname.startsWith('/login/tenant') ||
     pathname === '/forgot-password' ||
     pathname === '/reset-password'
   ) {
