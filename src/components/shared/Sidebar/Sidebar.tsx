@@ -82,38 +82,8 @@ function getOwnerNav(): NavSection[] {
           ),
         },
         {
-          label: "Managers",
-          href: "/owner/managers",
-          icon: (
-            <svg
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="12" cy="8" r="4" />
-              <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-            </svg>
-          ),
-        },
-        {
-          label: "Employees",
-          href: "/owner/employees",
-          icon: (
-            <svg
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="12" cy="8" r="4" />
-              <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-            </svg>
-          ),
-        },
-        {
-          label: "Co-Owners",
-          href: "/owner/owners",
+          label: "Users",
+          href: "/owner/users",
           icon: (
             <svg
               fill="none"
@@ -572,9 +542,9 @@ function getSuperAdminNavByView(): Record<SuperAdminView, NavSection[]> {
             ),
           },
           {
-            label: "Managers",
-            href: "/super-admin/owner/managers",
-            mirrorsHref: "/owner/managers",
+            label: "Users",
+            href: "/super-admin/owner/users",
+            mirrorsHref: "/owner/users",
             icon: (
               <svg
                 fill="none"
@@ -582,24 +552,10 @@ function getSuperAdminNavByView(): Record<SuperAdminView, NavSection[]> {
                 strokeWidth="2"
                 viewBox="0 0 24 24"
               >
-                <circle cx="12" cy="8" r="4" />
-                <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-              </svg>
-            ),
-          },
-          {
-            label: "Employees",
-            href: "/super-admin/owner/employees",
-            mirrorsHref: "/owner/employees",
-            icon: (
-              <svg
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="12" cy="8" r="4" />
-                <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
             ),
           },
@@ -658,7 +614,7 @@ function getSuperAdminNavByView(): Record<SuperAdminView, NavSection[]> {
 
 function getViewDefaultRoutes(): Record<UserRole, string> {
   return {
-    owner: "/owner/managers",
+    owner: "/owner/users",
     manager: "/manager/coaching-tracker",
     employee: "/dashboard/overview",
     superadmin: "/super-admin/kpi-visibility",
@@ -670,7 +626,7 @@ function getSuperAdminViewDefaultRoutes(): Record<SuperAdminView, string> {
     admin: "/super-admin/kpi-visibility",
     manager: "/super-admin/manager/dashboard",
     employee: "/super-admin/employee/overview",
-    owner: "/super-admin/owner/managers",
+    owner: "/super-admin/owner/users",
   };
 }
 

@@ -21,21 +21,12 @@ export default async function SuperAdminUnknownIdentitiesPage() {
   const token = session?.user?.pythia2Token
 
   const cookieStore = await cookies()
-  let selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
-
-  if (!selectedStoreId && token) {
-    try {
-      const storesRes = await fetchStoresForTenant({ token, limit: 1 })
-      selectedStoreId = storesRes.data?.[0]?.storeNo || storesRes.data?.[0]?.id || storesRes.data?.[0]?._id
-    } catch {
-      // fallback
-    }
-  }
+  const selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
 
   let initialData: ApiResponseV2Paginated<UnknownIdentity[]> | null = null
   if (token) {
     const [unknownIdentitiesResult] = await Promise.allSettled([
-      fetchUnknownIdentities({ token, skip: 0, limit: 50, storeId: selectedStoreId }),
+      fetchUnknownIdentities({ token, skip: 0, limit: 50, storeId: selectedStoreId || undefined }),
     ])
     if (unknownIdentitiesResult.status === 'rejected') unstable_rethrow(unknownIdentitiesResult.reason)
     if (unknownIdentitiesResult.status === 'fulfilled') initialData = unknownIdentitiesResult.value

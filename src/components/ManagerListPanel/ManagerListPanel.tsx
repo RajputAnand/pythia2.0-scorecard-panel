@@ -17,8 +17,10 @@ import { useUserStore } from '@/store/userStore'
 import DataTable from '@/components/shared/DataTable/DataTable'
 import RevealCredentialsModal from '@/components/RevealCredentialsModal/RevealCredentialsModal'
 import ConfirmArchiveManagerModal from '@/components/ConfirmArchiveManagerModal/ConfirmArchiveManagerModal'
-import CreateManagerModal from '@/components/CreateManagerModal/CreateManagerModal'
+import CreateUserModal from '@/components/CreateUserModal/CreateUserModal'
 import type { ApiManager } from '@/types/manager'
+import type { ApiEmployee } from '@/types/employee'
+import type { OrganizationOwner } from '@/types/organization-owner'
 import type { ApiMeta, ApiResponseV2Paginated } from '@/types/api'
 import type { DataTableColumn } from '@/types/data-table'
 import type { TenantStore } from '@/types/tenant'
@@ -498,7 +500,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
           onClick={() => setIsCreating(true)}
           className="rounded-[8px] bg-accent px-4 py-[9px] text-[12.5px] font-semibold text-white hover:bg-accent-mid transition-colors cursor-pointer"
         >
-          + New Manager
+          + Add User
         </button>
       </div>
 
@@ -553,12 +555,25 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
       )}
 
       {isCreating && token && (
-        <CreateManagerModal
+        <CreateUserModal
           token={token}
           tenantId={tenantId}
           stores={storeOptions}
+          initialRole="manager"
+          allowedRoles={['employee', 'manager', 'owner']}
           onClose={() => setIsCreating(false)}
-          onCreated={handleCreated}
+          onCreated={(createdRole, user) => {
+            setIsCreating(false)
+            if (createdRole === 'manager') {
+              handleCreated(user as ApiManager)
+            } else if (createdRole === 'employee') {
+              const emp = user as ApiEmployee
+              showToast(`Employee ${getEmployeeName(emp)} created successfully. You can view them in the Employees tab.`)
+            } else if (createdRole === 'owner') {
+              const own = user as OrganizationOwner
+              showToast(`Co-Owner ${own.first_name} ${own.last_name} created successfully. You can view them in the Co-Owners tab.`)
+            }
+          }}
         />
       )}
 

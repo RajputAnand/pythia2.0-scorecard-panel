@@ -9,10 +9,12 @@ import {
   toggleSubOwnerSubscriptionPermission,
 } from '@/queries/organization-owners'
 import { useToast } from '@/context/ToastContext'
-import { extractApiErrorMessage } from '@/utils/common'
-import CreateSubOwnerModal from '@/components/CreateSubOwnerModal/CreateSubOwnerModal'
+import { extractApiErrorMessage, getEmployeeName } from '@/utils/common'
+import CreateUserModal from '@/components/CreateUserModal/CreateUserModal'
 import RevealCredentialsModal from '@/components/RevealCredentialsModal/RevealCredentialsModal'
 import type { OrganizationOwner } from '@/types/organization-owner'
+import type { ApiEmployee } from '@/types/employee'
+import type { ApiManager } from '@/types/manager'
 
 interface OwnerManagementPanelProps {
   initialData?: OrganizationOwner[]
@@ -75,12 +77,13 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
   }, [owners, statusFilter, search])
 
   const canCurrentUserManageSub = useMemo(() => {
+    if (session?.user?.role === 'superadmin') return true
     const me = owners.find((o) => o.user_id === currentUserId)
     if (me) {
       return Boolean(me.is_root_owner || me.can_manage_subscription)
     }
     return Boolean(session?.user?.can_manage_subscription || session?.user?.is_root_owner)
-  }, [owners, currentUserId, session?.user?.can_manage_subscription, session?.user?.is_root_owner])
+  }, [session?.user?.role, owners, currentUserId, session?.user?.can_manage_subscription, session?.user?.is_root_owner])
 
   const isCurrentUserRoot = useMemo(() => {
     const me = owners.find((o) => o.user_id === currentUserId)
@@ -207,7 +210,7 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
           </div>
         </div>
 
-        {/* Create Co-Owner Button */}
+        {/* Create User Button */}
         <button
           type="button"
           onClick={() => setIsCreating(true)}
@@ -217,7 +220,7 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Add Co-Owner
+          Add User
         </button>
       </div>
 
@@ -390,11 +393,25 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
 
       {/* Modals */}
       {isCreating && (
-        <CreateSubOwnerModal
+        <CreateUserModal
           token={token}
           canManageSubscriptionAllowed={canCurrentUserManageSub}
+          initialRole="owner"
+          allowedRoles={['employee', 'manager', 'owner']}
+          tenantId={session?.user?.tenantId}
           onClose={() => setIsCreating(false)}
-          onCreated={handleOwnerCreated}
+          onCreated={(createdRole, user) => {
+            setIsCreating(false)
+            if (createdRole === 'owner') {
+              handleOwnerCreated(user as OrganizationOwner)
+            } else if (createdRole === 'employee') {
+              const emp = user as ApiEmployee
+              showToast(`Employee ${getEmployeeName(emp)} created successfully. You can view them in the Employees tab.`)
+            } else if (createdRole === 'manager') {
+              const mgr = user as ApiManager
+              showToast(`Manager ${mgr.first_name} ${mgr.last_name} created successfully. You can view them in the Managers tab.`)
+            }
+          }}
         />
       )}
 

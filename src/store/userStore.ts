@@ -24,8 +24,8 @@ interface UserStoreState {
 
   /** Called when the stores query resolves — fully replaces the stores list */
   setStores: (stores: Store[]) => void
-  /** User picks a different store from the header dropdown */
-  setCurrentStore: (store: Store) => void
+  /** User picks a different store from the header dropdown, or null for All Stores */
+  setCurrentStore: (store: Store | null) => void
   /** Called when weeklyStats resolves — stores the employee's current score */
   setCurrentScore: (score: number) => void
   /** Seed from session on Sidebar mount; decremented by swag redemptions */
@@ -45,7 +45,8 @@ export const useUserStore = create<UserStoreState>()(
           const stillValid =
             state.currentStore &&
             stores.some((s) => (s.storeNo || s._id) === (state.currentStore?.storeNo || state.currentStore?._id))
-          const newCurrentStore = stillValid ? state.currentStore : (stores[0] ?? null)
+          // If currentStore was explicitly null (All Stores), preserve null
+          const newCurrentStore = state.currentStore === null ? null : (stillValid ? state.currentStore : (stores[0] ?? null))
           syncStoreCookie(newCurrentStore?.storeNo || newCurrentStore?._id)
           return { stores, currentStore: newCurrentStore }
         })

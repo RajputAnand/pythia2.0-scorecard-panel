@@ -16,8 +16,10 @@ import { useToast } from '@/context/ToastContext'
 import DataTable from '@/components/shared/DataTable/DataTable'
 import RevealCredentialsModal from '@/components/RevealCredentialsModal/RevealCredentialsModal'
 import ConfirmArchiveEmployeeModal from '@/components/ConfirmArchiveEmployeeModal/ConfirmArchiveEmployeeModal'
-import CreateEmployeeModal from '@/components/CreateEmployeeModal/CreateEmployeeModal'
+import CreateUserModal from '@/components/CreateUserModal/CreateUserModal'
 import type { ApiEmployee } from '@/types/employee'
+import type { ApiManager } from '@/types/manager'
+import type { OrganizationOwner } from '@/types/organization-owner'
 import type { ApiMeta, ApiResponseV2Paginated } from '@/types/api'
 import type { DataTableColumn } from '@/types/data-table'
 
@@ -99,6 +101,9 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
   const { showToast } = useToast()
   const currentStore = useUserStore((s) => s.currentStore)
   const currentStoreId = currentStore?.storeNo || currentStore?._id
+
+  const userRole = session?.user?.role
+  const isOwnerOrAdmin = userRole === 'owner' || userRole === 'superadmin'
 
   const [view, setView] = useState<'active' | 'archived'>('active')
   const [isCreating, setIsCreating] = useState(false)
@@ -480,7 +485,7 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            Add Employee
+            {isOwnerOrAdmin ? 'Add User' : 'Add Employee'}
           </button>
         )}
       </div>
@@ -559,15 +564,27 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
       )}
 
       {isCreating && (
-        <CreateEmployeeModal
+        <CreateUserModal
           token={token || 'mock-token'}
           storeId={currentStoreId}
+          initialRole="employee"
+          allowedRoles={isOwnerOrAdmin ? ['employee', 'manager', 'owner'] : ['employee']}
+          tenantId={session?.user?.tenantId}
           onClose={() => setIsCreating(false)}
-          onCreated={(newEmployee) => {
-            setEmployees((prev) => [newEmployee, ...prev.filter((e) => e.user_id !== newEmployee.user_id)])
-            setMeta((prev) => (prev ? { ...prev, total: prev.total + 1 } : undefined))
+          onCreated={(createdRole, user) => {
             setIsCreating(false)
-            showToast(`Employee ${getEmployeeName(newEmployee)} created successfully.`)
+            if (createdRole === 'employee') {
+              const newEmployee = user as ApiEmployee
+              setEmployees((prev) => [newEmployee, ...prev.filter((e) => e.user_id !== newEmployee.user_id)])
+              setMeta((prev) => (prev ? { ...prev, total: prev.total + 1 } : undefined))
+              showToast(`Employee ${getEmployeeName(newEmployee)} created successfully.`)
+            } else if (createdRole === 'manager') {
+              const mgr = user as ApiManager
+              showToast(`Manager ${mgr.first_name} ${mgr.last_name} created successfully. You can view them in the Managers tab.`)
+            } else if (createdRole === 'owner') {
+              const own = user as OrganizationOwner
+              showToast(`Co-Owner ${own.first_name} ${own.last_name} created successfully. You can view them in the Co-Owners tab.`)
+            }
           }}
         />
       )}

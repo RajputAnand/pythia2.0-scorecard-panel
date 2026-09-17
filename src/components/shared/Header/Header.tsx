@@ -136,6 +136,9 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
             __v: 0,
           }))
           useUserStore.getState().setStores(userStores)
+          if (role === 'manager' && !useUserStore.getState().currentStore && userStores[0]) {
+            useUserStore.getState().setCurrentStore(userStores[0])
+          }
         } else if (res.data && res.data.length === 0) {
           useUserStore.getState().setStores([])
         }
@@ -215,7 +218,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
               </svg>
 
               <span className="max-w-[160px] overflow-hidden text-ellipsis">
-                {currentStore?.name ?? 'Select store'}
+                {currentStore?.name ?? (role === 'superadmin' || role === 'owner' ? 'All Stores' : 'Select store')}
               </span>
 
               <svg
@@ -232,15 +235,40 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
               <ul
                 role="listbox"
                 aria-label="Select store"
-                className="absolute top-[calc(100%+6px)] right-0 min-w-[220px] bg-surface border border-border rounded-[10px] p-[4px] shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] list-none m-0 z-50"
+                className="absolute top-[calc(100%+6px)] right-0 min-w-[220px] max-h-[360px] overflow-y-auto bg-surface border border-border rounded-[10px] p-[4px] shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] list-none m-0 z-50"
               >
+                {(role === 'superadmin' || role === 'owner') && (
+                  <li
+                    role="option"
+                    aria-selected={!currentStore}
+                    className={`flex items-center gap-2 rounded-md cursor-pointer transition-colors duration-100 px-[10px] py-[9px] ${!currentStore ? 'bg-accent-light' : 'hover:bg-surface-alt'}`}
+                    onClick={() => {
+                      setCurrentStore(null)
+                      setOpen(false)
+                      router.refresh()
+                    }}
+                  >
+                    <span className={`font-sans font-medium text-[13px] flex-1 whitespace-nowrap overflow-hidden text-ellipsis ${!currentStore ? 'text-accent font-semibold' : 'text-primary'}`}>
+                      All Stores
+                    </span>
+                    <span className="font-sans text-secondary text-[11px] whitespace-nowrap shrink-0">
+                      Global
+                    </span>
+                    {!currentStore && (
+                      <svg className="w-[12px] h-[12px] shrink-0 text-accent ml-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </li>
+                )}
+
                 {stores.map((store) => {
-                  const active = store._id === currentStore?._id
+                  const active = currentStore && ((store._id && store._id === currentStore._id) || (store.storeNo && store.storeNo === currentStore.storeNo))
                   return (
                     <li
-                      key={store._id}
+                      key={store._id || store.storeNo}
                       role="option"
-                      aria-selected={active}
+                      aria-selected={Boolean(active)}
                       className={`flex items-center gap-2 rounded-md cursor-pointer transition-colors duration-100 px-[10px] py-[9px] ${active ? 'bg-accent-light' : 'hover:bg-surface-alt'}`}
                       onClick={() => {
                         setCurrentStore(store)
@@ -248,7 +276,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                         router.refresh()
                       }}
                     >
-                      <span className={`font-sans font-medium text-[13px] flex-1 whitespace-nowrap overflow-hidden text-ellipsis ${active ? 'text-accent' : 'text-primary'}`}>
+                      <span className={`font-sans font-medium text-[13px] flex-1 whitespace-nowrap overflow-hidden text-ellipsis ${active ? 'text-accent font-semibold' : 'text-primary'}`}>
                         {store.name}
                       </span>
                       <span className="font-sans text-secondary text-[11px] whitespace-nowrap shrink-0">
