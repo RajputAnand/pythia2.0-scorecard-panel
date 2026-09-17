@@ -16,12 +16,12 @@ export const ROLE_DEFAULT_ROUTES: Record<UserRole, string> = {
   superadmin: isMtEnabled() ? '/super-admin/tenants' : '/super-admin/kpi-visibility',
 }
 
-/** Each role's dedicated login page (see proxy.ts's unauthenticated redirect rules). */
+/** Unified login page for all roles. */
 export const ROLE_LOGIN_ROUTES: Record<UserRole, string> = {
-  employee: isMtEnabled() ? '/login/tenant' : '/login/employee',
-  owner: isMtEnabled() ? '/login/tenant' : '/login/owner',
-  manager: isMtEnabled() ? '/login/tenant' : '/login/manager',
-  superadmin: isMtEnabled() ? '/login/tenant' : '/login/superadmin',
+  employee: isMtEnabled() ? '/login/tenant' : '/login',
+  owner: isMtEnabled() ? '/login/tenant' : '/login',
+  manager: isMtEnabled() ? '/login/tenant' : '/login',
+  superadmin: isMtEnabled() ? '/login/tenant' : '/login',
 }
 
 /** Allowed route prefixes per role. */

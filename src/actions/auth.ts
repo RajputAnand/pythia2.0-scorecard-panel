@@ -84,42 +84,42 @@ async function loginViaP1(identifier: string, password: string, expectedRole: st
   }
 }
 
-// Returns null on success, error string on failure.
+export interface LoginActionResult {
+  success: boolean
+  role?: UserRole
+  error?: string
+}
+
+// Returns { success: true, role } on success, or { success: false, error } on failure.
 // Using redirect: false so the session cookie is fully set before the client navigates.
-// Role is required and is validated server-side against the account's actual role —
-// on mismatch the API returns a 401 with a message naming the correct login tab to use.
-export async function login(_prev: string | null | undefined, formData: FormData): Promise<string | null> {
+// Single login for all roles: role is determined from the login response.
+export async function login(_prev: string | null | undefined | unknown, formData: FormData): Promise<LoginActionResult> {
   try {
     const identifier = formData.get('email') as string
     const password = formData.get('password') as string
-    const requiredRole = formData.get('role') as string
+    const requestedRole = (formData.get('role') as string) || undefined
 
-    if (!requiredRole) {
-      return 'Invalid role.'
+    if (!identifier || !password) {
+      return { success: false, error: 'Email/User ID and password are required.' }
     }
-
-    // TEMPORARY: Manager/Owner auth is normally fully on Pythia 1.0 (see loginViaP1's
-    // docstring) — this bypass routes them through the Pythia 2.0 login below instead.
-    // Revert by restoring the two lines below.
-    // if (requiredRole === 'manager' || requiredRole === 'owner') {
-    //   return loginViaP1(identifier, password, requiredRole)
-    // }
 
     let result: LoginResponse
     try {
-      const payload = {
+      const payload: { userid_email_or_mobile: string; password: string; role?: string } = {
         userid_email_or_mobile: identifier,
         password,
-        role: requiredRole,
+      }
+      if (requestedRole) {
+        payload.role = requestedRole
       }
       const { data } = await pythia2Client.post<LoginResponse>(PYTHIA_2_API.auth.login, payload)
       result = data
     } catch (err: any) {
-      return extractApiErrorMessage(err, 'Unable to connect to the login server. Please try again later.')
+      return { success: false, error: extractApiErrorMessage(err, 'Unable to connect to the login server. Please try again later.') }
     }
 
     if (!result.success) {
-      return 'Invalid email, user ID, or password.'
+      return { success: false, error: 'Invalid email, user ID, or password.' }
     }
 
     const apiUser = result.user
@@ -155,10 +155,10 @@ export async function login(_prev: string | null | undefined, formData: FormData
       }),
       redirect: false,
     })
-    return null
+    return { success: true, role: roleSlug }
   } catch (error) {
     if (error instanceof AuthError) {
-      return 'Invalid email, user ID, or password.'
+      return { success: false, error: 'Invalid email, user ID, or password.' }
     }
     throw error
   }
@@ -228,16 +228,8 @@ export async function loginTenant(_prev: string | null | undefined, formData: Fo
   }
 }
 
-export async function logout(user: User) {
-  let loginPage = '/login/employee'
-  if (user.role === 'owner') {
-    loginPage = '/login/owner'
-  } else if (user.role === 'manager') {
-    loginPage = '/login/manager'
-  } else if (user.role === 'superadmin') {
-    loginPage = '/login/superadmin'
-  }
-  await signOut({ redirectTo: loginPage })
+export async function logout(_user?: User) {
+  await signOut({ redirectTo: '/login' })
 }
 
 // Always returns success (anti-enumeration by design) unless the request itself fails.

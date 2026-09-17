@@ -252,7 +252,7 @@ export default function TenantLoginForm() {
         <div className="mt-6 pt-5 border-t border-border flex items-center justify-between text-[11.5px] text-muted">
           <span>Looking for single-tenant login?</span>
           <Link
-            href="/login/employee"
+            href="/login"
             className="text-accent hover:text-accent-mid font-medium transition-colors"
           >
             Direct Login →

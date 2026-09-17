@@ -4,37 +4,15 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { login } from '@/actions/auth'
-import { loginSchema, employeeLoginSchema, type LoginSchema } from '@/schemas/auth'
+import { loginSchema, type LoginSchema } from '@/schemas/auth'
 import DynamicForm from '@/components/shared/DynamicForm/DynamicForm'
 import type { FormField } from '@/types/dynamic-form'
 import { getSafeRedirect } from '@/utils/routes'
 import { isMultiTenantEnabled } from '@/store/tenantStore'
+import type { UserRole } from '@/types/user'
 
 interface LoginFormProps {
-  role: 'employee' | 'manager' | 'owner' | 'superadmin'
-}
-
-const roleConfig = {
-  employee: {
-    title: 'Employee Login',
-    description: 'Sign in as an employee to access your dashboard',
-    color: 'from-blue-500 to-blue-600',
-  },
-  manager: {
-    title: 'Manager Login',
-    description: 'Sign in as a manager to access coaching tools',
-    color: 'from-purple-500 to-purple-600',
-  },
-  owner: {
-    title: 'Owner Login',
-    description: 'Sign in as an owner to access business insights',
-    color: 'from-green-500 to-green-600',
-  },
-  superadmin: {
-    title: 'Super Admin Login',
-    description: 'Sign in to manage KPI and graph visibility app-wide',
-    color: 'from-slate-700 to-slate-900',
-  },
+  role?: UserRole
 }
 
 export default function LoginForm({ role }: LoginFormProps) {
@@ -44,7 +22,6 @@ export default function LoginForm({ role }: LoginFormProps) {
   const redirectTo = searchParams.get('redirectTo')
   const mtEnabled = isMultiTenantEnabled()
 
-  const config = roleConfig[role]
   const schema = loginSchema
 
   // Field config for DynamicForm
@@ -53,7 +30,7 @@ export default function LoginForm({ role }: LoginFormProps) {
       id: 'email',
       type: 'text',
       label: 'Email or User ID',
-      placeholder: role === 'employee' ? 'EMP-101 or you@company.com' : 'you@company.com or user ID',
+      placeholder: 'you@company.com or user ID',
     },
     {
       id: 'password',
@@ -78,15 +55,17 @@ export default function LoginForm({ role }: LoginFormProps) {
     const formData = new FormData()
     formData.set('email', values.email)
     formData.set('password', values.password)
-    formData.set('role', role)
+    if (role) {
+      formData.set('role', role)
+    }
 
     startTransition(async () => {
       const result = await login(undefined, formData)
 
-      if (result === null) {
-        window.location.href = getSafeRedirect(redirectTo, role)
-      } else if (typeof result === 'string') {
-        setServerError(result)
+      if (result.success && result.role) {
+        window.location.href = getSafeRedirect(redirectTo, result.role)
+      } else if (result.error) {
+        setServerError(result.error)
       }
     })
   }
@@ -94,27 +73,19 @@ export default function LoginForm({ role }: LoginFormProps) {
   return (
     <div className="w-full max-w-[420px]">
       <div className="bg-surface border border-border rounded-2xl shadow-sm px-8 py-9">
-        {/* Logo */}
-        <div className="flex items-center gap-[10px] mb-7">
-          <div className="flex items-center justify-center shrink-0 rounded-[9px] bg-primary w-8 h-8">
-            <svg width="17" height="17" fill="white" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="4" />
-              <path stroke="white" strokeWidth="1.5" d="M12 2v3M12 19v3M2 12h3M19 12h3" fill="none" />
-            </svg>
-          </div>
-          <div>
-            <div className="text-[13.5px] font-semibold">Pythia</div>
-            <div className="text-[10px] text-muted mt-px">Scorecard</div>
-          </div>
-        </div>
-
-        {/* Role Badge & Optional Multi-Tenant Switcher */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-alt border border-border rounded-full">
-            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${config.color}`} />
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-secondary">
-              {role} Mode
-            </span>
+        {/* Logo & Multi-Tenant Link */}
+        <div className="flex items-center justify-between mb-7">
+          <div className="flex items-center gap-[10px]">
+            <div className="flex items-center justify-center shrink-0 rounded-[9px] bg-primary w-8 h-8">
+              <svg width="17" height="17" fill="white" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="4" />
+                <path stroke="white" strokeWidth="1.5" d="M12 2v3M12 19v3M2 12h3M19 12h3" fill="none" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-[13.5px] font-semibold">Pythia</div>
+              <div className="text-[10px] text-muted mt-px">Scorecard</div>
+            </div>
           </div>
 
           {mtEnabled && (
@@ -129,8 +100,8 @@ export default function LoginForm({ role }: LoginFormProps) {
 
         {/* Heading */}
         <div className="mb-6">
-          <h1 className="text-[20px] font-semibold text-primary leading-tight">{config.title}</h1>
-          <p className="text-secondary text-[13px] mt-1">{config.description}</p>
+          <h1 className="text-[20px] font-semibold text-primary leading-tight">Sign In</h1>
+          <p className="text-secondary text-[13px] mt-1">Enter your credentials to access your dashboard</p>
         </div>
 
         {/* Form — all state lives inside DynamicForm */}
@@ -138,30 +109,10 @@ export default function LoginForm({ role }: LoginFormProps) {
           fields={fields}
           zodSchema={schema}
           onSubmit={handleSubmit}
-          submitLabel={`Sign in as ${role}`}
+          submitLabel="Sign In"
           loading={isPending}
           serverError={serverError}
         />
-
-        {/* Switch Role Links */}
-        <div className="mt-6 pt-6 border-t border-border">
-          <p className="text-[12px] text-secondary text-center mb-3">Want to log in as a different role?</p>
-          <div className="flex gap-2">
-            {(['employee', 'manager', 'owner', 'superadmin'] as const).map((r) => (
-              <Link
-                key={r}
-                href={redirectTo ? `/login/${r}?redirectTo=${encodeURIComponent(redirectTo)}` : `/login/${r}`}
-                className={`flex-1 px-2 py-2 text-[11px] font-semibold rounded-lg border transition-colors text-center capitalize ${
-                  r === role
-                    ? 'bg-accent text-white border-accent'
-                    : 'border-border text-secondary hover:bg-surface-alt'
-                }`}
-              >
-                {r}
-              </Link>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   )

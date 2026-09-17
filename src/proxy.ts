@@ -48,15 +48,17 @@ export const proxy = auth(async (req) => {
   // Guard multi-tenant routes when feature flag is disabled
   if (!isMtEnabled && MULTI_TENANT_ROUTES.some((route) => pathname.startsWith(route))) {
     if (!session?.user) {
-      return NextResponse.redirect(new URL('/login/employee', req.url))
+      return NextResponse.redirect(new URL('/login', req.url))
     }
     const userRole = session.user.role as UserRole
-    return NextResponse.redirect(new URL(ROLE_DEFAULT_ROUTES[userRole] || '/dashboard/overview', req.url))
+    const defaultRoute = (userRole && ROLE_DEFAULT_ROUTES[userRole]) || '/dashboard/overview'
+    return NextResponse.redirect(new URL(defaultRoute, req.url))
   }
 
-  // Unauthenticated: allow login routes, redirect everything else
+  // Unauthenticated: allow public auth routes, redirect everything else to /login
   if (!session?.user) {
     if (
+      pathname === '/login' ||
       pathname === '/login/employee' ||
       pathname === '/login/manager' ||
       pathname === '/login/owner' ||
@@ -68,20 +70,14 @@ export const proxy = auth(async (req) => {
       return NextResponse.next()
     }
 
-    const fallbackLogin = isMtEnabled ? '/login/tenant' : '/login/employee'
+    const fallbackLogin = isMtEnabled ? '/login/tenant' : '/login'
     const loginUrl = new URL(fallbackLogin, req.url)
     loginUrl.searchParams.set('redirectTo', pathname + req.nextUrl.search)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Authenticated: redirect away from /login and /
-  // Authenticated: allow dedicated login routes, forgot/reset password
-  // (prevents redirect loops if an authenticated user was navigated to login due to session expiry)
+  // Authenticated: allow password reset and tenant login (for switching orgs)
   if (
-    pathname === '/login/employee' ||
-    pathname === '/login/manager' ||
-    pathname === '/login/owner' ||
-    pathname === '/login/superadmin' ||
     pathname.startsWith('/login/tenant') ||
     pathname === '/forgot-password' ||
     pathname === '/reset-password'
@@ -89,16 +85,23 @@ export const proxy = auth(async (req) => {
     return NextResponse.next()
   }
 
-  // Authenticated: redirect away from bare /login and /
   const role = session.user.role as UserRole
-  const defaultRoute = ROLE_DEFAULT_ROUTES[role]
+  const defaultRoute = (role && ROLE_DEFAULT_ROUTES[role]) || '/dashboard/overview'
 
-  if (pathname === '/login' || pathname === '/') {
+  // Authenticated: redirect away from login routes and root
+  if (
+    pathname === '/login' ||
+    pathname === '/login/employee' ||
+    pathname === '/login/manager' ||
+    pathname === '/login/owner' ||
+    pathname === '/login/superadmin' ||
+    pathname === '/'
+  ) {
     return NextResponse.redirect(new URL(defaultRoute, req.url))
   }
 
   // Block access to routes not allowed for this role
-  const allowedPrefixes = ROLE_ALLOWED_PREFIXES[role]
+  const allowedPrefixes = (role && ROLE_ALLOWED_PREFIXES[role]) || ['/dashboard']
   const isAllowed = allowedPrefixes.some((prefix) => pathname.startsWith(prefix))
 
   if (!isAllowed) {

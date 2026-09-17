@@ -11,6 +11,7 @@ export default function ResetPasswordSuccess() {
       heading='Password reset!'
       message='You can now login with your new password'
       actionLabel='← Sign in with your new password'
-      action={() => router.replace('/login/employee')} />
+      action={() => router.replace('/login')}
+    />
   )
 }

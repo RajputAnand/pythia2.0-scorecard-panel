@@ -180,15 +180,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
   }
 
   async function handleSignOut() {
-    let loginPage = '/login/employee'
-    if (role === 'owner') {
-      loginPage = '/login/owner'
-    } else if (role === 'manager') {
-      loginPage = '/login/manager'
-    } else if (role === 'superadmin') {
-      loginPage = '/login/superadmin'
-    }
-    await signOut({ callbackUrl: loginPage })
+    await signOut({ callbackUrl: '/login' })
   }
 
   return (

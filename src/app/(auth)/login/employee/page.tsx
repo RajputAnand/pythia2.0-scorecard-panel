@@ -1,5 +1,10 @@
-import LoginForm from '@/components/LoginForm/LoginForm'
+import { redirect } from 'next/navigation'
 
-export default function EmployeeLoginPage() {
-  return <LoginForm role="employee" />
+export default async function EmployeeLoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirectTo?: string }>
+}) {
+  const { redirectTo } = await searchParams
+  redirect(redirectTo ? `/login?redirectTo=${encodeURIComponent(redirectTo)}` : '/login')
 }
