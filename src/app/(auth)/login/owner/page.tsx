@@ -6,5 +6,5 @@ export default async function OwnerLoginPage({
   searchParams: Promise<{ redirectTo?: string }>
 }) {
   const { redirectTo } = await searchParams
-  redirect(redirectTo ? `/login?redirectTo=${encodeURIComponent(redirectTo)}` : '/login')
+  redirect(`/login?redirectTo=${encodeURIComponent(redirectTo || '/owner/stores')}`)
 }

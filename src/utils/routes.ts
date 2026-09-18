@@ -3,7 +3,7 @@ import type { UserRole } from "@/types/user"
 /** Where each role lands after authenticating. */
 export const ROLE_DEFAULT_ROUTES: Record<UserRole, string> = {
   employee: '/dashboard/overview',
-  owner: '/owner/roi-attribution',
+  owner: '/owner/stores',
   manager: '/manager/employees',
   superadmin: '/super-admin/kpi-visibility',
 }

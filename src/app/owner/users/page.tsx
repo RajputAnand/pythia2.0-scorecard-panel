@@ -2,6 +2,7 @@ import { unstable_rethrow } from 'next/navigation'
 import { cookies } from 'next/headers'
 import Header from '@/components/shared/Header/Header'
 import UserListPanel, { type RoleFilter } from '@/components/UserListPanel/UserListPanel'
+import OwnerOnboardingBanner from '@/components/OwnerOnboardingBanner/OwnerOnboardingBanner'
 import { fetchEmployees } from '@/queries/employees'
 import { fetchManagers } from '@/queries/managers'
 import { fetchOrganizationOwners } from '@/queries/organization-owners'
@@ -11,6 +12,7 @@ import type { ApiEmployee } from '@/types/employee'
 import type { ApiManager } from '@/types/manager'
 import type { OrganizationOwner } from '@/types/organization-owner'
 import type { TenantStore } from '@/types/tenant'
+import type { User } from '@/types/user'
 
 export const metadata = {
   title: 'Pythia — Users',
@@ -73,9 +75,12 @@ export default async function OwnerUsersPage({ searchParams }: PageProps) {
     }
   }
 
+  const user = session?.user as unknown as User
+
   return (
     <>
       <Header title="Users" subtitle="Team and credentials" />
+      <OwnerOnboardingBanner user={user} />
 
       <div className="px-[30px] py-[26px]">
         <UserListPanel

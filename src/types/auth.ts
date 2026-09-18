@@ -29,6 +29,7 @@ export interface ApiAuthUser {
   tenant_id?: string | null
   is_active: boolean
   points: number
+  first_login?: boolean
   must_change_password: boolean
   can_manage_subscription?: boolean
   is_root_owner?: boolean
@@ -40,6 +41,7 @@ export interface LoginResponse {
   access_token: string
   refresh_token: string
   token_type: string
+  first_login?: boolean
   must_change_password: boolean
   user: ApiAuthUser
 }

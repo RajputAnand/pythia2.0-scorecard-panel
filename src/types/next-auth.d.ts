@@ -22,6 +22,7 @@ declare module "next-auth" {
     storeIds?: string[]
     can_manage_subscription?: boolean
     is_root_owner?: boolean
+    first_login?: boolean
   }
 }
 
@@ -42,5 +43,6 @@ declare module "next-auth/jwt" {
     storeIds?: string[]
     can_manage_subscription?: boolean
     is_root_owner?: boolean
+    first_login?: boolean
   }
 }

@@ -86,6 +86,7 @@ async function loginViaP1(identifier: string, password: string, expectedRole: st
 export interface LoginActionResult {
   success: boolean
   role?: UserRole
+  first_login?: boolean
   error?: string
 }
 
@@ -130,6 +131,7 @@ export async function login(_prev: string | null | undefined | unknown, formData
     const lastName = apiUser.last_name || ''
     const userId = apiUser.user_id
     const jobTitle = apiUser.role_name || roleSlug
+    const isFirstLogin = Boolean(result.first_login ?? apiUser.first_login ?? false)
 
     await signIn('credentials', {
       email: identifier,
@@ -151,10 +153,11 @@ export async function login(_prev: string | null | undefined | unknown, formData
         storeIds: apiUser.store_ids ?? [],
         can_manage_subscription: apiUser.can_manage_subscription ?? false,
         is_root_owner: apiUser.is_root_owner ?? false,
+        first_login: isFirstLogin,
       }),
       redirect: false,
     })
-    return { success: true, role: roleSlug }
+    return { success: true, role: roleSlug, first_login: isFirstLogin }
   } catch (error) {
     if (error instanceof AuthError) {
       return { success: false, error: 'Invalid email, user ID, or password.' }

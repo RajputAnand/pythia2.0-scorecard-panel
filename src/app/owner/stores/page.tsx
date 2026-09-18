@@ -1,10 +1,12 @@
 import { unstable_rethrow } from 'next/navigation'
 import Header from '@/components/shared/Header/Header'
 import StoreListPanel from '@/components/StoreListPanel/StoreListPanel'
+import OwnerOnboardingBanner from '@/components/OwnerOnboardingBanner/OwnerOnboardingBanner'
 import { auth } from '@/auth'
 import { fetchStoresForTenant } from '@/queries/stores'
 import type { ApiResponseV2Paginated } from '@/types/api'
 import type { TenantStore } from '@/types/tenant'
+import type { User } from '@/types/user'
 
 export const metadata = {
   title: 'Pythia 2.0 — Store Management',
@@ -15,6 +17,7 @@ export default async function OwnerStoresPage() {
   const session = await auth()
   const token = session?.user?.pythia2Token
   const tenantId = session?.user?.tenantId
+  const user = session?.user as unknown as User
 
   let initialData: ApiResponseV2Paginated<TenantStore[]> | null = null
   if (token) {
@@ -28,6 +31,7 @@ export default async function OwnerStoresPage() {
   return (
     <>
       <Header title="Store Management" subtitle="Owner Tools" />
+      <OwnerOnboardingBanner user={user} />
       <div className="px-[30px] py-[26px]">
         <StoreListPanel initialData={initialData} tenantId={tenantId} token={token} />
       </div>

@@ -18,6 +18,7 @@ export interface User {
   score?: number
   jobTitle?: string
   points: number
+  first_login?: boolean
   tenantId?: string
   tenantName?: string
   tenantCode?: string
