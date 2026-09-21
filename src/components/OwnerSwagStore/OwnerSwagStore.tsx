@@ -8,7 +8,7 @@ import { useToast } from '@/context/ToastContext'
 import type { SwagProduct, SwagOrder } from '@/types/swagstore'
 import styles from './OwnerSwagStore.module.css'
 import Select from '@/components/shared/Select/Select'
-import CreateSwagProductModal from './CreateSwagProductModal'
+import CreateSwagProductModal, { type SwagProductSubmitData } from './CreateSwagProductModal'
 import CannotDeleteProductModal from './CannotDeleteProductModal'
 import ConfirmDeleteProductModal from './ConfirmDeleteProductModal'
 import ConfirmArchiveProductModal from './ConfirmArchiveProductModal'
@@ -25,6 +25,7 @@ export default function OwnerSwagStore({
 }: OwnerSwagStoreProps) {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token || session?.user?.token
+  const stores = useUserStore((s) => s.stores)
   const currentStore = useUserStore((s) => s.currentStore)
   const storeId =
     currentStore?.storeNo ||
@@ -127,15 +128,30 @@ export default function OwnerSwagStore({
   }, [currentTabProducts, searchQuery, selectedCategory])
 
   // Handlers
-  const handleSaveProduct = async (data: Omit<SwagProduct, 'id' | 'createdAt' | 'status'>) => {
+  const handleSaveProduct = async (data: SwagProductSubmitData) => {
     if (editingProduct) {
       await updateProduct(editingProduct.id, data, { token, storeId })
       showToast(`Updated "${data.name}" successfully.`)
       setEditingProduct(null)
     } else {
-      const created = await addProduct(data, { token, storeId })
-      showToast(`Added "${created.name}" to the swag store!`)
+      const isMulti = Boolean(data.storeIds && data.storeIds.length > 1)
+      const targetStoreIds = data.storeIds && data.storeIds.length > 0 ? data.storeIds : [storeId]
+      const tenantId = session?.user?.tenantId
+      const created = await addProduct(data, {
+        token,
+        storeId,
+        storeIds: targetStoreIds,
+        tenantId,
+      })
+
+      if (isMulti) {
+        showToast(`Added "${created.name}" across ${targetStoreIds.length} stores!`)
+      } else {
+        showToast(`Added "${created.name}" to the swag store!`)
+      }
       setIsCreateModalOpen(false)
+      fetchCatalog({ token, storeId, status: 'all' })
+      fetchStats({ token, storeId })
     }
   }
 
@@ -351,18 +367,6 @@ export default function OwnerSwagStore({
                   triggerClassName="bg-surface-alt py-[5px] text-[12px]"
                 />
               </div>
-
-              <div className="flex items-center gap-2 text-[11.5px] text-muted self-end sm:self-auto">
-                <span>Showing {filteredProducts.length} items</span>
-                <button
-                  type="button"
-                  onClick={resetToDefaults}
-                  className="text-muted hover:text-secondary underline ml-2 cursor-pointer"
-                  title="Reset catalog and orders to default demo data"
-                >
-                  Reset Catalog Demo Data
-                </button>
-              </div>
             </div>
 
             {/* Empty State */}
@@ -404,7 +408,7 @@ export default function OwnerSwagStore({
                   const hasPendingOrders = pendingCount > 0
 
                   return (
-                    <div key={product.id} className={styles.productCard}>
+                    <div key={`${product.storeId || storeId}-${product.id}`} className={styles.productCard}>
                       <div>
                         {/* Header: Emoji + Category + Cost */}
                         <div className="flex items-start justify-between gap-3">
@@ -702,6 +706,8 @@ export default function OwnerSwagStore({
       {/* ── Modals ──────────────────────────────────────────────────── */}
       {isCreateModalOpen && (
         <CreateSwagProductModal
+          availableStores={stores}
+          currentStoreId={storeId}
           onClose={() => setIsCreateModalOpen(false)}
           onSubmit={handleSaveProduct}
         />
@@ -710,6 +716,8 @@ export default function OwnerSwagStore({
       {editingProduct && (
         <CreateSwagProductModal
           initialProduct={editingProduct}
+          availableStores={stores}
+          currentStoreId={storeId}
           onClose={() => setEditingProduct(null)}
           onSubmit={handleSaveProduct}
         />

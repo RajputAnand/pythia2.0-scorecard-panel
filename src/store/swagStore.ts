@@ -1,12 +1,18 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { SWAG_STORE, INITIAL_SWAG_ORDERS } from '@/lib/swagstore-data'
-import type { SwagProduct, SwagOrder, SwagStoreStats } from '@/types/swagstore'
+import {
+  type SwagProduct,
+  type SwagOrder,
+  type SwagStoreStats,
+  fromApiReward,
+} from '@/types/swagstore'
 import { useUserStore } from './userStore'
 import { extractApiErrorMessage } from '@/utils/common'
 import {
   fetchSwagRewards,
   createSwagReward,
+  createSwagRewardsBulk,
   updateSwagReward,
   archiveSwagReward,
   unarchiveSwagReward,
@@ -23,6 +29,7 @@ import {
 export interface ApiOptions {
   token?: string
   storeId?: string
+  tenantId?: string
 }
 
 interface SwagState {
@@ -43,7 +50,7 @@ interface SwagState {
   fetchStats: (options?: ApiOptions) => Promise<void>
   addProduct: (
     data: Omit<SwagProduct, 'id' | 'createdAt' | 'status'>,
-    options?: ApiOptions
+    options?: ApiOptions & { storeIds?: string[]; allStores?: boolean }
   ) => Promise<SwagProduct>
   updateProduct: (
     id: string,
@@ -164,25 +171,84 @@ export const useSwagStore = create<SwagState>()(
       async addProduct(data, options) {
         const storeId = options?.storeId || get().currentStoreId || 'store-1'
         const token = options?.token
+        const storeIds = options?.storeIds
+        const allStores = options?.allStores
+        const tenantId = options?.tenantId
+        const isMulti = Boolean(allStores || (storeIds && storeIds.length > 1))
 
         try {
-          const created = await createSwagReward({
-            token,
-            storeId,
-            data: {
-              name: data.name,
-              icon: data.emoji,
-              category: data.category || 'Apparel',
-              cost_points: data.cost,
-              description: data.desc,
-              stock_unlimited: data.stock == null,
-              stock_remaining: data.stock,
-            },
-          })
-          set((state) => ({
-            catalog: [created, ...state.catalog],
-          }))
-          return created
+          if (isMulti) {
+            const hasExplicitStoreIds = Boolean(storeIds && storeIds.length > 0)
+            const bulkRes = await createSwagRewardsBulk({
+              token,
+              data: {
+                store_ids: hasExplicitStoreIds ? storeIds : undefined,
+                all_tenant_stores: Boolean(allStores && !hasExplicitStoreIds),
+                tenant_id: tenantId,
+                name: data.name,
+                icon: data.emoji,
+                category: data.category || 'Apparel',
+                cost_points: data.cost,
+                description: data.desc,
+                stock_unlimited: data.stock == null,
+                stock_remaining: data.stock,
+              },
+            })
+
+            const currentStoreResult = bulkRes.results?.find(
+              (r) => (r.store_id === storeId || (options?.storeIds && options.storeIds.includes(r.store_id))) && r.success && r.reward
+            )
+            let createdProduct: SwagProduct
+            if (currentStoreResult?.reward) {
+              createdProduct = fromApiReward(currentStoreResult.reward)
+            } else {
+              const firstSuccess = bulkRes.results?.find((r) => r.success && r.reward)
+              if (firstSuccess?.reward) {
+                createdProduct = fromApiReward(firstSuccess.reward)
+              } else {
+                createdProduct = {
+                  id: `swag_${Date.now()}`,
+                  name: data.name,
+                  emoji: data.emoji,
+                  desc: data.desc,
+                  cost: data.cost,
+                  category: data.category || 'Apparel',
+                  status: 'active',
+                  stock: data.stock,
+                  createdAt: new Date().toISOString(),
+                }
+              }
+            }
+
+            // If the current store is targeted, include in active catalog
+            if (!storeIds || storeIds.includes(storeId)) {
+              set((state) => ({
+                catalog: [createdProduct, ...state.catalog.filter((p) => p.id !== createdProduct.id)],
+              }))
+            }
+            return createdProduct
+          } else {
+            const targetStoreId = storeIds?.[0] || storeId
+            const created = await createSwagReward({
+              token,
+              storeId: targetStoreId,
+              data: {
+                name: data.name,
+                icon: data.emoji,
+                category: data.category || 'Apparel',
+                cost_points: data.cost,
+                description: data.desc,
+                stock_unlimited: data.stock == null,
+                stock_remaining: data.stock,
+              },
+            })
+            if (targetStoreId === storeId) {
+              set((state) => ({
+                catalog: [created, ...state.catalog.filter((p) => p.id !== created.id)],
+              }))
+            }
+            return created
+          }
         } catch (err: unknown) {
           const message = extractApiErrorMessage(err, 'Failed to create reward')
           set({ error: message })

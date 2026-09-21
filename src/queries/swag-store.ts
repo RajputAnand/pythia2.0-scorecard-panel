@@ -7,6 +7,9 @@ import {
   type SwagRewardApi,
   type SwagRedemptionApi,
   type CreateSwagRewardInput,
+  type CreateSwagRewardBulkInput,
+  type BulkStoreResultApi,
+  type BulkSwagRewardResponseApi,
   type UpdateSwagRewardInput,
   fromApiReward,
   fromApiRedemption,
@@ -94,6 +97,93 @@ export async function createSwagReward({
       }
     )
     return fromApiReward(res.reward)
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.data?.detail) {
+      throw new Error(err.response.data.detail)
+    }
+    throw err
+  }
+}
+
+export async function createSwagRewardsBulk({
+  token,
+  data,
+}: {
+  token?: string
+  data: CreateSwagRewardBulkInput
+}): Promise<BulkSwagRewardResponseApi> {
+  const localBulkCreate = (): BulkSwagRewardResponseApi => {
+    const targetStores = data.all_tenant_stores
+      ? ['store-1', 'store-2']
+      : data.store_ids && data.store_ids.length > 0
+      ? data.store_ids
+      : ['store-1']
+
+    const rewardGroupId = `group_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+    const results: BulkStoreResultApi[] = targetStores.map((storeId) => {
+      const apiReward: SwagRewardApi = {
+        id: `swag_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        name: data.name,
+        icon: data.icon,
+        category: data.category,
+        cost_points: data.cost_points,
+        description: data.description || '',
+        stock_unlimited: data.stock_unlimited ?? true,
+        stock_remaining: data.stock_unlimited ? null : (data.stock_remaining ?? null),
+        status: 'active',
+        store_id: storeId,
+        created_by: 'mock_owner',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      mockCatalog = [fromApiReward(apiReward), ...mockCatalog]
+      return {
+        store_id: storeId,
+        success: true,
+        reward: apiReward,
+        error: null,
+      }
+    })
+
+    return {
+      reward_group_id: rewardGroupId,
+      results,
+      success_count: results.length,
+      failure_count: 0,
+      success: true,
+    }
+  }
+
+  if (isMockToken(token)) {
+    return localBulkCreate()
+  }
+
+  const payload: Record<string, unknown> = {
+    name: data.name,
+    icon: data.icon,
+    category: data.category,
+    cost_points: data.cost_points,
+    description: data.description || '',
+    stock_unlimited: data.stock_unlimited ?? true,
+    stock_remaining: data.stock_unlimited ? null : (data.stock_remaining ?? null),
+    all_tenant_stores: Boolean(data.all_tenant_stores),
+  }
+  if (!data.all_tenant_stores && data.store_ids) {
+    payload.store_ids = data.store_ids
+  }
+  if (data.tenant_id) {
+    payload.tenant_id = data.tenant_id
+  }
+
+  try {
+    const { data: res } = await pythia2Client.post<BulkSwagRewardResponseApi>(
+      PYTHIA_2_API.swagStore.bulkRewards,
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    )
+    return res
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response?.data?.detail) {
       throw new Error(err.response.data.detail)

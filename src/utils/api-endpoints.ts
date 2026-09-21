@@ -129,5 +129,7 @@ export const PYTHIA_2_API = {
     rejectRedemption: (redemptionId: string) => `/swag-store/redemptions/${redemptionId}/reject`,
     cancelRedemption: (redemptionId: string) => `/swag-store/redemptions/${redemptionId}/cancel`,
     stats: '/swag-store/stats',
+    bulkRewards: '/swag-store/rewards/bulk',
+    bulkReward: (rewardGroupId: string) => `/swag-store/rewards/bulk/${rewardGroupId}`,
   },
 } as const

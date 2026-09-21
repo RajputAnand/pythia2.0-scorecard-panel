@@ -11,6 +11,7 @@ export interface SwagItem {
   stock?: number | null // null = unlimited
   redeemed?: boolean
   createdAt?: string
+  storeId?: string
 }
 
 export type SwagProduct = SwagItem
@@ -106,6 +107,34 @@ export interface CreateSwagRewardInput {
   stock_remaining?: number | null
 }
 
+export interface CreateSwagRewardBulkInput {
+  store_ids?: string[]
+  all_tenant_stores?: boolean
+  tenant_id?: string
+  name: string
+  icon: string
+  category: string
+  cost_points: number
+  description?: string
+  stock_unlimited?: boolean
+  stock_remaining?: number | null
+}
+
+export interface BulkStoreResultApi {
+  store_id: string
+  success: boolean
+  reward?: SwagRewardApi | null
+  error?: string | null
+}
+
+export interface BulkSwagRewardResponseApi {
+  reward_group_id: string
+  results: BulkStoreResultApi[]
+  success_count: number
+  failure_count: number
+  success?: boolean
+}
+
 export interface UpdateSwagRewardInput {
   name?: string
   icon?: string
@@ -127,6 +156,7 @@ export function fromApiReward(api: SwagRewardApi): SwagProduct {
     status: api.status,
     stock: api.stock_unlimited ? null : (api.stock_remaining ?? null),
     createdAt: api.created_at,
+    storeId: api.store_id,
   }
 }
 

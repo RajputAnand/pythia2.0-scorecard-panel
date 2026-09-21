@@ -1,11 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createSwagProductSchema, type CreateSwagProductSchema } from '@/schemas/swag'
 import Select from '@/components/shared/Select/Select'
+import MultiSelect from '@/components/shared/MultiSelect/MultiSelect'
+import { useUserStore } from '@/store/userStore'
 import type { SwagProduct } from '@/types/swagstore'
+import type { Store } from '@/types/store'
 import type { SelectOption } from '@/types/select'
 
 const PRESET_EMOJIS = [
@@ -28,19 +31,58 @@ const CATEGORY_OPTIONS: SelectOption[] = CATEGORIES.map((cat) => ({
   value: cat,
 }))
 
+export interface SwagProductSubmitData extends Omit<SwagProduct, 'id' | 'createdAt' | 'status'> {
+  storeIds?: string[]
+  allStores?: boolean
+}
+
 interface CreateSwagProductModalProps {
   initialProduct?: SwagProduct | null
   onClose: () => void
-  onSubmit: (data: Omit<SwagProduct, 'id' | 'createdAt' | 'status'>) => void
+  onSubmit: (data: SwagProductSubmitData) => void | Promise<void>
+  availableStores?: Store[]
+  currentStoreId?: string
 }
 
 export default function CreateSwagProductModal({
   initialProduct,
   onClose,
   onSubmit,
+  availableStores,
+  currentStoreId,
 }: CreateSwagProductModalProps) {
   const [selectedEmoji, setSelectedEmoji] = useState(initialProduct?.emoji ?? '🎁')
   const [isUnlimitedStock, setIsUnlimitedStock] = useState(initialProduct?.stock == null)
+
+  const userStores = useUserStore((s) => s.stores)
+  const stores = availableStores && availableStores.length > 0 ? availableStores : userStores
+  const currentStore = useUserStore((s) => s.currentStore)
+  const defaultStoreId =
+    currentStoreId ||
+    currentStore?.storeNo ||
+    currentStore?._id ||
+    (stores.length > 0 ? (stores[0].storeNo || stores[0]._id) : '')
+
+  const storeOptions: SelectOption[] = useMemo(() => {
+    if (stores.length > 0) {
+      return stores.map((s) => ({
+        label: s.name ? `${s.name}${s.location ? ` (${s.location})` : ''}` : `Store #${s.storeNo || s._id}`,
+        value: s.storeNo || s._id,
+      }))
+    }
+    if (defaultStoreId) {
+      return [{ label: `Current Store (${defaultStoreId})`, value: defaultStoreId }]
+    }
+    return []
+  }, [stores, defaultStoreId])
+
+  const [selectedStoreIds, setSelectedStoreIds] = useState<(string | number)[]>(() => {
+    if (defaultStoreId) {
+      return [defaultStoreId]
+    }
+    return storeOptions.length > 0 ? [storeOptions[0].value] : []
+  })
+  const [storeError, setStoreError] = useState<string | undefined>()
 
   const {
     register,
@@ -68,6 +110,13 @@ export default function CreateSwagProductModal({
   }
 
   const onFormSubmit = (values: CreateSwagProductSchema) => {
+    if (!initialProduct && selectedStoreIds.length === 0) {
+      setStoreError('Please select at least one store')
+      return
+    }
+
+    const finalStoreIds = selectedStoreIds.map(String)
+
     onSubmit({
       name: values.name,
       desc: values.desc,
@@ -75,6 +124,7 @@ export default function CreateSwagProductModal({
       emoji: values.emoji,
       category: values.category,
       stock: isUnlimitedStock ? null : values.stock ? Number(values.stock) : 0,
+      storeIds: finalStoreIds,
     })
   }
 
@@ -284,6 +334,41 @@ export default function CreateSwagProductModal({
             </div>
           </div>
 
+          {/* ── Multi-Store Target Section (Only when creating new product) ── */}
+          {!initialProduct && (
+            <div className="mt-3.5 pt-3 border-t border-border">
+              <div className="mb-2">
+                <label className="text-[11px] font-semibold text-secondary uppercase tracking-[.06em] block">
+                  Target Store Availability
+                </label>
+                <span className="text-[11px] text-muted">
+                  Choose which stores will carry this reward
+                </span>
+              </div>
+
+              <div>
+                <MultiSelect
+                  ariaLabel="Select target stores"
+                  placeholder={
+                    storeOptions.length === 0
+                      ? 'No stores available'
+                      : 'Select one or more stores…'
+                  }
+                  options={storeOptions}
+                  values={selectedStoreIds}
+                  onChange={(next) => {
+                    setSelectedStoreIds(next)
+                    if (next.length > 0) setStoreError(undefined)
+                  }}
+                  invalid={!!storeError}
+                />
+                {storeError && (
+                  <p className="text-[11px] text-danger mt-1">{storeError}</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Form Actions */}
           <div className="flex items-center justify-end gap-2.5 mt-3.5 pt-3 border-t border-border">
             <button
@@ -298,7 +383,11 @@ export default function CreateSwagProductModal({
               disabled={isSubmitting}
               className="bg-accent hover:opacity-90 text-white font-semibold text-[12px] rounded-lg px-4 py-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
             >
-              {initialProduct ? 'Save Changes' : 'Add Reward to Store'}
+              {initialProduct
+                ? 'Save Changes'
+                : selectedStoreIds.length > 1
+                ? `Add Reward to ${selectedStoreIds.length} Stores`
+                : 'Add Reward to Store'}
             </button>
           </div>
         </form>

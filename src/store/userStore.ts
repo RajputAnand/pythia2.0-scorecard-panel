@@ -45,8 +45,7 @@ export const useUserStore = create<UserStoreState>()(
           const stillValid =
             state.currentStore &&
             stores.some((s) => (s.storeNo || s._id) === (state.currentStore?.storeNo || state.currentStore?._id))
-          // If currentStore was explicitly null (All Stores), preserve null
-          const newCurrentStore = state.currentStore === null ? null : (stillValid ? state.currentStore : (stores[0] ?? null))
+          const newCurrentStore = stillValid ? state.currentStore : (stores[0] ?? null)
           syncStoreCookie(newCurrentStore?.storeNo || newCurrentStore?._id)
           return { stores, currentStore: newCurrentStore }
         })

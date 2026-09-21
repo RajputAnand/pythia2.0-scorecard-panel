@@ -30,6 +30,8 @@ export const createSwagProductSchema = z.object({
     .min(0, 'Stock cannot be negative')
     .optional()
     .nullable(),
+  allStores: z.boolean().optional(),
+  storeIds: z.array(z.string()).optional(),
 })
 
 export type CreateSwagProductSchema = z.infer<typeof createSwagProductSchema>
