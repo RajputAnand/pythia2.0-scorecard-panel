@@ -1,7 +1,7 @@
 import { pythia2Client } from '@/lib/api-client'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
 import type { ApiResponseV2 } from '@/types/api'
-import type { DeviceStateSummary } from '@/types/device-health'
+import type { DailyPipelineStats, DeviceStateSummary } from '@/types/device-health'
 
 const MOCK_DEVICES: DeviceStateSummary[] = [
   {
@@ -62,3 +62,55 @@ export function getDeviceStatesWsUrl(): string {
   const base = (process.env.NEXT_PUBLIC_PYTHIA_2_API_URL || '').replace(/\/+$/, '')
   return `${base.replace(/^http/, 'ws')}${PYTHIA_2_API.deviceHealth.ws}`
 }
+
+export interface FetchDailyDeviceStatsParams {
+  token: string
+  date?: string
+  deviceId?: string
+  storeId?: string
+  signal?: AbortSignal
+}
+
+export async function fetchDailyDeviceStats({
+  token,
+  date,
+  deviceId,
+  storeId,
+  signal,
+}: FetchDailyDeviceStatsParams): Promise<DailyPipelineStats[]> {
+  if (token.includes('mock')) {
+    return [
+      {
+        date: new Date().toISOString().slice(0, 10),
+        device_id: 'DEV-NODE-101',
+        store_id: 'STORE-001',
+        heartbeat_count: 1440,
+        last_heartbeat_at: new Date().toISOString(),
+        synced_at: new Date().toISOString(),
+        cpu: { latest_percent: 24.5, avg_percent: 22.8 },
+        memory: { latest_percent: 42.1, avg_percent: 40.5, total_mb: 16384, used_mb: 6897 },
+        temperature: { latest_celsius: 41.2, avg_celsius: 40.1 },
+        videos: {
+          employee: { processed: 0, accepted: 0, rejected: 0 },
+          customer: { processed: 6, accepted: 6, rejected: 0 },
+          total: { processed: 6, accepted: 6, rejected: 0 },
+        },
+      },
+    ]
+  }
+  const params: Record<string, string> = {}
+  if (date) params.date = date
+  if (deviceId) params.device_id = deviceId
+  if (storeId) params.store_id = storeId
+
+  const { data } = await pythia2Client.get<ApiResponseV2<DailyPipelineStats[]>>(
+    PYTHIA_2_API.deviceHealth.dailyStats,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params,
+      signal,
+    }
+  )
+  return data.data
+}
+

@@ -5,8 +5,8 @@ import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import { useUserStore } from '@/store/userStore'
 import DeviceHealthCard from '@/components/DeviceHealthCard/DeviceHealthCard'
-import { fetchDeviceStates, getDeviceStatesWsUrl } from '@/queries/device-health'
-import type { DeviceStateSummary, DeviceStateWsMessage } from '@/types/device-health'
+import { fetchDailyDeviceStats, fetchDeviceStates, getDeviceStatesWsUrl } from '@/queries/device-health'
+import type { DailyPipelineStats, DeviceStateSummary, DeviceStateWsMessage } from '@/types/device-health'
 import { extractApiErrorMessage } from '@/utils/common'
 
 type ConnectionStatus = 'connecting' | 'live' | 'reconnecting'
@@ -34,6 +34,7 @@ export default function DeviceHealthPanel() {
   const currentStoreId = currentStore?.storeNo || currentStore?._id
 
   const [devices, setDevices] = useState<DeviceStateSummary[] | null>(null)
+  const [dailyStatsMap, setDailyStatsMap] = useState<Record<string, DailyPipelineStats>>({})
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState<ConnectionStatus>('connecting')
@@ -47,24 +48,41 @@ export default function DeviceHealthPanel() {
     )
   }, [devices, currentStoreId, currentStore])
 
-  // One-time initial snapshot, so the page has something to show immediately
-  // instead of waiting for every device to happen to report over the socket
-  // after connecting (devices report every few seconds, but with several
-  // devices the first one might take a moment to come through).
+  // Initial snapshot and daily pipeline statistics
   useEffect(() => {
     if (!token) return
     const controller = new AbortController()
     let cancelled = false
 
-    fetchDeviceStates({ token, signal: controller.signal })
-      .then((data) => {
+    Promise.allSettled([
+      fetchDeviceStates({ token, signal: controller.signal }),
+      fetchDailyDeviceStats({ token, signal: controller.signal }),
+    ])
+      .then(([statesRes, dailyRes]) => {
         if (cancelled) return
-        setDevices(data)
-        setError(null)
-      })
-      .catch((err) => {
-        if (cancelled || axios.isCancel(err)) return
-        setError(extractApiErrorMessage(err, 'Unable to load device health data.'))
+
+        if (statesRes.status === 'fulfilled') {
+          setDevices(statesRes.value)
+          setError(null)
+        } else if (!axios.isCancel(statesRes.reason)) {
+          setError(extractApiErrorMessage(statesRes.reason, 'Unable to load device health data.'))
+        }
+
+        if (dailyRes.status === 'fulfilled') {
+          const map: Record<string, DailyPipelineStats> = {}
+          for (const s of dailyRes.value) {
+            if (s.device_id) {
+              map[s.device_id] = s
+              map[s.device_id.trim()] = s
+              map[s.device_id.toLowerCase()] = s
+            }
+            if (s.store_id) {
+              map[s.store_id] = s
+              map[s.store_id.trim()] = s
+            }
+          }
+          setDailyStatsMap(map)
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -199,7 +217,17 @@ export default function DeviceHealthPanel() {
         </div>
       ) : (
         filteredDevices?.map((device) => (
-          <DeviceHealthCard key={device.device_id} device={device} now={now} />
+          <DeviceHealthCard
+            key={device.device_id}
+            device={device}
+            dailyStats={
+              dailyStatsMap[device.device_id] ||
+              dailyStatsMap[device.device_id?.trim()] ||
+              dailyStatsMap[device.device_id?.toLowerCase()] ||
+              dailyStatsMap[device.store_id]
+            }
+            now={now}
+          />
         ))
       )}
     </div>
