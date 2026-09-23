@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import { useUserStore } from '@/store/userStore'
@@ -64,6 +64,7 @@ interface UserListPanelProps {
   initialManagers?: ApiManager[]
   initialOwners?: OrganizationOwner[]
   initialStores?: TenantStore[]
+  tenantId?: string
 }
 
 const PAGE_SIZE = 15
@@ -74,11 +75,18 @@ export default function UserListPanel({
   initialManagers,
   initialOwners,
   initialStores = [],
+  tenantId: propTenantId,
 }: UserListPanelProps) {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token || session?.user?.token || ''
   const currentUserId = session?.user?.id
-  const tenantId = session?.user?.tenantId
+  const sessionTenantId = session?.user?.tenantId
+  const currentOrganization = useUserStore((s) => s.currentOrganization)
+  const effectiveTenantId =
+    propTenantId ||
+    (session?.user?.role === 'superadmin'
+      ? currentOrganization?.tenant_id
+      : sessionTenantId)
   const { showToast } = useToast()
 
   const currentStore = useUserStore((s) => s.currentStore)
@@ -144,7 +152,7 @@ export default function UserListPanel({
   useEffect(() => {
     if (initialStores.length > 0 || !token) return
     let cancelled = false
-    fetchStoresForTenant({ token, tenantId, limit: 100 })
+    fetchStoresForTenant({ token, tenantId: effectiveTenantId, limit: 100 })
       .then((res) => {
         if (!cancelled && res.data) setStores(res.data)
       })
@@ -152,7 +160,7 @@ export default function UserListPanel({
     return () => {
       cancelled = true
     }
-  }, [token, tenantId, initialStores.length])
+  }, [token, effectiveTenantId, initialStores.length])
 
   // Main fetch for active and archived records
   const loadData = useCallback(() => {
@@ -162,11 +170,11 @@ export default function UserListPanel({
     setIsError(false)
     setErrorMessage(null)
 
-    const empPromise = fetchEmployees({ token, skip: 0, limit: 200, storeId: currentStoreId || undefined })
-    const mgrPromise = fetchManagers({ token, tenantId, skip: 0, limit: 100, storeId: currentStoreId || undefined })
+    const empPromise = fetchEmployees({ token, skip: 0, limit: 200, storeId: currentStoreId || undefined, tenantId: effectiveTenantId })
+    const mgrPromise = fetchManagers({ token, tenantId: effectiveTenantId, skip: 0, limit: 100, storeId: currentStoreId || undefined })
     const ownPromise = fetchOrganizationOwners({ token })
-    const archEmpPromise = fetchArchivedEmployees({ token, skip: 0, limit: 200, storeId: currentStoreId || undefined })
-    const archMgrPromise = fetchArchivedManagers({ token, tenantId, skip: 0, limit: 100, storeId: currentStoreId || undefined })
+    const archEmpPromise = fetchArchivedEmployees({ token, skip: 0, limit: 200, storeId: currentStoreId || undefined, tenantId: effectiveTenantId })
+    const archMgrPromise = fetchArchivedManagers({ token, tenantId: effectiveTenantId, skip: 0, limit: 100, storeId: currentStoreId || undefined })
 
     Promise.allSettled([empPromise, mgrPromise, ownPromise, archEmpPromise, archMgrPromise])
       .then(([empRes, mgrRes, ownRes, archEmpRes, archMgrRes]) => {
@@ -201,7 +209,7 @@ export default function UserListPanel({
     return () => {
       cancelled = true
     }
-  }, [token, tenantId, currentStoreId])
+  }, [token, effectiveTenantId, currentStoreId])
 
   useEffect(() => {
     loadData()
@@ -839,7 +847,7 @@ export default function UserListPanel({
       {isCreating && (
         <CreateUserModal
           token={token}
-          tenantId={tenantId}
+          tenantId={effectiveTenantId}
           storeId={currentStoreId}
           stores={stores.map((s) => ({
             label: `${s.name || s.storeNo} · ${s.location || s.district || ''}`.trim().replace(/ · $/, ''),

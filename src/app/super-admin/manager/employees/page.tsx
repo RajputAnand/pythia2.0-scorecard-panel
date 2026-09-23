@@ -22,10 +22,18 @@ export default async function SuperAdminManagerEmployeesPage() {
 
   const cookieStore = await cookies()
   const selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
+  const selectedTenantId = cookieStore.get('pythia_selected_tenant_id')?.value
   let initialData: ApiResponseV2Paginated<ApiEmployee[]> | null = null
   if (token) {
     const [employeesResult] = await Promise.allSettled([
       fetchEmployees({ token, skip: 0, limit: 15, storeId: selectedStoreId || undefined }),
+      fetchEmployees({
+        token,
+        skip: 0,
+        limit: 15,
+        storeId: selectedStoreId || undefined,
+        tenantId: selectedTenantId || undefined,
+      }),
     ])
     if (employeesResult.status === 'rejected') unstable_rethrow(employeesResult.reason)
     if (employeesResult.status === 'fulfilled') initialData = employeesResult.value

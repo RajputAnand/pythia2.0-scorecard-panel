@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { Store } from '@/types/store'
+import type { Organization } from '@/types/organization'
 
 function syncStoreCookie(storeId: string | null | undefined) {
   if (typeof document !== 'undefined') {
@@ -12,11 +13,25 @@ function syncStoreCookie(storeId: string | null | undefined) {
   }
 }
 
+function syncOrgCookie(tenantId: string | null | undefined) {
+  if (typeof document !== 'undefined') {
+    if (tenantId) {
+      document.cookie = `pythia_selected_tenant_id=${encodeURIComponent(tenantId)}; path=/; max-age=31536000; SameSite=Lax`
+    } else {
+      document.cookie = `pythia_selected_tenant_id=; path=/; max-age=0; SameSite=Lax`
+    }
+  }
+}
+
 interface UserStoreState {
   /** Full list of stores the authenticated user has access to */
   stores: Store[]
   /** The store currently selected in the UI */
   currentStore: Store | null
+  /** Full list of organizations (available for superadmin) */
+  organizations: Organization[]
+  /** Currently selected organization (for superadmin) */
+  currentOrganization: Organization | null
   /** Employee's current score from the latest weekly stats fetch */
   currentScore: number | null
   /** Employee's available swag points — seeded from session, updated on redemption */
@@ -26,6 +41,10 @@ interface UserStoreState {
   setStores: (stores: Store[]) => void
   /** User picks a different store from the header dropdown, or null for All Stores */
   setCurrentStore: (store: Store | null) => void
+  /** Called when organizations query resolves */
+  setOrganizations: (organizations: Organization[]) => void
+  /** Superadmin picks an organization from the header dropdown */
+  setCurrentOrganization: (org: Organization | null) => void
   /** Called when weeklyStats resolves — stores the employee's current score */
   setCurrentScore: (score: number) => void
   /** Seed from session on Sidebar mount; decremented by swag redemptions */
@@ -37,6 +56,8 @@ export const useUserStore = create<UserStoreState>()(
     subscribeWithSelector((set) => ({
       stores: [],
       currentStore: null,
+      organizations: [],
+      currentOrganization: null,
       currentScore: null,
       points: null,
 
@@ -56,6 +77,22 @@ export const useUserStore = create<UserStoreState>()(
         set({ currentStore: store })
       },
 
+      setOrganizations(organizations) {
+        set((state) => {
+          const stillValid =
+            state.currentOrganization &&
+            organizations.some((o) => o.tenant_id === state.currentOrganization?.tenant_id)
+          const newCurrentOrg = stillValid ? state.currentOrganization : (state.currentOrganization || organizations[0] || null)
+          syncOrgCookie(newCurrentOrg?.tenant_id)
+          return { organizations, currentOrganization: newCurrentOrg }
+        })
+      },
+
+      setCurrentOrganization(org) {
+        syncOrgCookie(org?.tenant_id)
+        set({ currentOrganization: org })
+      },
+
       setCurrentScore(score) {
         set({ currentScore: score })
       },
@@ -66,7 +103,10 @@ export const useUserStore = create<UserStoreState>()(
     })),
     {
       name: 'pythia_user_store',
-      partialize: (state) => ({ currentStore: state.currentStore }),
+      partialize: (state) => ({
+        currentStore: state.currentStore,
+        currentOrganization: state.currentOrganization,
+      }),
     }
   )
 )
@@ -84,3 +124,16 @@ export const onStoreChange = (
     callback,
     { equalityFn: (a, b) => a?._id === b?._id, fireImmediately: false }
   )
+
+/**
+ * Subscribe to `currentOrganization` changes outside of React.
+ */
+export const onOrganizationChange = (
+  callback: (next: Organization | null, prev: Organization | null) => void
+) =>
+  useUserStore.subscribe(
+    (state) => state.currentOrganization,
+    callback,
+    { equalityFn: (a, b) => a?.tenant_id === b?.tenant_id, fireImmediately: false }
+  )
+

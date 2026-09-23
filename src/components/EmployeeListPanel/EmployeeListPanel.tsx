@@ -100,10 +100,12 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
   const token = session?.user?.pythia2Token || session?.user?.token || ''
   const { showToast } = useToast()
   const currentStore = useUserStore((s) => s.currentStore)
+  const currentOrganization = useUserStore((s) => s.currentOrganization)
   const currentStoreId = currentStore?.storeNo || currentStore?._id
 
   const userRole = session?.user?.role
   const isOwnerOrAdmin = userRole === 'owner' || userRole === 'superadmin'
+  const effectiveTenantId = userRole === 'superadmin' ? currentOrganization?.tenant_id : session?.user?.tenantId
 
   const [view, setView] = useState<'active' | 'archived'>('active')
   const [isCreating, setIsCreating] = useState(false)
@@ -160,6 +162,20 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
     }
   }, [currentStoreId])
 
+  const lastTenantId = useRef(effectiveTenantId)
+  useEffect(() => {
+    if (lastTenantId.current !== effectiveTenantId) {
+      lastTenantId.current = effectiveTenantId
+      skipNextFetch.current = false
+      setSkip(0)
+      setArchivedSkip(0)
+      setRetryToken((r) => r + 1)
+      if (hasLoadedArchived.current) {
+        setArchivedRetryToken((r) => r + 1)
+      }
+    }
+  }, [effectiveTenantId])
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
     return () => clearTimeout(t)
@@ -183,6 +199,14 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
     setIsError(false)
     setErrorMessage(null)
     fetchEmployees({ token, search: debouncedSearch, skip, limit: PAGE_SIZE, storeId: currentStoreId })
+    fetchEmployees({
+      token,
+      search: debouncedSearch,
+      skip,
+      limit: PAGE_SIZE,
+      storeId: currentStoreId,
+      tenantId: effectiveTenantId,
+    })
       .then((response) => {
         if (cancelled) return
         setEmployees(response.data ?? [])
@@ -201,7 +225,7 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
       cancelled = true
     }
     // retryToken intentionally re-runs this effect on manual retry without changing search/skip
-  }, [token, debouncedSearch, skip, retryToken, currentStoreId])
+  }, [token, debouncedSearch, skip, retryToken, currentStoreId, effectiveTenantId])
 
   const page = meta ? Math.floor(meta.skip / meta.limit) : 0
   const totalPages = meta ? Math.max(1, Math.ceil(meta.total / meta.limit)) : 1
@@ -237,7 +261,14 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
     setIsLoadingArchived(true)
     setIsErrorArchived(false)
     setArchivedErrorMessage(null)
-    fetchArchivedEmployees({ token, search: archivedDebouncedSearch, skip: archivedSkip, limit: PAGE_SIZE, storeId: currentStoreId })
+    fetchArchivedEmployees({
+      token,
+      search: archivedDebouncedSearch,
+      skip: archivedSkip,
+      limit: PAGE_SIZE,
+      storeId: currentStoreId,
+      tenantId: effectiveTenantId,
+    })
       .then((response) => {
         setArchivedEmployees(response.data ?? [])
         setArchivedMeta(response.meta)
@@ -247,7 +278,7 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
         setArchivedErrorMessage(extractApiErrorMessage(err, 'Failed to load archived employees'))
       })
       .finally(() => setIsLoadingArchived(false))
-  }, [token, archivedDebouncedSearch, archivedSkip, currentStoreId])
+  }, [token, archivedDebouncedSearch, archivedSkip, currentStoreId, effectiveTenantId])
 
   // Fetch archived employees lazily, the first time the manager switches to that tab.
   useEffect(() => {

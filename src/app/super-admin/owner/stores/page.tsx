@@ -1,4 +1,5 @@
 import { unstable_rethrow } from 'next/navigation'
+import { cookies } from 'next/headers'
 import Header from '@/components/shared/Header/Header'
 import StoreListPanel from '@/components/StoreListPanel/StoreListPanel'
 import { auth } from '@/auth'
@@ -15,10 +16,14 @@ export default async function SuperAdminOwnerStoresMirrorPage() {
   const session = await auth()
   const token = session?.user?.pythia2Token
 
+  const cookieStore = await cookies()
+  const selectedTenantId = cookieStore.get('pythia_selected_tenant_id')?.value
+
   let initialData: ApiResponseV2Paginated<TenantStore[]> | null = null
   if (token) {
     const [result] = await Promise.allSettled([
       fetchStoresForTenant({ token, skip: 0, limit: 15 }),
+      fetchStoresForTenant({ token, tenantId: selectedTenantId || undefined, skip: 0, limit: 15 }),
     ])
     if (result.status === 'rejected') unstable_rethrow(result.reason)
     if (result.status === 'fulfilled') initialData = result.value
@@ -29,6 +34,7 @@ export default async function SuperAdminOwnerStoresMirrorPage() {
       <Header title="Store Management (Mirror)" subtitle="Owner View" />
       <div className="px-[30px] py-[26px]">
         <StoreListPanel initialData={initialData} readOnly={false} />
+        <StoreListPanel initialData={initialData} tenantId={selectedTenantId || undefined} readOnly={false} />
       </div>
     </>
   )

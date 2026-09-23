@@ -81,6 +81,8 @@ export const PYTHIA_2_API = {
     manualSend: '/super-admin/manual-send',
     bulkTrigger: '/super-admin/bulk-trigger',
     sentStatus: '/super-admin/sent-status',
+    organizations: '/super-admin/organizations',
+    organizationDetail: (tenantId: string) => `/super-admin/organizations/${tenantId}`,
   },
   deviceHealth: {
     list: '/device-states',

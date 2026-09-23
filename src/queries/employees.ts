@@ -48,9 +48,10 @@ export interface FetchEmployeesParams {
   skip?: number
   limit?: number
   storeId?: string
+  tenantId?: string
 }
 
-export async function fetchEmployees({ token, search, skip = 0, limit = 8, storeId }: FetchEmployeesParams) {
+export async function fetchEmployees({ token, search, skip = 0, limit = 8, storeId, tenantId }: FetchEmployeesParams) {
   if (token.includes('mock')) {
     const term = (search || '').toLowerCase()
     const filtered = MOCK_EMPLOYEES.filter(
@@ -67,13 +68,19 @@ export async function fetchEmployees({ token, search, skip = 0, limit = 8, store
     PYTHIA_2_API.employees.list,
     {
       headers: { Authorization: `Bearer ${token}` },
-      params: { search: search || undefined, skip, limit, store_id: storeId || undefined },
+      params: {
+        search: search || undefined,
+        skip,
+        limit,
+        store_id: storeId || undefined,
+        tenant_id: tenantId || undefined,
+      },
     },
   )
   return response
 }
 
-export async function fetchArchivedEmployees({ token, skip = 0, limit = 8, storeId }: FetchEmployeesParams) {
+export async function fetchArchivedEmployees({ token, skip = 0, limit = 8, storeId, tenantId }: FetchEmployeesParams) {
   if (token.includes('mock')) {
     return {
       success: true,
@@ -85,7 +92,12 @@ export async function fetchArchivedEmployees({ token, skip = 0, limit = 8, store
     PYTHIA_2_API.employees.archived,
     {
       headers: { Authorization: `Bearer ${token}` },
-      params: { skip, limit, store_id: storeId || undefined },
+      params: {
+        skip,
+        limit,
+        store_id: storeId || undefined,
+        tenant_id: tenantId || undefined,
+      },
     },
   )
   return response

@@ -10,6 +10,7 @@ import {
   simulateStoreHeartbeat,
 } from '@/queries/stores'
 import { useToast } from '@/context/ToastContext'
+import { useUserStore } from '@/store/userStore'
 import { extractApiErrorMessage } from '@/utils/common'
 import DataTable from '@/components/shared/DataTable/DataTable'
 import CreateStoreModal from '@/components/CreateStoreModal/CreateStoreModal'
@@ -81,7 +82,12 @@ export default function StoreListPanel({
   readOnly = false,
 }: StoreListPanelProps) {
   const { data: session } = useSession()
-  const effectiveTenantId = tenantId || session?.user?.tenantId
+  const currentOrganization = useUserStore((s) => s.currentOrganization)
+  const effectiveTenantId =
+    tenantId ||
+    (session?.user?.role === 'superadmin'
+      ? currentOrganization?.tenant_id
+      : session?.user?.tenantId)
   const token = propToken || session?.user?.pythia2Token || session?.user?.token
   const { showToast } = useToast()
   const [isHeartbeating, startTransition] = useTransition()

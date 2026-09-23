@@ -34,7 +34,9 @@ export default async function SuperAdminOwnerUsersMirrorPage({ searchParams }: P
   else if (rawRole === 'owner' || rawRole === 'owners' || rawRole === 'co-owner') initialRoleFilter = 'owner'
 
   const cookieStore = await cookies()
-  let selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
+  const selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
+  const selectedTenantId = cookieStore.get('pythia_selected_tenant_id')?.value
+  const effectiveTenantId = session?.user?.tenantId || selectedTenantId || undefined
 
   let initialEmployees: ApiEmployee[] = []
   let initialManagers: ApiManager[] = []
@@ -44,10 +46,10 @@ export default async function SuperAdminOwnerUsersMirrorPage({ searchParams }: P
   if (token) {
     try {
       const [employeesResult, managersResult, ownersResult, storesResult] = await Promise.allSettled([
-        fetchEmployees({ token, skip: 0, limit: 100, storeId: selectedStoreId || undefined }),
-        fetchManagers({ token, tenantId, skip: 0, limit: 100, storeId: selectedStoreId || undefined }),
+        fetchEmployees({ token, skip: 0, limit: 100, storeId: selectedStoreId || undefined, tenantId: effectiveTenantId }),
+        fetchManagers({ token, tenantId: effectiveTenantId, skip: 0, limit: 100, storeId: selectedStoreId || undefined }),
         fetchOrganizationOwners({ token }),
-        fetchStoresForTenant({ token, tenantId, limit: 100 }),
+        fetchStoresForTenant({ token, tenantId: effectiveTenantId, limit: 100 }),
       ])
 
       if (employeesResult.status === 'fulfilled' && employeesResult.value.data) {
@@ -79,6 +81,7 @@ export default async function SuperAdminOwnerUsersMirrorPage({ searchParams }: P
           initialManagers={initialManagers}
           initialOwners={initialOwners}
           initialStores={initialStores}
+          tenantId={effectiveTenantId}
         />
       </div>
     </>

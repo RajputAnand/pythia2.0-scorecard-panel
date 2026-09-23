@@ -18,11 +18,12 @@ export default async function SuperAdminOwnerEmployeesMirrorPage() {
   const token = session?.user?.pythia2Token
 
   const cookieStore = await cookies()
+  const selectedTenantId = cookieStore.get('pythia_selected_tenant_id')?.value
   let selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
 
   if (!selectedStoreId && token) {
     try {
-      const storesRes = await fetchStoresForTenant({ token, limit: 1 })
+      const storesRes = await fetchStoresForTenant({ token, tenantId: selectedTenantId || undefined, limit: 1 })
       selectedStoreId = storesRes.data?.[0]?.storeNo || storesRes.data?.[0]?.id || storesRes.data?.[0]?._id
     } catch {
       // fallback
@@ -32,7 +33,7 @@ export default async function SuperAdminOwnerEmployeesMirrorPage() {
   let initialData: ApiResponseV2Paginated<ApiEmployee[]> | null = null
   if (token) {
     const [employeesResult] = await Promise.allSettled([
-      fetchEmployees({ token, skip: 0, limit: 15, storeId: selectedStoreId }),
+      fetchEmployees({ token, skip: 0, limit: 15, storeId: selectedStoreId, tenantId: selectedTenantId || undefined }),
     ])
     if (employeesResult.status === 'rejected') unstable_rethrow(employeesResult.reason)
     if (employeesResult.status === 'fulfilled') initialData = employeesResult.value

@@ -721,6 +721,7 @@ export default function Sidebar({ user }: { user: User }) {
   const storePoints = useUserStore((s) => s.points);
   const setPoints = useUserStore((s) => s.setPoints);
   const currentStore = useUserStore((s) => s.currentStore);
+  const currentOrganization = useUserStore((s) => s.currentOrganization);
   const points = storePoints ?? user.points ?? 0;
 
   const swagOrders = useSwagStore((s) => s.orders);
@@ -903,6 +904,12 @@ export default function Sidebar({ user }: { user: User }) {
               {option.label}
             </button>
           ))}
+          {currentOrganization && (
+            <div className="mt-2 px-2 py-1.5 bg-surface-alt border border-border rounded-md text-[11px] text-muted truncate">
+              <span className="text-[9.5px] uppercase font-mono block text-secondary">Active Org</span>
+              <span className="font-medium text-primary truncate block">{currentOrganization.name}</span>
+            </div>
+          )}
         </div>
       )}
 

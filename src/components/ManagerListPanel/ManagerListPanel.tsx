@@ -72,12 +72,19 @@ function PanelEmpty({ search, view }: { search: string; view: 'active' | 'archiv
 interface ManagerListPanelProps {
   initialData: ApiResponseV2Paginated<ApiManager[]> | null
   initialStores?: TenantStore[]
+  tenantId?: string
 }
 
-export default function ManagerListPanel({ initialData, initialStores }: ManagerListPanelProps) {
+export default function ManagerListPanel({ initialData, initialStores, tenantId: propTenantId }: ManagerListPanelProps) {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token || session?.user?.token || 'mock_owner_token'
-  const tenantId = session?.user?.tenantId
+  const sessionTenantId = session?.user?.tenantId
+  const currentOrganization = useUserStore((s) => s.currentOrganization)
+  const effectiveTenantId =
+    propTenantId ||
+    (session?.user?.role === 'superadmin'
+      ? currentOrganization?.tenant_id
+      : sessionTenantId)
   const { showToast } = useToast()
 
   const [stores, setStores] = useState<TenantStore[]>(initialStores || [])
@@ -87,7 +94,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     if (!token) return
 
     let cancelled = false
-    fetchStoresForTenant({ token, tenantId, limit: 100 })
+    fetchStoresForTenant({ token, tenantId: effectiveTenantId, limit: 100 })
       .then((res) => {
         if (cancelled) return
         if (res.data && res.data.length > 0) {
@@ -101,7 +108,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     return () => {
       cancelled = true
     }
-  }, [token, tenantId, initialStores])
+  }, [token, effectiveTenantId, initialStores])
 
   const storeNameMap = useMemo(() => {
     const map: Record<string, string> = {}
@@ -169,6 +176,20 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     }
   }, [currentStoreId])
 
+  const lastTenantId = useRef(effectiveTenantId)
+  useEffect(() => {
+    if (lastTenantId.current !== effectiveTenantId) {
+      lastTenantId.current = effectiveTenantId
+      skipNextFetch.current = false
+      setSkip(0)
+      setArchivedSkip(0)
+      setRetryToken((r) => r + 1)
+      if (hasLoadedArchived.current) {
+        setArchivedRetryToken((r) => r + 1)
+      }
+    }
+  }, [effectiveTenantId])
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
     return () => clearTimeout(t)
@@ -190,7 +211,14 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     setIsLoading(true)
     setIsError(false)
     setErrorMessage(null)
-    fetchManagers({ token, tenantId, search: debouncedSearch, skip, limit: PAGE_SIZE, storeId: currentStoreId })
+    fetchManagers({
+      token,
+      tenantId: effectiveTenantId,
+      search: debouncedSearch,
+      skip,
+      limit: PAGE_SIZE,
+      storeId: currentStoreId,
+    })
       .then((response) => {
         if (cancelled) return
         setManagers(response.data ?? [])
@@ -208,7 +236,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     return () => {
       cancelled = true
     }
-  }, [token, tenantId, debouncedSearch, skip, retryToken, currentStoreId])
+  }, [token, effectiveTenantId, debouncedSearch, skip, retryToken, currentStoreId])
 
   const page = meta ? Math.floor(meta.skip / meta.limit) : 0
   const totalPages = meta ? Math.max(1, Math.ceil(meta.total / meta.limit)) : 1
@@ -244,7 +272,14 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
     setIsLoadingArchived(true)
     setIsErrorArchived(false)
     setArchivedErrorMessage(null)
-    fetchArchivedManagers({ token, tenantId, search: archivedDebouncedSearch, skip: archivedSkip, limit: PAGE_SIZE, storeId: currentStoreId })
+    fetchArchivedManagers({
+      token,
+      tenantId: effectiveTenantId,
+      search: archivedDebouncedSearch,
+      skip: archivedSkip,
+      limit: PAGE_SIZE,
+      storeId: currentStoreId,
+    })
       .then((response) => {
         setArchivedManagers(response.data ?? [])
         setArchivedMeta(response.meta)
@@ -254,7 +289,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
         setArchivedErrorMessage(extractApiErrorMessage(err, 'Failed to load archived managers'))
       })
       .finally(() => setIsLoadingArchived(false))
-  }, [token, tenantId, archivedDebouncedSearch, archivedSkip, currentStoreId])
+  }, [token, effectiveTenantId, archivedDebouncedSearch, archivedSkip, currentStoreId])
 
   useEffect(() => {
     if (view === 'archived' && token) loadArchived()
@@ -557,7 +592,7 @@ export default function ManagerListPanel({ initialData, initialStores }: Manager
       {isCreating && token && (
         <CreateUserModal
           token={token}
-          tenantId={tenantId}
+          tenantId={effectiveTenantId}
           stores={storeOptions}
           initialRole="manager"
           allowedRoles={['employee', 'manager', 'owner']}
