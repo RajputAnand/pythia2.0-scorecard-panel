@@ -68,7 +68,7 @@ export default function EmployeeSelector({
   const displayName = selectedEmployee ? getEmployeeName(selectedEmployee) : 'Select Employee'
 
   return (
-    <div ref={dropdownRef} className={styles.dropdownContainer}>
+    <div ref={dropdownRef} className={`${styles.dropdownContainer} shrink-0`}>
       <button
         type="button"
         id="employee-selector-trigger"
@@ -77,7 +77,7 @@ export default function EmployeeSelector({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label="Select employee"
-        className="cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface-alt border border-border rounded-lg transition-all duration-150 hover:bg-border hover:text-primary text-[12.5px] px-[12px] py-[6px] whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+        className="cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface-alt border border-border rounded-lg transition-all duration-150 hover:bg-border hover:text-primary text-[12.5px] px-[12px] py-[6px] whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
       >
         <svg
           className="w-[14px] h-[14px] shrink-0 text-accent"

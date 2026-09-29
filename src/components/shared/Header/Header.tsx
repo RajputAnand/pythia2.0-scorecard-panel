@@ -249,23 +249,23 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between bg-surface border-b border-border px-[30px] h-[58px]">
-      <div className="flex items-center gap-[14px]">
-        <span className="font-semibold text-[15.5px]">{title}</span>
+    <header className="sticky top-0 z-10 flex items-center justify-between bg-surface border-b border-border px-[30px] h-[58px] gap-4 min-w-0">
+      <div className="flex items-center gap-[14px] shrink-0">
+        <span className="font-semibold text-[15.5px] whitespace-nowrap">{title}</span>
         {subtitle && (
-          <span className="font-mono text-secondary bg-surface-alt border border-border rounded-[20px] text-[10.5px] px-[10px] py-[4px]">
+          <span className="font-mono text-secondary bg-surface-alt border border-border rounded-[20px] text-[10.5px] px-[10px] py-[4px] whitespace-nowrap shrink-0">
             {subtitle}
           </span>
         )}
       </div>
 
-      <div className="flex items-center gap-[10px]">
+      <div className="flex items-center gap-[10px] shrink-0">
         {/* Organization selector — Super Admin */}
         {showOrgSelector && (
-          <div ref={orgDropdownRef} className="relative">
+          <div ref={orgDropdownRef} className="relative shrink-0">
             <button
               id="org-selector-trigger"
-              className="cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface-alt border border-border rounded-lg transition-all duration-150 hover:bg-border hover:text-primary text-[12.5px] px-[12px] py-[6px] whitespace-nowrap"
+              className="cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface-alt border border-border rounded-lg transition-all duration-150 hover:bg-border hover:text-primary text-[12.5px] px-[12px] py-[6px] whitespace-nowrap shrink-0"
               onClick={() => setOrgOpen((o) => !o)}
               aria-haspopup="listbox"
               aria-expanded={orgOpen}
@@ -402,10 +402,10 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
 
         {/* Store selector — owner, manager, and super admin */}
         {showStoreSelector && (
-          <div ref={dropdownRef} className="relative">
+          <div ref={dropdownRef} className="relative shrink-0">
             <button
               id="store-selector-trigger"
-              className="cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface-alt border border-border rounded-lg transition-all duration-150 hover:bg-border hover:text-primary text-[12.5px] px-[12px] py-[6px] whitespace-nowrap"
+              className="cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface-alt border border-border rounded-lg transition-all duration-150 hover:bg-border hover:text-primary text-[12.5px] px-[12px] py-[6px] whitespace-nowrap shrink-0"
               onClick={() => setOpen((o) => !o)}
               aria-haspopup="listbox"
               aria-expanded={open}
@@ -493,7 +493,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
 
         {/* User Profile DP & Dropdown Menu */}
         {session?.user && (
-          <div ref={profileDropdownRef} className="relative ml-1">
+          <div ref={profileDropdownRef} className="relative ml-1 shrink-0">
             <button
               type="button"
               onClick={() => setProfileOpen((prev) => !prev)}

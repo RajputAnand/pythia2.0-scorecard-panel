@@ -135,7 +135,7 @@ export default function DatePicker({ value, onChange, ariaLabel, min, max }: Dat
   const selectedKey = selected ? toDateKey(selected) : null
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block shrink-0">
       <button
         ref={triggerRef}
         type="button"
@@ -143,14 +143,14 @@ export default function DatePicker({ value, onChange, ariaLabel, min, max }: Dat
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={ariaLabel}
-        className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-mono text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent focus:outline-none focus:border-accent"
+        className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-mono text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent focus:outline-none focus:border-accent whitespace-nowrap shrink-0"
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 text-muted">
           <rect x="1" y="2" width="10" height="9" rx="1.5" stroke="currentColor" strokeWidth="1" />
           <path d="M1 4.5H11" stroke="currentColor" strokeWidth="1" />
           <path d="M3.5 1V2.5M8.5 1V2.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
         </svg>
-        {formatDisplay(value)}
+        <span className="whitespace-nowrap">{formatDisplay(value)}</span>
       </button>
 
       {open &&

@@ -345,7 +345,7 @@ export default function SuperAdminEmployeeOverviewContent({
         title="Employee Overview"
         subtitle={weekLabel}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <EmployeeSelector
             employees={employees}
             selectedEmployee={selectedEmployee}
@@ -363,22 +363,22 @@ export default function SuperAdminEmployeeOverviewContent({
             />
           )}
           {!hasActiveDateFilter && <div className="bg-border shrink-0 w-px h-5" />}
-          <div className="flex items-center gap-[6px]">
+          <div className="flex items-center gap-[6px] shrink-0">
             <DatePicker ariaLabel="Filter start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
-            <span className="text-muted text-[11px]">to</span>
+            <span className="text-muted text-[11px] shrink-0">to</span>
             <DatePicker ariaLabel="Filter end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
           </div>
           {hasActiveDateFilter && (
             <button
               type="button"
               onClick={clearDateFilter}
-              className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-sans font-medium text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent hover:text-accent"
+              className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-sans font-medium text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent hover:text-accent whitespace-nowrap shrink-0"
             >
-              <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="w-[11px] h-[11px] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
-              Clear filter
+              <span>Clear filter</span>
             </button>
           )}
         </div>
