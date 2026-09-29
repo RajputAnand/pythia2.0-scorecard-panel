@@ -249,7 +249,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between bg-surface border-b border-border px-[30px] h-[58px] gap-4 min-w-0">
+    <header className="sticky top-0 z-10 flex items-center justify-between bg-surface border-b border-border px-4 xl:px-[30px] h-[58px] gap-3 min-w-0">
       <div className="flex items-center gap-[14px] shrink-0">
         <span className="font-semibold text-[15.5px] whitespace-nowrap">{title}</span>
         {subtitle && (
@@ -259,7 +259,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-[10px] shrink-0">
+      <div className="flex items-center gap-1.5 xl:gap-[10px] shrink-0">
         {/* Organization selector — Super Admin */}
         {showOrgSelector && (
           <div ref={orgDropdownRef} className="relative shrink-0">
@@ -284,7 +284,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                 <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01" />
               </svg>
 
-              <span className="max-w-[160px] overflow-hidden text-ellipsis">
+              <span className="max-w-[130px] xl:max-w-[160px] overflow-hidden text-ellipsis">
                 {currentOrganization?.name ?? (organizations.length === 0 ? 'No organizations' : 'Select organization')}
               </span>
 
@@ -430,7 +430,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                 />
               </svg>
 
-              <span className="max-w-[160px] overflow-hidden text-ellipsis">
+              <span className="max-w-[130px] xl:max-w-[160px] overflow-hidden text-ellipsis">
                 {currentStore?.name ?? (stores.length === 0 ? 'No stores' : 'Select store')}
               </span>
 

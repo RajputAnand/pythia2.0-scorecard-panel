@@ -345,7 +345,7 @@ export default function SuperAdminEmployeeOverviewContent({
         title="Employee Overview"
         subtitle={weekLabel}
       >
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 xl:gap-2 shrink-0">
           <EmployeeSelector
             employees={employees}
             selectedEmployee={selectedEmployee}
