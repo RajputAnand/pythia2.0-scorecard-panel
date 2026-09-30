@@ -99,9 +99,11 @@ export default function Loading() {
 
 ---
 
-## Header Action Buttons
+## Header & Subheader Toolbar Pattern
 
-Pass buttons as `children` to `<Header>`:
+### Header (`src/components/shared/Header/Header.tsx`)
+
+Pass simple page-level action buttons (1–2 buttons) as `children` to `<Header>`:
 ```tsx
 import Header from '@/components/shared/Header/Header'
 import headerStyles from '@/components/shared/Header/Header.module.css'
@@ -109,9 +111,44 @@ import headerStyles from '@/components/shared/Header/Header.module.css'
 <Header title="Title" subtitle="Subtitle">
   <button className={headerStyles.btnGhost}>Export</button>
   <button className={headerStyles.btnAccent}>New Shift</button>
-  <button className={headerStyles.btnPrimary}>Publish</button>
 </Header>
 ```
+
+### Reusable Toolbar (`src/components/shared/Toolbar/Toolbar.tsx`)
+
+Whenever a page has contextual filters, metric tabs, date pickers, or employee selectors, **do not pack them into `<Header>`** (which causes horizontal layout overflow when global Organization/Store selectors are rendered). Instead, place `<Toolbar>` directly beneath `<Header>`:
+
+```tsx
+import Header from '@/components/shared/Header/Header'
+import Toolbar from '@/components/shared/Toolbar/Toolbar'
+
+<Header title="Employee Overview" subtitle="Super Admin" />
+<Toolbar
+  left={
+    <div className="flex items-center gap-2 flex-wrap">
+      <EmployeeSelector ... />
+      <WeekNavButtons ... />
+    </div>
+  }
+  right={
+    <div className="flex items-center gap-2 shrink-0">
+      <DatePicker ... />
+      <span>to</span>
+      <DatePicker ... />
+      <button ...>Clear filter</button>
+    </div>
+  }
+/>
+```
+
+### Z-Index Stacking & Dropdown Alignment Rules
+- **Stacking Hierarchy**:
+  - `Sidebar`: `fixed inset-y-0 left-0 z-20`
+  - `Header`: `sticky top-0 z-10`
+  - `Toolbar`: `sticky top-[58px] z-[9]`
+- **Subheader Dropdown Alignment**:
+  - Any dropdown trigger positioned in the **left slot** of `Toolbar` (such as `EmployeeSelector`) **must default to left alignment** (`align="left"`, using `left-0`).
+  - Using `right-0` on left-aligned triggers causes the menu to expand leftward and clip underneath the `z-20` sidebar.
 
 ---
 

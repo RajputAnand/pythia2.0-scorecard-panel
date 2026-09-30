@@ -59,6 +59,20 @@ interface User {
   const token = session?.user?.pythia2Token
   ```
 
+### Two-Tier Token Refresh System (`src/lib/auth-token.ts`, `src/auth.ts`, `src/lib/api-client.ts`)
+1. **Proactive Refresh (NextAuth `jwt` Callback)**:
+   - Pythia 2.0 access tokens expire after 15 minutes.
+   - The NextAuth `jwt` callback parses token expiration without third-party dependencies (`getJwtExp`) and checks `isTokenExpired(token.pythia2Token, 60_000)`.
+   - If expiring within 60s, it proactively issues a single-flight token rotation via `requestTokenRefresh(token.refreshToken)` (`POST /auth/refresh`).
+   - Role `manager` authenticates against Pythia 1 and is excluded from refresh rotation.
+2. **Reactive 401 Interceptor (`pythia2Client`)**:
+   - Catches 401 responses on authenticated requests.
+   - Coalesces parallel requests into a single refresh promise to prevent revoking the refresh token family.
+   - Updates the client session via `signIn('credentials', { userData: ..., redirect: false })`, marks the request with `_retriedAfterRefresh = true`, and retries the failed request with the new Bearer token.
+   - If refresh fails, signs out and redirects to the role login page.
+3. **URL Normalization**:
+   - All direct requests to `process.env.NEXT_PUBLIC_PYTHIA_2_API_URL` must normalize base URLs with `.replace(/\/+$/, '')` to prevent double-slash 404s (`//auth/refresh`).
+
 ---
 
 ## Next.js 16 Proxy Gatekeeper (`src/proxy.ts`)

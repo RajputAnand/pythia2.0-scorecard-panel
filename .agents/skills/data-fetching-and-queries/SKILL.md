@@ -170,3 +170,15 @@ When an endpoint is not yet available on the backend:
 2. Wrap the mock calls inside `src/queries/<domain>.ts` with identical async function signatures matching `pythia2Client` endpoints.
 3. Consuming UI components import only from `src/queries/<domain>.ts`.
 4. When backend is ready, replace mock implementation in `src/queries/<domain>.ts` with `pythia2Client` call without changing UI code.
+
+---
+
+## 401 Response Handling & Token Refresh Interceptor
+
+1. **Automatic Single-Flight Refresh**:
+   - `pythia2Client` intercepts 401 Unauthorized responses on both client and server.
+   - Dispatches a single-flight token rotation (`requestTokenRefresh` in `src/lib/auth-token.ts`) to `POST /auth/refresh`.
+   - On success, updates the session, retries the failed request once with the new Bearer token, and resolves transparently to the caller.
+   - If the refresh token is expired or revoked, signs out and redirects to the role login route.
+2. **URL Normalization**:
+   - When building direct fetch requests with `process.env.NEXT_PUBLIC_PYTHIA_2_API_URL`, always strip trailing slashes via `.replace(/\/+$/, '')` to prevent double-slash 404 errors (e.g. `//auth/refresh`).

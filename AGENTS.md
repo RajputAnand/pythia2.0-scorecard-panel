@@ -43,12 +43,32 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ---
 
-## Header Buttons
-- The `Header` component accepts page-specific action buttons via `children`.
-- Button styles are defined in `Header.module.css` and imported by each page:
+## Header & Subheader Toolbar Pattern
+
+### Header (`src/components/shared/Header/Header.tsx`)
+- Standard top navigation bar (`sticky top-0 z-10 h-[58px]`).
+- Renders page title, optional subtitle pill, and global selectors (Super Admin Organization selector, Store selector, Profile dropdown).
+- Accepts page-level action buttons via `children` when simple (e.g. 1-2 buttons). Button styles are defined in `Header.module.css`:
   - `headerStyles.btnGhost` — bordered, secondary text
   - `headerStyles.btnAccent` — green background, white text
   - `headerStyles.btnPrimary` — dark (`bg-primary`) background, white text
+
+### Reusable Toolbar (`src/components/shared/Toolbar/Toolbar.tsx`)
+- Standard sticky sub-header bar placed immediately below `<Header>` (`sticky top-[58px] z-[9] min-h-[50px] py-1.5`).
+- **When to Use**: Whenever a page requires contextual filters, date range pickers, metric tabs, or secondary actions. Packing complex controls into `<Header>` causes horizontal overflow when Super Admin or Store selectors are rendered.
+- **Slots**:
+  - `left?: ReactNode`: Renders left-aligned controls (e.g. tabs, employee dropdown, week navigation).
+  - `right?: ReactNode`: Renders right-aligned controls (e.g. date range pickers, export buttons, clear filter buttons).
+  - `children?: ReactNode`: Alternative freeform layout spanning the full toolbar width.
+  - `sticky?: boolean`: Defaults to `true`.
+- **Adopted Across**:
+  - **Competitor Benchmarking** (`BenchmarkingContent.tsx`): Metric tabs on left, CSV export button on right.
+  - **ROI Attribution** (`TimeControls.tsx`): Time period pills on left, custom date range and actuals/projected view toggle on right.
+  - **Employee Overview (Super Admin)** (`SuperAdminEmployeeOverviewContent.tsx`): Employee selector + week navigation on left, date pickers + clear filter on right.
+  - **Employee Dashboard** (`OverviewContent.tsx`): Week navigation on left, date pickers + clear filter on right.
+- **Dropdown Alignment Rule in Subheaders**:
+  - The fixed sidebar sits at `z-20`, `Header` at `z-10`, and `Toolbar` at `z-[9]`.
+  - Any dropdown trigger situated in the **left** slot of `Toolbar` (such as `EmployeeSelector`) **must default to left-aligned positioning** (`align="left"`, using `left-0`). If hardcoded to `right-0`, the dropdown menu will expand to the left and slide underneath the sidebar.
 
 ---
 
@@ -137,11 +157,18 @@ import { pythia2Client } from '@/lib/api-client'
 ```
 
 - **Base URL**: Configured via `process.env.NEXT_PUBLIC_PYTHIA_2_API_URL`. Includes headers for JSON content and `ngrok-skip-browser-warning: true`.
-- **401 Response Interceptor (Token Refresh Rotation)**:
-  1. Catches 401 on requests carrying a Bearer token.
-  2. Coalesces concurrent 401s into a single `POST /auth/refresh` call using `session.user.refreshToken`.
-  3. On success, calls `signIn('credentials', { redirect: false })` with updated access and refresh tokens, and retries the original request.
-  4. On failure or missing refresh token, signs out and redirects to the role login page.
+- **URL Normalization**: Any direct URL construction using `process.env.NEXT_PUBLIC_PYTHIA_2_API_URL` must normalize the base URL with `.replace(/\/+$/, '')` to prevent double-slash 404 errors (e.g. `https://domain.com//auth/refresh`).
+- **Two-Tier Token Refresh System (`src/lib/auth-token.ts`, `src/auth.ts`, `src/lib/api-client.ts`)**:
+  1. **Proactive Refresh (NextAuth `jwt` Callback)**:
+     - Access tokens expire after 15 minutes.
+     - In `src/auth.ts`, the `jwt` callback inspects the token expiration via `isTokenExpired(token.pythia2Token, 60_000)` (using raw JWT parsing from `src/lib/auth-token.ts`).
+     - When expiring within 60s, it triggers `requestTokenRefresh(token.refreshToken)` ahead of time and refreshes session tokens without interrupting active user requests.
+     - Role `manager` authenticates against Pythia 1 and is excluded from refresh rotation.
+  2. **Reactive 401 Interceptor (`pythia2Client` Response Interceptor)**:
+     - Catches 401 on requests carrying a Bearer token on client and server.
+     - Coalesces concurrent 401s into a single-flight `POST /auth/refresh` call via `requestTokenRefresh(refreshToken)`.
+     - On client, updates the session via `signIn('credentials', { userData: ..., redirect: false })`, marks the failed request with `_retriedAfterRefresh = true`, updates the `Authorization` header, and retries the request once.
+     - If refresh fails, token is revoked, or refresh token is missing/mock, signs out and redirects to the role's login route.
 
 ---
 
