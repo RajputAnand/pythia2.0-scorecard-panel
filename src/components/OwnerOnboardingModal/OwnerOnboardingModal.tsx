@@ -273,7 +273,7 @@ export default function OwnerOnboardingModal({
             type="button"
             onClick={onClose}
             aria-label="Close modal"
-            className="text-muted hover:text-primary cursor-pointer p-1.5 rounded-lg hover:bg-surface-alt transition-colors"
+            className="text-gray-800 hover:text-primary cursor-pointer p-1.5 rounded-lg hover:bg-surface-alt transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -329,7 +329,7 @@ export default function OwnerOnboardingModal({
               </svg>
             </button>
 
-            <span className="text-[12px] text-muted font-mono">
+            <span className="text-[12px] text-gray-800 font-mono">
               {currentIndex + 1} / {OWNER_TIPS.length}
             </span>
           </div>
@@ -344,7 +344,7 @@ export default function OwnerOnboardingModal({
             onClick={() => handleSelectStep(currentIndex - 1)}
             className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[12.5px] font-medium transition-all ${
               isFirst
-                ? 'opacity-35 cursor-not-allowed text-muted'
+                ? 'opacity-35 cursor-not-allowed text-gray-800'
                 : 'text-secondary hover:text-primary hover:bg-surface cursor-pointer border border-border/70'
             }`}
           >

@@ -40,7 +40,7 @@ function PanelError({ message, onRetry }: { message?: string; onRetry: () => voi
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16 text-center px-4">
       <span className="text-[32px]">⚠️</span>
       <p className="font-semibold text-[14px]">Failed to load employees</p>
-      <p className="text-[12px] text-muted max-w-md">{message || 'Check your connection and try again.'}</p>
+      <p className="text-[12px] text-gray-800 max-w-md">{message || 'Check your connection and try again.'}</p>
       <button
         className="mt-1 rounded-[8px] border-0 bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:opacity-85 cursor-pointer"
         onClick={onRetry}
@@ -69,12 +69,12 @@ function PanelEmpty({
         {view === 'archived' ? 'No archived employees' : 'No employees found'}
       </p>
       {search ? (
-        <p className="text-[11.5px] text-muted">No results for &quot;{search}&quot;.</p>
+        <p className="text-[11.5px] text-gray-800">No results for &quot;{search}&quot;.</p>
       ) : view === 'archived' ? (
-        <p className="text-[11.5px] text-muted">Employees you archive will show up here and can be unarchived.</p>
+        <p className="text-[11.5px] text-gray-800">Employees you archive will show up here and can be unarchived.</p>
       ) : (
         <>
-          <p className="text-[11.5px] text-muted">No employees have been added to this store yet.</p>
+          <p className="text-[11.5px] text-gray-800">No employees have been added to this store yet.</p>
           {!readOnly && onAddEmployee && (
             <button
               type="button"
@@ -359,7 +359,7 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
           </div>
           <div className="min-w-0">
             <div className="font-medium truncate">{getEmployeeName(employee)}</div>
-            <div className="text-[10.5px] text-muted truncate capitalize">{employee.role_name}</div>
+            <div className="text-[10.5px] text-gray-800 truncate capitalize">{employee.role_name}</div>
           </div>
         </div>
       ),
@@ -370,7 +370,7 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
       render: (employee) => (
         <>
           <div className="truncate">{employee.email}</div>
-          {employee.phone && <div className="text-[10.5px] text-muted truncate">{employee.phone}</div>}
+          {employee.phone && <div className="text-[10.5px] text-gray-800 truncate">{employee.phone}</div>}
         </>
       ),
     },
@@ -408,7 +408,7 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
             {isRevealing ? 'Revealing…' : 'Reveal password'}
           </button>
         ) : (
-          <span className="text-[11px] text-muted">Password set</span>
+          <span className="text-[11px] text-gray-800">Password set</span>
         )
       },
     },
@@ -439,7 +439,7 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
           </div>
           <div className="min-w-0">
             <div className="font-medium truncate">{getEmployeeName(employee)}</div>
-            <div className="text-[10.5px] text-muted truncate capitalize">{employee.role_name}</div>
+            <div className="text-[10.5px] text-gray-800 truncate capitalize">{employee.role_name}</div>
           </div>
         </div>
       ),
@@ -450,7 +450,7 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
       render: (employee) => (
         <>
           <div className="truncate">{employee.email}</div>
-          {employee.phone && <div className="text-[10.5px] text-muted truncate">{employee.phone}</div>}
+          {employee.phone && <div className="text-[10.5px] text-gray-800 truncate">{employee.phone}</div>}
         </>
       ),
     },
@@ -459,9 +459,9 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
       header: 'Archived',
       render: (employee) =>
         employee.archived_at ? (
-          <span className="text-[11.5px] text-muted">{new Date(employee.archived_at).toLocaleDateString()}</span>
+          <span className="text-[11.5px] text-gray-800">{new Date(employee.archived_at).toLocaleDateString()}</span>
         ) : (
-          <span className="text-[11.5px] text-muted">—</span>
+          <span className="text-[11.5px] text-gray-800">—</span>
         ),
     },
     {

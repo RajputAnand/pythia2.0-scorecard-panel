@@ -139,7 +139,7 @@ export default function ManagerDashboardContent({
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-[6px]">
             <DatePicker ariaLabel="Filter start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
-            <span className="text-muted text-[11px]">to</span>
+            <span className="text-gray-800 text-[11px]">to</span>
             <DatePicker ariaLabel="Filter end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
           </div>
           {hasActiveDateFilter && (

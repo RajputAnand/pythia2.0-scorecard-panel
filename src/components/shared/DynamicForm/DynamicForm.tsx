@@ -111,7 +111,7 @@ export default function DynamicForm<T extends z.ZodTypeAny>({
                 type={inputType}
                 placeholder={field.placeholder}
                 {...register(field.id)}
-                className={`w-full bg-surface-alt border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors ${
+                className={`w-full bg-surface-alt border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors ${
                   isPassword ? 'pr-10' : ''
                 } ${hasError ? 'border-danger' : 'border-border'}`}
               />
@@ -121,7 +121,7 @@ export default function DynamicForm<T extends z.ZodTypeAny>({
                 <button
                   type="button"
                   onClick={() => toggleVisibility(field.id)}
-                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted hover:text-secondary transition-colors"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-800 hover:text-secondary transition-colors"
                   aria-label={isVisible ? 'Hide password' : 'Show password'}
                 >
                   {isVisible ? <EyeOffIcon /> : <EyeIcon />}

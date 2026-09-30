@@ -122,9 +122,9 @@ export default function CoachingTrackerPanel({
       <div className="flex items-center justify-between px-[22px] py-4 border-b border-border">
         <div>
           <div className="text-[14px] font-semibold">Issue → Coaching → Outcome</div>
-          <div className="text-[11.5px] text-muted mt-0.5">Click an employee to see their full coaching history</div>
+          <div className="text-[11.5px] text-gray-800 mt-0.5">Click an employee to see their full coaching history</div>
         </div>
-        <span className="font-mono text-[11px] text-muted">
+        <span className="font-mono text-[11px] text-gray-800">
           {initialEmployees.length} employee{initialEmployees.length === 1 ? '' : 's'} · {totalIssues} total issue
           {totalIssues === 1 ? '' : 's'}
         </span>
@@ -158,7 +158,7 @@ export default function CoachingTrackerPanel({
 
       {/* Employee Selector */}
       {initialEmployees.length === 0 ? (
-        <div className="px-[22px] py-[18px] text-[12.5px] text-muted">No employees found for your store(s).</div>
+        <div className="px-[22px] py-[18px] text-[12.5px] text-gray-800">No employees found for your store(s).</div>
       ) : (
         <>
           <div className="flex flex-wrap gap-2 px-[22px] py-[14px] border-b border-border">

@@ -137,7 +137,7 @@ export default function CreateSwagProductModal({
             <h2 className="text-[16px] font-bold text-primary">
               {initialProduct ? 'Edit Reward Product' : 'Add New Swag Reward'}
             </h2>
-            <p className="text-[11.5px] text-muted mt-0.5">
+            <p className="text-[11.5px] text-gray-800 mt-0.5">
               Available for employees to claim using earned reward points.
             </p>
           </div>
@@ -162,7 +162,7 @@ export default function CreateSwagProductModal({
                     Reward Icon
                   </label>
                   <span className="text-[11px] font-medium text-secondary bg-surface-alt border border-border rounded-md px-2 py-0.5 flex items-center gap-1.5 shadow-2xs">
-                    <span className="text-muted">Active:</span>
+                    <span className="text-gray-800">Active:</span>
                     <span className="text-[14px] leading-none">{selectedEmoji || '❓'}</span>
                   </span>
                 </div>
@@ -193,7 +193,7 @@ export default function CreateSwagProductModal({
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[11.5px] font-semibold text-primary block">Inventory Stock</span>
-                    <span className="text-[10.5px] text-muted">
+                    <span className="text-[10.5px] text-gray-800">
                       {isUnlimitedStock ? 'Unlimited supply' : 'Limited availability'}
                     </span>
                   </div>
@@ -218,7 +218,7 @@ export default function CreateSwagProductModal({
 
                 <div className="mt-2 pt-2 border-t border-border flex items-center justify-between h-8">
                   {isUnlimitedStock ? (
-                    <span className="text-[11px] text-muted">
+                    <span className="text-[11px] text-gray-800">
                       Always available — no quantity limit
                     </span>
                   ) : (
@@ -253,7 +253,7 @@ export default function CreateSwagProductModal({
                   type="text"
                   placeholder="e.g. Pythia Team Fleece Hoodie"
                   {...register('name')}
-                  className={`w-full h-9 bg-surface-alt border rounded-lg px-3 text-[12.5px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors ${
+                  className={`w-full h-9 bg-surface-alt border rounded-lg px-3 text-[12.5px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors ${
                     errors.name ? 'border-danger' : 'border-border'
                   }`}
                 />
@@ -304,7 +304,7 @@ export default function CreateSwagProductModal({
                         errors.cost ? 'border-danger' : 'border-border'
                       }`}
                     />
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-muted text-[10.5px] select-none">
+                    <span className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-gray-800 text-[10.5px] select-none">
                       pts
                     </span>
                   </div>
@@ -323,7 +323,7 @@ export default function CreateSwagProductModal({
                   rows={3}
                   placeholder="e.g. Premium embroidered zip-up fleece. Claim size at manager office."
                   {...register('desc')}
-                  className={`w-full flex-1 min-h-[72px] bg-surface-alt border rounded-lg px-3 py-2 text-[12.5px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors resize-none ${
+                  className={`w-full flex-1 min-h-[72px] bg-surface-alt border rounded-lg px-3 py-2 text-[12.5px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors resize-none ${
                     errors.desc ? 'border-danger' : 'border-border'
                   }`}
                 />
@@ -341,7 +341,7 @@ export default function CreateSwagProductModal({
                 <label className="text-[11px] font-semibold text-secondary uppercase tracking-[.06em] block">
                   Target Store Availability
                 </label>
-                <span className="text-[11px] text-muted">
+                <span className="text-[11px] text-gray-800">
                   Choose which stores will carry this reward
                 </span>
               </div>

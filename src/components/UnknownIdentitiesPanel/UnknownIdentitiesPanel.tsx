@@ -35,7 +35,7 @@ function PanelError({ message, onRetry }: { message?: string; onRetry: () => voi
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16 text-center px-4">
       <span className="text-[32px]">⚠️</span>
       <p className="font-semibold text-[14px]">Failed to load unknown identities</p>
-      <p className="text-[12px] text-muted max-w-md">{message || 'Check your connection and try again.'}</p>
+      <p className="text-[12px] text-gray-800 max-w-md">{message || 'Check your connection and try again.'}</p>
       <button
         className="mt-1 rounded-[8px] border-0 bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:opacity-85 cursor-pointer"
         onClick={onRetry}
@@ -51,7 +51,7 @@ function PanelEmpty({ view }: { view: 'active' | 'trashed' }) {
     <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-16">
       <span className="text-[32px]">{view === 'trashed' ? '🗑️' : '🎉'}</span>
       <p className="font-semibold text-[13px]">{view === 'trashed' ? 'No trashed identities' : 'No unknown identities'}</p>
-      <p className="text-[11.5px] text-muted">
+      <p className="text-[11.5px] text-gray-800">
         {view === 'trashed'
           ? 'Identities you trash will show up here and can be restored.'
           : 'Every detection has been matched to a known employee.'}

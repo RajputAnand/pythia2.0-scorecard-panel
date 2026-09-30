@@ -110,7 +110,7 @@ export default function CreateStoreModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="text-muted hover:text-primary cursor-pointer p-1 rounded-md transition-colors"
+            className="text-gray-800 hover:text-primary cursor-pointer p-1 rounded-md transition-colors"
           >
             <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -118,7 +118,7 @@ export default function CreateStoreModal({
             </svg>
           </button>
         </div>
-        <p className="text-[12.5px] text-muted mb-4">
+        <p className="text-[12.5px] text-gray-800 mb-4">
           Register a new store location and assign an edge device pairing code for on-site sensor dispatch.
         </p>
 
@@ -140,7 +140,7 @@ export default function CreateStoreModal({
                 type="text"
                 placeholder="e.g. STORE-007"
                 {...register('storeNo')}
-                className={`w-full bg-surface-alt border rounded-lg px-3 py-2 text-[13px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors ${
+                className={`w-full bg-surface-alt border rounded-lg px-3 py-2 text-[13px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors ${
                   errors.storeNo ? 'border-danger' : 'border-border'
                 }`}
               />
@@ -156,7 +156,7 @@ export default function CreateStoreModal({
                 type="text"
                 placeholder="e.g. Downtown Flagship"
                 {...register('name')}
-                className={`w-full bg-surface-alt border rounded-lg px-3 py-2 text-[13px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors ${
+                className={`w-full bg-surface-alt border rounded-lg px-3 py-2 text-[13px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors ${
                   errors.name ? 'border-danger' : 'border-border'
                 }`}
               />
@@ -175,7 +175,7 @@ export default function CreateStoreModal({
                 type="text"
                 placeholder="e.g. Manhattan"
                 {...register('location')}
-                className={`w-full bg-surface-alt border rounded-lg px-3 py-2 text-[13px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors ${
+                className={`w-full bg-surface-alt border rounded-lg px-3 py-2 text-[13px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors ${
                   errors.location ? 'border-danger' : 'border-border'
                 }`}
               />
@@ -191,7 +191,7 @@ export default function CreateStoreModal({
                 type="text"
                 placeholder="e.g. Central District"
                 {...register('district')}
-                className={`w-full bg-surface-alt border rounded-lg px-3 py-2 text-[13px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors ${
+                className={`w-full bg-surface-alt border rounded-lg px-3 py-2 text-[13px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors ${
                   errors.district ? 'border-danger' : 'border-border'
                 }`}
               />
@@ -209,7 +209,7 @@ export default function CreateStoreModal({
               rows={2}
               placeholder="e.g. 100 North Blvd, Suite 200, New York, NY 10001"
               {...register('fullAddress')}
-              className={`w-full bg-surface-alt border rounded-lg px-3 py-2 text-[13px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors resize-none ${
+              className={`w-full bg-surface-alt border rounded-lg px-3 py-2 text-[13px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors resize-none ${
                 errors.fullAddress ? 'border-danger' : 'border-border'
               }`}
             />

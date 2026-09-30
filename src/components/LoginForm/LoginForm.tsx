@@ -82,7 +82,7 @@ export default function LoginForm({ role }: LoginFormProps) {
             </div>
             <div>
               <div className="text-[13.5px] font-semibold">Pythia</div>
-              <div className="text-[10px] text-muted mt-px">Scorecard</div>
+              <div className="text-[10px] text-gray-800 mt-px">Scorecard</div>
             </div>
           </div>
         </div>

@@ -542,7 +542,7 @@ export default function UserListPanel({
           </div>
           <div className="min-w-0">
             <div className="font-medium truncate text-[13px]">{u.name}</div>
-            <div className="text-[10.5px] text-muted truncate font-mono">{u.userId}</div>
+            <div className="text-[10.5px] text-gray-800 truncate font-mono">{u.userId}</div>
           </div>
         </div>
       ),
@@ -572,7 +572,7 @@ export default function UserListPanel({
       render: (u) => (
         <div className="min-w-0">
           <div className="truncate text-[12.5px] text-primary">{u.email}</div>
-          {u.phone && <div className="text-[11px] text-muted truncate">{u.phone}</div>}
+          {u.phone && <div className="text-[11px] text-gray-800 truncate">{u.phone}</div>}
         </div>
       ),
     },
@@ -596,7 +596,7 @@ export default function UserListPanel({
       render: (u) => (
         <span
           className={`inline-block rounded-full px-2 py-0.5 text-[10.5px] font-semibold capitalize ${
-            u.isActive ? 'bg-accent-light text-accent' : 'bg-surface-alt text-muted border border-border'
+            u.isActive ? 'bg-accent-light text-accent' : 'bg-surface-alt text-gray-800 border border-border'
           }`}
         >
           {u.isActive ? 'Active' : 'Archived'}
@@ -721,7 +721,7 @@ export default function UserListPanel({
                 <span>{chip.label}</span>
                 <span
                   className={`px-1.5 py-0.2 rounded-full text-[10.5px] font-mono ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-border/60 text-muted'
+                    isSelected ? 'bg-white/20 text-white' : 'bg-border/60 text-gray-800'
                   }`}
                 >
                   {chip.count}
@@ -777,7 +777,7 @@ export default function UserListPanel({
       {/* Search Input */}
       <div className="flex items-center justify-between gap-3">
         <div className="relative w-full max-w-sm">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted text-[13px]">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800 text-[13px]">
             🔍
           </span>
           <input
@@ -785,11 +785,11 @@ export default function UserListPanel({
             placeholder="Search users by name, email, or ID…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-surface border border-border rounded-lg pl-8 pr-3 py-2 text-[12.5px] text-primary placeholder:text-muted focus:outline-none focus:border-accent shadow-xs"
+            className="w-full bg-surface border border-border rounded-lg pl-8 pr-3 py-2 text-[12.5px] text-primary placeholder:text-gray-800 focus:outline-none focus:border-accent shadow-xs"
           />
         </div>
 
-        <div className="text-[12px] text-muted whitespace-nowrap">
+        <div className="text-[12px] text-gray-800 whitespace-nowrap">
           Showing {displayedUsers.length} {statusView === 'active' ? 'active' : 'archived'} user{displayedUsers.length === 1 ? '' : 's'}
         </div>
       </div>
@@ -799,7 +799,7 @@ export default function UserListPanel({
         <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16 text-center px-4">
           <span className="text-[32px]">⚠️</span>
           <p className="font-semibold text-[14px]">Failed to load users</p>
-          <p className="text-[12px] text-muted max-w-md">{errorMessage || 'Check your connection and try again.'}</p>
+          <p className="text-[12px] text-gray-800 max-w-md">{errorMessage || 'Check your connection and try again.'}</p>
           <button
             type="button"
             className="mt-1 rounded-[8px] border-0 bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:opacity-85 cursor-pointer"
@@ -820,7 +820,7 @@ export default function UserListPanel({
           <p className="font-semibold text-[13.5px]">
             {statusView === 'archived' ? 'No archived users' : 'No users found'}
           </p>
-          <p className="text-[12px] text-muted max-w-sm">
+          <p className="text-[12px] text-gray-800 max-w-sm">
             {debouncedSearch
               ? `No users match "${search}". Try adjusting your search query or role filter.`
               : statusView === 'archived'

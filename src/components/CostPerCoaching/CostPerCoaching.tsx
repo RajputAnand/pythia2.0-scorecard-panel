@@ -10,12 +10,12 @@ const itemCostClass: Record<string, string> = {
   good: 'text-accent',
   ok: 'text-amber',
   bad: 'text-danger',
-  no_data: 'text-muted',
+  no_data: 'text-gray-800',
 }
 
 const itemGainClass: Record<string, string> = {
   up: 'text-accent',
-  flat: 'text-muted',
+  flat: 'text-gray-800',
   down: 'text-danger',
 }
 
@@ -65,7 +65,7 @@ export default function CostPerCoaching({
             <div key={item.name} className="bg-surface-alt rounded-[10px] flex flex-col gap-[5px] px-[14px] py-[12px]">
               <div className="font-semibold text-secondary text-[11px]">{item.name}</div>
               <div className={`font-mono font-semibold text-[17px] ${itemCostClass[item.quality]}`}>{item.cost}</div>
-              <div className="text-muted text-[10px] leading-[1.4]">per coaching moment</div>
+              <div className="text-gray-800 text-[10px] leading-[1.4]">per coaching moment</div>
               <div className={`text-[10.5px] font-semibold ${itemGainClass[item.gainType]}`}>{item.gain}</div>
             </div>
           ))}
@@ -129,7 +129,7 @@ export default function CostPerCoaching({
             <div className={`font-mono font-semibold text-[17px] ${itemCostClass[item.quality]}`}>
               {item.cost}
             </div>
-            <div className="text-muted text-[10px] leading-[1.4]">per coaching moment</div>
+            <div className="text-gray-800 text-[10px] leading-[1.4]">per coaching moment</div>
             <div className={`text-[10.5px] font-semibold ${itemGainClass[item.gainType]}`}>
               {item.gain}
             </div>

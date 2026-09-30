@@ -12,7 +12,7 @@ const posClass: Record<PosVariant, string> = {
   silver: 'bg-[#F0F0F4] text-[#70708A]',
   bronze: 'bg-[#FAE8D8] text-[#A05020]',
   yoursPos: 'bg-accent text-white',
-  regular: 'bg-surface-alt text-muted',
+  regular: 'bg-surface-alt text-gray-800',
 }
 
 const AVATAR_COLORS = ['#8B7355', '#6A8A5A', '#7A7A8A', '#9A6A4A', '#5A7A9A', '#8A5A7A']
@@ -46,7 +46,7 @@ export default function Leaderboard({ data, previewMode }: { data: TeamRankingDa
     <Panel
       title="Team Leaderboard"
       subtitle="How you stack up against your team this week"
-      badge={<span className="text-muted text-[11px]">This week</span>}
+      badge={<span className="text-gray-800 text-[11px]">This week</span>}
       noPadding
     >
       <div className="flex flex-col">
@@ -92,7 +92,7 @@ export default function Leaderboard({ data, previewMode }: { data: TeamRankingDa
               >
                 {member.score}
               </div>
-              <div className={`font-mono text-[11px] w-14 text-right flex flex-col leading-tight ${isYou ? 'text-amber font-semibold' : 'text-muted'}`}>
+              <div className={`font-mono text-[11px] w-14 text-right flex flex-col leading-tight ${isYou ? 'text-amber font-semibold' : 'text-gray-800'}`}>
                 {`${member.points.toLocaleString('en-US')} pts`.split(' ').map((part, idx) => <span key={idx}>{part}</span>)}
               </div>
             </div>

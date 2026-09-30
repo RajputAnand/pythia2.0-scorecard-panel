@@ -15,7 +15,7 @@ export default function StaffingTeamScores({ members }: Props) {
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
       <div className="px-[18px] py-[13px] border-b border-border">
         <div className="text-[13px] font-semibold">Team Performance Reference</div>
-        <div className="text-[11px] text-muted mt-0.5">Use when scheduling — higher scores = peak hour priority</div>
+        <div className="text-[11px] text-gray-800 mt-0.5">Use when scheduling — higher scores = peak hour priority</div>
       </div>
       <div className="px-[18px] py-[10px] flex flex-col gap-2">
         {members.map((member) => (
@@ -39,7 +39,7 @@ export default function StaffingTeamScores({ members }: Props) {
           </div>
         ))}
         {members.length === 0 && (
-          <div className="text-center text-[11.5px] text-muted py-4">No employees on record for this store</div>
+          <div className="text-center text-[11.5px] text-gray-800 py-4">No employees on record for this store</div>
         )}
       </div>
     </div>

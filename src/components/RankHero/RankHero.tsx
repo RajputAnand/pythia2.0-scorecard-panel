@@ -100,7 +100,7 @@ export default function RankHero({ previewMode, data, loading }: RankHeroProps =
       {/* Center: percentile + metric chips */}
       <div className={`flex flex-col justify-center gap-[14px] px-8 py-7 border-l border-r border-border transition-opacity ${loading ? 'opacity-50' : ''}`}>
         <div>
-          <div className="text-[11px] font-semibold text-muted uppercase tracking-[.1em] mb-[10px]">Percentile Rank</div>
+          <div className="text-[11px] font-semibold text-gray-800 uppercase tracking-[.1em] mb-[10px]">Percentile Rank</div>
           <div className="h-7 bg-surface-alt rounded-lg overflow-hidden">
             <div
               className="h-full rounded-lg flex items-center pl-3"
@@ -111,7 +111,7 @@ export default function RankHero({ previewMode, data, loading }: RankHeroProps =
           </div>
           <div className="flex justify-between mt-[5px]">
             {['Bottom 50%', 'Top 50%', '▲ You', 'Top 10%', 'Top 5%'].map((label, i) => (
-              <span key={label} className={`font-mono text-[9px] text-center ${i === 2 ? 'text-accent font-bold' : 'text-muted'}`}>
+              <span key={label} className={`font-mono text-[9px] text-center ${i === 2 ? 'text-accent font-bold' : 'text-gray-800'}`}>
                 {label}
               </span>
             ))}
@@ -121,9 +121,9 @@ export default function RankHero({ previewMode, data, loading }: RankHeroProps =
         <div className="flex gap-2">
           {shownMetrics.map((m) => (
             <div key={m.label} className="flex-1 bg-surface-alt rounded-[9px] px-3 py-[10px] flex flex-col gap-[3px]">
-              <div className="text-[9.5px] text-muted uppercase tracking-[.07em]">{m.label}</div>
+              <div className="text-[9.5px] text-gray-800 uppercase tracking-[.07em]">{m.label}</div>
               <div className={`font-mono text-[16px] font-bold ${m.color}`}>{m.val}</div>
-              <div className="font-mono text-[10.5px] text-muted">{m.rank}</div>
+              <div className="font-mono text-[10.5px] text-gray-800">{m.rank}</div>
             </div>
           ))}
         </div>
@@ -131,14 +131,14 @@ export default function RankHero({ previewMode, data, loading }: RankHeroProps =
 
       {/* Right: rank history */}
       <div className="flex flex-col justify-center gap-2 px-7 py-7 min-w-[180px]">
-        <div className="text-[10.5px] font-semibold text-muted uppercase tracking-[.1em] mb-1">Rank History</div>
+        <div className="text-[10.5px] font-semibold text-gray-800 uppercase tracking-[.1em] mb-1">Rank History</div>
         {history.map((item) => (
           <div key={item.month} className="flex items-center gap-[14px]">
-            <span className="font-mono text-[11px] text-muted w-7">{item.month}</span>
+            <span className="font-mono text-[11px] text-gray-800 w-7">{item.month}</span>
             <div className="flex-1 h-2 bg-surface-alt rounded overflow-hidden">
               <div className="h-full rounded" style={{ width: item.width, background: item.color }} />
             </div>
-            <span className={`font-mono text-[11px] w-8 text-right ${item.accent ? 'text-accent font-bold' : 'text-muted'}`}>
+            <span className={`font-mono text-[11px] w-8 text-right ${item.accent ? 'text-accent font-bold' : 'text-gray-800'}`}>
               {item.rank}
             </span>
           </div>

@@ -842,7 +842,7 @@ export default function Sidebar({ user }: { user: User }) {
         </div>
         <div>
           <div className="text-[13.5px] font-semibold">Pythia</div>
-          <div className="text-[10px] text-muted mt-px">
+          <div className="text-[10px] text-gray-800 mt-px">
             Scorecard
           </div>
         </div>
@@ -852,7 +852,7 @@ export default function Sidebar({ user }: { user: User }) {
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
         {navSections.map((section) => (
           <div key={section.section}>
-            <div className="block px-2 uppercase text-muted font-medium tracking-[.1em] text-[9.5px] mt-[14px] mb-[5px]">
+            <div className="block px-2 uppercase text-gray-800 font-medium tracking-[.1em] text-[9.5px] mt-[14px] mb-[5px]">
               {section.section}
             </div>
             {section.items.map((item) => {
@@ -888,7 +888,7 @@ export default function Sidebar({ user }: { user: User }) {
       {/* Bottom section — role-specific widgets */}
       {user.role === "superadmin" && (
         <div className="mx-3 pt-4 border-t border-border mb-3">
-          <div className="text-muted uppercase tracking-[.08em] text-[10px] mb-2 px-[2px]">
+          <div className="text-gray-800 uppercase tracking-[.08em] text-[10px] mb-2 px-[2px]">
             Current View
           </div>
           {SUPERADMIN_VIEW_OPTIONS.map((option) => (
@@ -905,7 +905,7 @@ export default function Sidebar({ user }: { user: User }) {
             </button>
           ))}
           {currentOrganization && (
-            <div className="mt-2 px-2 py-1.5 bg-surface-alt border border-border rounded-md text-[11px] text-muted truncate">
+            <div className="mt-2 px-2 py-1.5 bg-surface-alt border border-border rounded-md text-[11px] text-gray-800 truncate">
               <span className="text-[9.5px] uppercase font-mono block text-secondary">Active Org</span>
               <span className="font-medium text-primary truncate block">{currentOrganization.name}</span>
             </div>
@@ -915,7 +915,7 @@ export default function Sidebar({ user }: { user: User }) {
 
       {user.role === "owner" && (
         <div className="mx-3 pt-4 border-t border-border mb-3">
-          <div className="text-muted uppercase tracking-[.08em] text-[10px] mb-2 px-[2px]">
+          <div className="text-gray-800 uppercase tracking-[.08em] text-[10px] mb-2 px-[2px]">
             Current View
           </div>
           <button

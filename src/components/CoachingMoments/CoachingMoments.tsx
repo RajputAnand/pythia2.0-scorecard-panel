@@ -75,13 +75,13 @@ export default function CoachingMoments({
           <div className="flex flex-col items-center justify-center gap-2 py-10">
             <span className="text-[28px]">⏳</span>
             <p className="text-[12.5px] font-semibold">Generating your coaching tips…</p>
-            <p className="text-[11.5px] text-muted">Check back shortly — this only takes a moment.</p>
+            <p className="text-[11.5px] text-gray-800">Check back shortly — this only takes a moment.</p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-2 py-10">
             <span className="text-[28px]">🎉</span>
             <p className="text-[12.5px] font-semibold">No coaching moments this week</p>
-            <p className="text-[11.5px] text-muted">Keep up the great work!</p>
+            <p className="text-[11.5px] text-gray-800">Keep up the great work!</p>
           </div>
         )}
       </Panel>
@@ -113,7 +113,7 @@ export default function CoachingMoments({
                   {status.label}
                 </span>
                 <span
-                  className="text-muted shrink-0 text-[12px] transition-transform duration-200"
+                  className="text-gray-800 shrink-0 text-[12px] transition-transform duration-200"
                   style={{ transform: isOpen ? 'rotate(180deg)' : undefined }}
                 >
                   ▾

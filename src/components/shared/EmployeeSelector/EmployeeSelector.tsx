@@ -106,7 +106,7 @@ export default function EmployeeSelector({
         </span>
 
         <svg
-          className={`w-[11px] h-[11px] shrink-0 text-muted transition-transform duration-200${open ? ' rotate-180' : ''}`}
+          className={`w-[11px] h-[11px] shrink-0 text-gray-800 transition-transform duration-200${open ? ' rotate-180' : ''}`}
           viewBox="0 0 12 12"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -137,13 +137,13 @@ export default function EmployeeSelector({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search employees…"
-              className="w-full rounded-md border border-border bg-surface-alt px-2.5 py-1.5 text-[12px] text-primary outline-none focus:border-accent transition-colors placeholder:text-muted"
+              className="w-full rounded-md border border-border bg-surface-alt px-2.5 py-1.5 text-[12px] text-primary outline-none focus:border-accent transition-colors placeholder:text-gray-800"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary text-[11px] cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-800 hover:text-primary text-[11px] cursor-pointer"
                 aria-label="Clear search"
               >
                 ✕
@@ -154,7 +154,7 @@ export default function EmployeeSelector({
           {/* List of employees */}
           <ul className={`max-h-[240px] overflow-y-auto list-none m-0 p-0 ${styles.menuList}`}>
             {filteredEmployees.length === 0 ? (
-              <li className="px-3 py-4 text-center text-[12px] text-muted">
+              <li className="px-3 py-4 text-center text-[12px] text-gray-800">
                 {searchTerm ? 'No matching employees' : 'No employees found'}
               </li>
             ) : (
@@ -197,7 +197,7 @@ export default function EmployeeSelector({
                       >
                         {name}
                       </div>
-                      <div className="text-[10.5px] text-muted truncate">
+                      <div className="text-[10.5px] text-gray-800 truncate">
                         {employee.email || (employee.role_name ? `Role: ${employee.role_name}` : 'Employee')}
                       </div>
                     </div>

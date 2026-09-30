@@ -64,9 +64,9 @@ export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAt
         <div className="flex items-start justify-between border-b border-border px-5 pt-4 pb-3">
           <div>
             <div className="font-semibold text-[13px]">{PREVIEW_DATA.title}</div>
-            <div className="text-muted text-[11px] mt-0.5">{PREVIEW_DATA.subtitle}</div>
+            <div className="text-gray-800 text-[11px] mt-0.5">{PREVIEW_DATA.subtitle}</div>
           </div>
-          <div className="font-bold rounded-[20px] whitespace-nowrap bg-surface-alt text-muted text-[10px] px-[8px] py-[3px]">
+          <div className="font-bold rounded-[20px] whitespace-nowrap bg-surface-alt text-gray-800 text-[10px] px-[8px] py-[3px]">
             {PREVIEW_DATA.badge}
           </div>
         </div>
@@ -86,12 +86,12 @@ export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAt
                 <tr key={row.metric}>
                   <td>
                     <div className="font-medium text-[13px]">{row.metric}</div>
-                    <div className="text-muted text-[11px]">{row.sub}</div>
+                    <div className="text-gray-800 text-[11px]">{row.sub}</div>
                   </td>
                   <td>
                     <div className="flex items-center gap-[6px]">
-                      <span className="font-mono text-muted text-[12px]">{row.scoreBefore}</span>
-                      <span className="text-muted text-[11px]">→</span>
+                      <span className="font-mono text-gray-800 text-[12px]">{row.scoreBefore}</span>
+                      <span className="text-gray-800 text-[11px]">→</span>
                       <span className="font-mono font-bold text-[12px]" style={{ color: row.scoreColor }}>{row.scoreAfter}</span>
                     </div>
                     <div className="bg-surface-alt rounded-[3px] overflow-hidden h-[6px] mt-[5px]">
@@ -112,7 +112,7 @@ export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAt
               <tr style={{ background: '#FAFAF8' }}>
                 <td>
                   <div className="font-medium text-[13px] text-amber">{PREVIEW_DATA.costRow.label}</div>
-                  <div className="text-muted text-[11px]">{PREVIEW_DATA.costRow.sub}</div>
+                  <div className="text-gray-800 text-[11px]">{PREVIEW_DATA.costRow.sub}</div>
                 </td>
                 <td>—</td>
                 <td className="text-secondary text-[12px]">{PREVIEW_DATA.costRow.outcome}</td>
@@ -150,9 +150,9 @@ export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAt
       <div className="flex items-start justify-between border-b border-border px-5 pt-4 pb-3">
         <div>
           <div className="font-semibold text-[13px]">Revenue Impact by Metric</div>
-          <div className="text-muted text-[11px] mt-0.5">Estimated financial attribution</div>
+          <div className="text-gray-800 text-[11px] mt-0.5">Estimated financial attribution</div>
         </div>
-        <div className="font-bold rounded-[20px] whitespace-nowrap bg-surface-alt text-muted text-[10px] px-[8px] py-[3px]">
+        <div className="font-bold rounded-[20px] whitespace-nowrap bg-surface-alt text-gray-800 text-[10px] px-[8px] py-[3px]">
           Based on standard formulas
         </div>
       </div>
@@ -174,12 +174,12 @@ export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAt
                 <tr key={row.metric_key}>
                   <td>
                     <div className="font-medium text-[13px]">{row.metric_label}</div>
-                    <div className="text-muted text-[11px]">{row.metric_sublabel}</div>
+                    <div className="text-gray-800 text-[11px]">{row.metric_sublabel}</div>
                   </td>
                   <td>
                     <div className="flex items-center gap-[6px]">
-                      <span className="font-mono text-muted text-[12px]">{formatScore(row.score_before, row.metric_key)}</span>
-                      <span className="text-muted text-[11px]">→</span>
+                      <span className="font-mono text-gray-800 text-[12px]">{formatScore(row.score_before, row.metric_key)}</span>
+                      <span className="text-gray-800 text-[11px]">→</span>
                       <span className="font-mono font-bold text-[12px]" style={{ color }}>{formatScore(row.score_after, row.metric_key)}</span>
                     </div>
                     <div className="bg-surface-alt rounded-[3px] overflow-hidden h-[6px] mt-[5px]">
@@ -207,7 +207,7 @@ export default function RevenueImpactTable({ data, previewMode }: { data?: RoiAt
             <tr style={{ background: '#FAFAF8' }}>
               <td>
                 <div className="font-medium text-[13px] text-amber">{data!.platform_cost_row.label}</div>
-                <div className="text-muted text-[11px]">{data!.platform_cost_row.sublabel}</div>
+                <div className="text-gray-800 text-[11px]">{data!.platform_cost_row.sublabel}</div>
               </td>
               <td>—</td>
               <td className="text-secondary text-[12px]">Software subscription</td>

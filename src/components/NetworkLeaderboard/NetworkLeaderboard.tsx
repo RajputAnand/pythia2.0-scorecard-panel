@@ -74,7 +74,7 @@ const overallColor: Record<string, string> = {
 const movementClass: Record<MovementVariant, string> = {
   up: 'text-accent',
   down: 'text-danger',
-  flat: 'text-muted',
+  flat: 'text-gray-800',
 }
 
 const percentileClass: Record<PercentileVariant, string> = {
@@ -190,7 +190,7 @@ export default function NetworkLeaderboard({
       <div className="flex items-center justify-between px-[22px] py-4 border-b border-border">
         <div>
           <div className="text-[13.5px] font-semibold">Network Leaderboard</div>
-          <div className="text-[11.5px] text-muted mt-[2px]">All stores anonymous · Sorted by overall score</div>
+          <div className="text-[11.5px] text-gray-800 mt-[2px]">All stores anonymous · Sorted by overall score</div>
         </div>
       </div>
 
@@ -216,7 +216,7 @@ export default function NetworkLeaderboard({
             {['Rank', 'Store', 'Overall', 'Hospitality', 'Checkout', 'Time to Svc', 'MoM Change', 'Percentile'].map((h, i) => (
               <th
                 key={h}
-                className={`text-[10px] font-semibold text-muted uppercase tracking-[.09em] py-[10px] border-b border-border text-left
+                className={`text-[10px] font-semibold text-gray-800 uppercase tracking-[.09em] py-[10px] border-b border-border text-left
                   ${i === 0 ? 'pl-[22px] pr-[18px]' : i === 7 ? 'pr-[22px] pl-[18px] text-right' : 'px-[18px]'}`}
               >
                 {h}
@@ -227,7 +227,7 @@ export default function NetworkLeaderboard({
         <tbody>
           {isLiveEmpty ? (
             <tr>
-              <td colSpan={8} className="px-[22px] py-[36px] text-center text-[12.5px] text-muted">
+              <td colSpan={8} className="px-[22px] py-[36px] text-center text-[12.5px] text-gray-800">
                 No stores match the &ldquo;{activeFilter}&rdquo; filter for this period.
               </td>
             </tr>
@@ -281,7 +281,7 @@ export default function NetworkLeaderboard({
                 </tr>
               ))}
               <tr>
-                <td colSpan={8} className="px-[22px] py-[10px] text-[11.5px] text-muted bg-surface-alt text-center">
+                <td colSpan={8} className="px-[22px] py-[10px] text-[11.5px] text-gray-800 bg-surface-alt text-center">
                   {previewMode ? '16 additional stores · below top 50%' : 'Additional stores · Score data N/A · Below top 50%'}
                 </td>
               </tr>

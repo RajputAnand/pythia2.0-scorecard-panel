@@ -57,7 +57,7 @@ function OverviewEmpty({ message }: { message?: string | null }) {
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16">
       <span className="text-[32px]">📋</span>
       <p className="font-semibold text-[14px]">{message ? 'Dashboard unavailable' : 'No dashboard data yet'}</p>
-      <p className="text-[12px] text-muted">
+      <p className="text-[12px] text-gray-800">
         {message ?? 'Scorecard data will appear once the employee logs their first shift.'}
       </p>
     </div>
@@ -69,7 +69,7 @@ function NoEmployeesState() {
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16">
       <span className="text-[32px]">👥</span>
       <p className="font-semibold text-[14px]">No employees found</p>
-      <p className="text-[12px] text-muted">
+      <p className="text-[12px] text-gray-800">
         Create employees in the Manager view or onboard a tenant to view live performance scorecards.
       </p>
     </div>
@@ -81,7 +81,7 @@ function SelectEmployeePrompt() {
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16">
       <span className="text-[32px]">👆</span>
       <p className="font-semibold text-[14px]">Select an employee</p>
-      <p className="text-[12px] text-muted">
+      <p className="text-[12px] text-gray-800">
         Use the employee dropdown in the header to view an employee&apos;s live scorecard and performance metrics.
       </p>
     </div>
@@ -372,7 +372,7 @@ export default function SuperAdminEmployeeOverviewContent({
           <div className="flex items-center gap-2 shrink-0">
             <div className="flex items-center gap-[6px] shrink-0">
               <DatePicker ariaLabel="Filter start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
-              <span className="text-muted text-[11px] shrink-0">to</span>
+              <span className="text-gray-800 text-[11px] shrink-0">to</span>
               <DatePicker ariaLabel="Filter end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
             </div>
             {hasActiveDateFilter && (

@@ -34,7 +34,7 @@ export default function CreateStoreBanner({
           <h3 className="text-[15px] font-semibold text-primary">
             Create store to see {featureName}
           </h3>
-          <p className="text-[12.5px] text-muted mt-1 leading-normal max-w-2xl">
+          <p className="text-[12.5px] text-gray-800 mt-1 leading-normal max-w-2xl">
             {description || defaultDescription}
           </p>
         </div>

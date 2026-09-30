@@ -164,7 +164,7 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
             <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-20 text-center">
               <span className="text-[36px]">🏆</span>
               <p className="font-semibold text-[14px] text-primary">No benchmarking data available</p>
-              <p className="text-[12px] text-muted max-w-md">
+              <p className="text-[12px] text-gray-800 max-w-md">
                 Create your first store location to start benchmarking your customer service and speed metrics against peer stores.
               </p>
             </div>

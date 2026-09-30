@@ -140,7 +140,7 @@ export default function TopStorePractices({
       <div className="flex items-center justify-between px-[22px] py-4 border-b border-border">
         <div>
           <div className="text-[13.5px] font-semibold">What Top-Ranked Stores Do Differently</div>
-          <div className="text-[11.5px] text-muted mt-[2px]">Aggregated behavioral patterns from stores ranked #1–3 in the Pythia network</div>
+          <div className="text-[11.5px] text-gray-800 mt-[2px]">Aggregated behavioral patterns from stores ranked #1–3 in the Pythia network</div>
         </div>
         <div className="text-[10px] font-semibold px-[9px] py-[3px] rounded-full bg-gold-light text-gold tracking-[.05em]">
           Network Intelligence

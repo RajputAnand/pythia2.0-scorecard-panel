@@ -91,7 +91,7 @@ export default function ShareWithInvestorButton({
                   type="button"
                   onClick={handleClose}
                   aria-label="Close"
-                  className="text-muted hover:text-primary cursor-pointer"
+                  className="text-gray-800 hover:text-primary cursor-pointer"
                 >
                   <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <line x1="18" y1="6" x2="6" y2="18" />
@@ -99,7 +99,7 @@ export default function ShareWithInvestorButton({
                   </svg>
                 </button>
               </div>
-              <p className="text-[12.5px] text-muted mb-4">
+              <p className="text-[12.5px] text-gray-800 mb-4">
                 They&apos;ll get a PDF snapshot of this exact report by email — no login required.
               </p>
 

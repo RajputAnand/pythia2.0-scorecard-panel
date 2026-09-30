@@ -101,7 +101,7 @@ export default function Select({
       >
         <span>{activeOption?.label ?? value}</span>
         <svg
-          className={`w-[10px] h-[10px] shrink-0 text-muted transition-transform duration-200${open ? ' rotate-180' : ''}`}
+          className={`w-[10px] h-[10px] shrink-0 text-gray-800 transition-transform duration-200${open ? ' rotate-180' : ''}`}
           viewBox="0 0 12 12"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"

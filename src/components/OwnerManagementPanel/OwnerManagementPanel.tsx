@@ -173,7 +173,7 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
           {/* Search */}
           <div className="relative min-w-[220px] max-w-[300px] flex-1">
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-800"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -227,14 +227,14 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
       {/* Owners Table */}
       <div className="bg-surface border border-border rounded-xl shadow-xs overflow-hidden">
         {loading && owners.length === 0 ? (
-          <div className="p-8 text-center text-muted text-[13px] animate-pulse">
+          <div className="p-8 text-center text-gray-800 text-[13px] animate-pulse">
             Loading co-owners...
           </div>
         ) : filteredOwners.length === 0 ? (
           <div className="p-12 text-center">
             <div className="text-3xl mb-2">👥</div>
             <h3 className="font-semibold text-[14px] text-primary">No owners found</h3>
-            <p className="text-[12px] text-muted max-w-sm mx-auto mt-1">
+            <p className="text-[12px] text-gray-800 max-w-sm mx-auto mt-1">
               {search
                 ? `No owners matched "${search}". Try adjusting your filter.`
                 : 'Bring on additional owners to help manage your store organization.'}
@@ -277,12 +277,12 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
                                 </span>
                               )}
                               {isSelf && (
-                                <span className="text-[9.5px] font-medium px-1.5 py-0.5 rounded bg-surface-alt text-muted border border-border whitespace-nowrap">
+                                <span className="text-[9.5px] font-medium px-1.5 py-0.5 rounded bg-surface-alt text-gray-800 border border-border whitespace-nowrap">
                                   You
                                 </span>
                               )}
                             </div>
-                            <div className="text-[10.5px] text-muted font-mono">{owner.user_id}</div>
+                            <div className="text-[10.5px] text-gray-800 font-mono">{owner.user_id}</div>
                           </div>
                         </div>
                       </td>
@@ -290,7 +290,7 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
                       {/* Contact Column */}
                       <td className="py-3 px-4">
                         <div className="text-primary truncate max-w-[200px]">{owner.email || '—'}</div>
-                        {owner.phone && <div className="text-[11px] text-muted">{owner.phone}</div>}
+                        {owner.phone && <div className="text-[11px] text-gray-800">{owner.phone}</div>}
                       </td>
 
                       {/* Subscription Access Column */}
@@ -308,7 +308,7 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
                               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${
                                 owner.can_manage_subscription
                                   ? 'bg-success/10 text-success border border-success/20'
-                                  : 'bg-surface-alt text-muted border border-border'
+                                  : 'bg-surface-alt text-gray-800 border border-border'
                               }`}
                             >
                               {owner.can_manage_subscription ? 'Allowed' : 'No Access'}
@@ -337,7 +337,7 @@ export default function OwnerManagementPanel({ initialData }: OwnerManagementPan
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold uppercase tracking-wider ${
                             owner.is_active
                               ? 'bg-success/15 text-success'
-                              : 'bg-muted/15 text-muted'
+                              : 'bg-muted/15 text-gray-800'
                           }`}
                         >
                           {owner.is_active ? 'Active' : 'Inactive'}

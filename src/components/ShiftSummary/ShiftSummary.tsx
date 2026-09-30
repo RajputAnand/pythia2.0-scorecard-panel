@@ -18,7 +18,7 @@ const metricValClass: Record<string, string> = {
 const metricChangeClass: Record<string, string> = {
   up: "text-accent",
   down: "text-danger",
-  flat: "text-muted",
+  flat: "text-gray-800",
 };
 
 const highlightBandColor: Record<ShiftHighlight["band"], string> = {
@@ -42,7 +42,7 @@ function MetricCard({
 }) {
   return (
     <div className="flex flex-col bg-surface-alt rounded-[10px] px-[15px] py-[13px] gap-1">
-      <div className="uppercase tracking-[.08em] text-muted text-[10px]">{label}</div>
+      <div className="uppercase tracking-[.08em] text-gray-800 text-[10px]">{label}</div>
       <div className={`font-mono font-bold leading-none text-[22px] ${metricValClass[valueClass]}`}>
         {value}
       </div>
@@ -73,7 +73,7 @@ export default function ShiftSummary({
         <div className="flex flex-col items-center justify-center gap-2 py-8">
           <span className="text-[28px]">🕐</span>
           <p className="text-[12.5px] font-semibold">No shift data yet</p>
-          <p className="text-[11.5px] text-muted">Your shift summary will appear once a shift is logged.</p>
+          <p className="text-[11.5px] text-gray-800">Your shift summary will appear once a shift is logged.</p>
         </div>
       </Panel>
     );
@@ -169,7 +169,7 @@ export default function ShiftSummary({
               key={`${event.time}-${idx}`}
               className="flex items-start gap-[10px] border-b border-border px-[14px] py-[10px] last:border-b-0"
             >
-              <div className="font-mono text-muted shrink-0 text-[10.5px] w-[38px] mt-px">
+              <div className="font-mono text-gray-800 shrink-0 text-[10.5px] w-[38px] mt-px">
                 {event.time}
               </div>
               <div
@@ -194,11 +194,11 @@ export default function ShiftSummary({
         <div className="flex flex-col items-center justify-center gap-2 py-8 mt-[14px] border border-border rounded-[10px]">
           <span className="text-[24px]">⏳</span>
           <p className="text-[12.5px] font-semibold">Generating your shift timeline…</p>
-          <p className="text-[11.5px] text-muted">Check back shortly — this only takes a moment.</p>
+          <p className="text-[11.5px] text-gray-800">Check back shortly — this only takes a moment.</p>
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center gap-2 py-8 mt-[14px] border border-border rounded-[10px]">
-          <p className="text-[11.5px] text-muted">Your shift timeline will appear here once you&apos;ve served a few customers.</p>
+          <p className="text-[11.5px] text-gray-800">Your shift timeline will appear here once you&apos;ve served a few customers.</p>
         </div>
       )}
     </Panel>
