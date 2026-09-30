@@ -2,7 +2,7 @@ import { unstable_rethrow } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { auth } from '@/auth'
 import Header from '@/components/shared/Header/Header'
-import StaffingHeaderActions from '@/components/StaffingHeaderActions/StaffingHeaderActions'
+import StaffingToolbar from '@/components/StaffingToolbar/StaffingToolbar'
 import StaffingInsightStrip from '@/components/StaffingInsightStrip/StaffingInsightStrip'
 import StaffingPageContent from '@/components/StaffingPageContent/StaffingPageContent'
 import { fetchStoresForTenant } from '@/queries/stores'
@@ -97,7 +97,7 @@ export default async function StaffingIntelligencePage() {
   return (
     <>
       <Header title="Staffing Intelligence" subtitle="Manager Tools · AI-powered scheduling and recommendations" />
-      <StaffingHeaderActions />
+      <StaffingToolbar />
 
       <div className="px-[30px] py-6 flex flex-col gap-[18px]">
         <StaffingInsightStrip data={insights} />
