@@ -51,7 +51,7 @@ export async function requestTokenRefresh(refreshToken: string): Promise<Refresh
 
   const promise = (async () => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_PYTHIA_2_API_URL || 'http://localhost:8000'
+      const baseUrl = (process.env.NEXT_PUBLIC_PYTHIA_2_API_URL || 'http://localhost:8000').replace(/\/+$/, '')
       const response = await fetch(`${baseUrl}${PYTHIA_2_API.auth.refresh}`, {
         method: 'POST',
         headers: {
