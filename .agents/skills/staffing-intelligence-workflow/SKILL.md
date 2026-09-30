@@ -15,11 +15,21 @@ Staffing Intelligence (`/manager/staffing-intelligence` & `/super-admin/manager/
 - **Queries**: [`src/queries/staffing.ts`](file:///home/vikalp/workspaces/inx/pythia/Pythia2.0-frontend1/src/queries/staffing.ts)
 - **Transforms & Date Helpers**: [`src/lib/staffing-transform.ts`](file:///home/vikalp/workspaces/inx/pythia/Pythia2.0-frontend1/src/lib/staffing-transform.ts)
 - **Components**:
+  - `StaffingToolbar`: Sticky subheader toolbar reusing `@/components/shared/Toolbar/Toolbar` with week badge, previous/next week navigation, and generation/publish actions.
   - `StaffingPageContent`: Root coordinator component.
   - `StaffingSchedulePanel`: Interactive weekly schedule grid with drag/drop/click shift editing.
   - `StaffingRecommendations`: Actionable AI recommendations (add shift, swap shift, coverage adjustment).
   - `StaffingInsightStrip`: KPI cards (coverage gaps, fatigue flags, weak pairings, optimized shifts).
   - `StaffingTeamScores`: Team member performance scores and shift allocations.
+
+---
+
+## Sticky Toolbar & Week Navigation
+
+Staffing Intelligence mounts `<StaffingToolbar />` directly beneath `<Header />`:
+- Reuses the shared [`Toolbar`](src/components/shared/Toolbar/Toolbar.tsx) component (`sticky top-[58px] z-[9] min-h-[50px] py-1.5`).
+- **Left Slot**: Week calendar range badge (`formatDateRange(weekStartDate, ...)`) with Previous `<` and Next `>` week navigation buttons wired to `useStaffingStore.goToPreviousWeek` and `goToNextWeek`.
+- **Right Slot**: Action buttons (`✦ Generate Schedule`, `↻ Refresh Recommendations`, `Publish Schedule`) with pending states and toast feedback.
 
 ---
 

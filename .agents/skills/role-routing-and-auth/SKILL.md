@@ -72,6 +72,10 @@ interface User {
    - If refresh fails, signs out and redirects to the role login page.
 3. **URL Normalization**:
    - All direct requests to `process.env.NEXT_PUBLIC_PYTHIA_2_API_URL` must normalize base URLs with `.replace(/\/+$/, '')` to prevent double-slash 404s (`//auth/refresh`).
+4. **Infinite Loop Prevention on 401 / Revocation**:
+   - If `POST /auth/refresh` responds with HTTP 401, 403, 400, or 404, the refresh token is blacklisted in-memory via `failedRefreshTokens` (`src/lib/auth-token.ts`) to immediately halt duplicate network requests.
+   - In `src/auth.ts`, when refresh fails (`token.error = "RefreshAccessTokenError"`), `delete token.refreshToken` and `delete token.accessTokenExpires` are executed so subsequent session evaluations do not loop or re-trigger refresh with a dead token.
+   - In `src/lib/api-client.ts`, `config._retriedAfterRefresh = true` is set immediately before attempting refresh to prevent request re-entry.
 
 ---
 

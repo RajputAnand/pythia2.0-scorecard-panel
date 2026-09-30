@@ -73,6 +73,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           delete token.error
         } else {
           token.error = "RefreshAccessTokenError"
+          // Stop looping: clear refreshToken and expiration so subsequent session checks do not re-attempt refresh with a dead token
+          delete token.refreshToken
+          delete token.accessTokenExpires
         }
       }
 

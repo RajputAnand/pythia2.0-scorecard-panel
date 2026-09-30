@@ -72,10 +72,10 @@ function createClient(baseURL: string | undefined): AxiosInstance {
         // Do not trigger hard redirect to login if request carries a mock token
         if (wasAuthenticatedRequest && !isMockToken) {
           if (config && !config._retriedAfterRefresh) {
+            config._retriedAfterRefresh = true
             if (typeof window !== 'undefined') {
               const newAccessToken = await refreshAccessToken()
               if (newAccessToken) {
-                config._retriedAfterRefresh = true
                 config.headers.set('Authorization', `Bearer ${newAccessToken}`)
                 return client(config)
               }
@@ -88,7 +88,6 @@ function createClient(baseURL: string | undefined): AxiosInstance {
                 if (currentRefreshToken && !currentRefreshToken.includes('mock')) {
                   const refreshed = await requestTokenRefresh(currentRefreshToken)
                   if (refreshed?.access_token) {
-                    config._retriedAfterRefresh = true
                     config.headers.set('Authorization', `Bearer ${refreshed.access_token}`)
                     return client(config)
                   }

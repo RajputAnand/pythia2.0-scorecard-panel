@@ -66,6 +66,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - **ROI Attribution** (`TimeControls.tsx`): Time period pills on left, custom date range and actuals/projected view toggle on right.
   - **Employee Overview (Super Admin)** (`SuperAdminEmployeeOverviewContent.tsx`): Employee selector + week navigation on left, date pickers + clear filter on right.
   - **Employee Dashboard** (`OverviewContent.tsx`): Week navigation on left, date pickers + clear filter on right.
+  - **Staffing Intelligence** (`StaffingToolbar.tsx`): Week indicator badge + previous/next week navigation buttons on left, schedule generation / refresh recommendations / publish schedule action buttons on right.
 - **Dropdown Alignment Rule in Subheaders**:
   - The fixed sidebar sits at `z-20`, `Header` at `z-10`, and `Toolbar` at `z-[9]`.
   - Any dropdown trigger situated in the **left** slot of `Toolbar` (such as `EmployeeSelector`) **must default to left-aligned positioning** (`align="left"`, using `left-0`). If hardcoded to `right-0`, the dropdown menu will expand to the left and slide underneath the sidebar.
@@ -169,6 +170,10 @@ import { pythia2Client } from '@/lib/api-client'
      - Coalesces concurrent 401s into a single-flight `POST /auth/refresh` call via `requestTokenRefresh(refreshToken)`.
      - On client, updates the session via `signIn('credentials', { userData: ..., redirect: false })`, marks the failed request with `_retriedAfterRefresh = true`, updates the `Authorization` header, and retries the request once.
      - If refresh fails, token is revoked, or refresh token is missing/mock, signs out and redirects to the role's login route.
+  3. **Infinite Loop Prevention on 401 / Revocation**:
+     - If `POST /auth/refresh` responds with HTTP 401, 403, 400, or 404, the refresh token is blacklisted in-memory via `failedRefreshTokens` (`src/lib/auth-token.ts`) to immediately halt duplicate network requests.
+     - In `src/auth.ts`, when refresh fails (`token.error = "RefreshAccessTokenError"`), `delete token.refreshToken` and `delete token.accessTokenExpires` are executed so subsequent session evaluations do not loop or re-trigger refresh with a dead token.
+     - In `src/lib/api-client.ts`, `config._retriedAfterRefresh = true` is set immediately before attempting refresh to prevent request re-entry.
 
 ---
 

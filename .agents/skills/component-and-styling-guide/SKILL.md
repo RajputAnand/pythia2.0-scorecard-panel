@@ -141,6 +141,12 @@ import Toolbar from '@/components/shared/Toolbar/Toolbar'
 />
 ```
 
+### Standard Implementations
+- **Staffing Intelligence** (`StaffingToolbar.tsx`): Week indicator badge + previous/next week navigation buttons on left, schedule generation / refresh recommendations / publish schedule action buttons on right.
+- **Competitor Benchmarking** (`BenchmarkingContent.tsx`): Metric tabs on left, CSV export button on right.
+- **ROI Attribution** (`TimeControls.tsx`): Time period pills on left, custom date range and actuals/projected view toggle on right.
+- **Employee Overview** (`SuperAdminEmployeeOverviewContent.tsx`, `OverviewContent.tsx`): Employee selector + week navigation on left, date range pickers + clear filter on right.
+
 ### Z-Index Stacking & Dropdown Alignment Rules
 - **Stacking Hierarchy**:
   - `Sidebar`: `fixed inset-y-0 left-0 z-20`

@@ -182,3 +182,7 @@ When an endpoint is not yet available on the backend:
    - If the refresh token is expired or revoked, signs out and redirects to the role login route.
 2. **URL Normalization**:
    - When building direct fetch requests with `process.env.NEXT_PUBLIC_PYTHIA_2_API_URL`, always strip trailing slashes via `.replace(/\/+$/, '')` to prevent double-slash 404 errors (e.g. `//auth/refresh`).
+3. **Loop Prevention on Failed Refresh**:
+   - If `POST /auth/refresh` responds with HTTP 401, 403, 400, or 404, the refresh token is blacklisted in-memory via `failedRefreshTokens` (`src/lib/auth-token.ts`) so duplicate refresh attempts fail fast without repeating requests.
+   - On the server, `src/auth.ts` clears `refreshToken` and `accessTokenExpires` from the JWT token upon `RefreshAccessTokenError` so future session checks do not loop.
+   - Axios configs mark `_retriedAfterRefresh = true` immediately before attempting refresh to guard against duplicate retries.
