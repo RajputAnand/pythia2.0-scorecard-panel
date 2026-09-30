@@ -101,7 +101,7 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
   }, [token, selectedStoreId, period, sortBy, filterMode, currentStore?._id])
 
   const subtitle = meta
-    ? `${subtitlePrefix ? `${subtitlePrefix} · ` : ''}${meta.period.label} · ${meta.scope.store_count} peer stores in network`
+    ? `${meta.period.label} · ${meta.scope.store_count} peer stores in network`
     : 'Loading...'
 
   // No export endpoint exists yet — CSV of the currently loaded Network
@@ -134,20 +134,7 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
       <Header
         title="Competitor Benchmarking"
         subtitle={!hasStores ? (subtitlePrefix ? `${subtitlePrefix} · Owner Tools` : 'Owner Tools') : subtitle}
-      >
-        {hasStores && (
-          <>
-            <BenchmarkingMetricFilter />
-            <button
-              className={`${headerStyles.btnPrimary} disabled:opacity-50 disabled:cursor-not-allowed`}
-              onClick={handleExportReport}
-              disabled={loading || allStoreData.length === 0}
-            >
-              Export Report
-            </button>
-          </>
-        )}
-      </Header>
+      />
 
       <div className="grid px-[30px] py-[24px] gap-5">
         {!hasStores ? (
@@ -163,6 +150,22 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
           </div>
         ) : (
           <>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <BenchmarkingMetricFilter />
+              <button
+                className={`${headerStyles.btnPrimary} flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed`}
+                onClick={handleExportReport}
+                disabled={loading || allStoreData.length === 0}
+              >
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeLinecap="round" strokeLinejoin="round" />
+                  <polyline points="7 10 12 15 17 10" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="12" y1="15" x2="12" y2="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>Export Report</span>
+              </button>
+            </div>
+
             <RankHero 
               data={selectedStoreData} 
               loading={loading} 
