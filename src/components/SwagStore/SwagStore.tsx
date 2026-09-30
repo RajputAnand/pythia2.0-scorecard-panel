@@ -313,7 +313,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
         </div>
 
         {/* Quick hint */}
-        <span className="hidden md:inline-block text-[11px] text-muted">
+        <span className="hidden md:inline-block text-[11px] text-gray-800">
           {activeViewTab === 'browse'
             ? 'Rewards are delivered to your store manager for handover'
             : 'Track fulfillment and manager handover status'}
@@ -366,7 +366,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                 className="w-full pl-8 pr-3 py-1.5 text-[12px] rounded-lg border border-border bg-surface text-primary focus:outline-hidden focus:border-accent"
               />
               <svg
-                className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted"
+                className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-800"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -403,7 +403,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
               <p className="font-semibold text-[13.5px] text-primary">
                 No matching rewards found
               </p>
-              <p className="text-[12px] text-muted max-w-xs">
+              <p className="text-[12px] text-gray-800 max-w-xs">
                 {searchQuery || selectedCategory !== 'ALL'
                   ? 'Try changing your category filter or search term.'
                   : 'Check back soon as your manager and owner add new items.'}
@@ -451,7 +451,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                               </span>
                             )
                           ) : (
-                            <span className="text-[10px] font-medium text-muted bg-surface-alt px-1.5 py-0.5 rounded-md">
+                            <span className="text-[10px] font-medium text-gray-800 bg-surface-alt px-1.5 py-0.5 rounded-md">
                               Unlimited
                             </span>
                           )}
@@ -462,7 +462,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                       <h3 className="text-[13.5px] font-bold text-primary leading-tight">
                         {item.name}
                       </h3>
-                      <p className="text-[11.5px] text-muted leading-snug mt-1 line-clamp-2">
+                      <p className="text-[11.5px] text-gray-800 leading-snug mt-1 line-clamp-2">
                         {item.desc}
                       </p>
                     </div>
@@ -493,7 +493,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                       ) : item.stock === 0 ? (
                         <button
                           disabled
-                          className="w-full rounded-lg py-2 text-[12px] font-semibold text-muted bg-surface-alt cursor-default opacity-75"
+                          className="w-full rounded-lg py-2 text-[12px] font-semibold text-gray-800 bg-surface-alt cursor-default opacity-75"
                         >
                           Out of Stock
                         </button>
@@ -509,7 +509,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                       ) : (
                         <button
                           disabled
-                          className="w-full rounded-lg py-2 text-[11.5px] font-semibold text-muted bg-surface-alt cursor-default border border-border"
+                          className="w-full rounded-lg py-2 text-[11.5px] font-semibold text-gray-800 bg-surface-alt cursor-default border border-border"
                         >
                           Need {needed.toLocaleString('en-US')} more pts
                         </button>
@@ -572,7 +572,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
               <h3 className="font-bold text-[14px] text-primary">
                 No claimed rewards yet
               </h3>
-              <p className="text-[12px] text-muted mt-1 max-w-sm">
+              <p className="text-[12px] text-gray-800 mt-1 max-w-sm">
                 You have {points.toLocaleString('en-US')} points available to redeem. Browse the catalog to claim your first reward!
               </p>
               <button
@@ -630,7 +630,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                         </td>
 
                         {/* Date Claimed */}
-                        <td className="px-4 py-3.5 text-muted text-[12px]">
+                        <td className="px-4 py-3.5 text-gray-800 text-[12px]">
                           {orderDate}
                         </td>
 
@@ -643,7 +643,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                                 {order.productName}
                               </span>
                               {order.category && (
-                                <span className="block text-[10.5px] text-muted">
+                                <span className="block text-[10.5px] text-gray-800">
                                   {order.category}
                                 </span>
                               )}
@@ -686,7 +686,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                         {/* Handover Details */}
                         <td className="px-4 py-3.5 text-[11.5px] text-secondary">
                           {isPending ? (
-                            <span className="text-muted italic">
+                            <span className="text-gray-800 italic">
                               Awaiting handover by store manager
                             </span>
                           ) : isCompleted ? (
@@ -695,7 +695,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                                 Handed over by {order.fulfilledBy || 'Manager'}
                               </span>
                               {completedDate && (
-                                <span className="text-muted text-[10.5px] block">
+                                <span className="text-gray-800 text-[10.5px] block">
                                   on {completedDate}
                                 </span>
                               )}
@@ -710,7 +710,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                                   <span className="font-semibold text-danger">Reason:</span> &ldquo;{order.rejectionReason}&rdquo;
                                 </div>
                               )}
-                              <span className="text-muted text-[10.5px] block mt-1">
+                              <span className="text-gray-800 text-[10.5px] block mt-1">
                                 🪙 {(order.pointsCost ?? 0).toLocaleString('en-US')} pts refunded
                               </span>
                             </div>
@@ -720,11 +720,11 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                                 Cancelled by you
                               </span>
                               {order.cancelledAt && (
-                                <span className="text-muted text-[10.5px] block">
+                                <span className="text-gray-800 text-[10.5px] block">
                                   on {new Date(order.cancelledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </span>
                               )}
-                              <span className="text-muted text-[10.5px] block mt-0.5">
+                              <span className="text-gray-800 text-[10.5px] block mt-0.5">
                                 🪙 {(order.pointsCost ?? 0).toLocaleString('en-US')} pts refunded
                               </span>
                             </div>
@@ -742,7 +742,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
                               Cancel Claim
                             </button>
                           ) : (
-                            <span className="text-[11px] text-muted italic">—</span>
+                            <span className="text-[11px] text-gray-800 italic">—</span>
                           )}
                         </td>
                       </tr>

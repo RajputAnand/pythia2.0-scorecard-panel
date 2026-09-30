@@ -68,7 +68,7 @@ export default function CheckoutSpeed({ data, previewMode }: { data?: RoiChartDa
       <div className="flex items-start justify-between border-b border-border px-5 pt-4 pb-3">
         <div>
           <div className="font-semibold text-[13px]">{chartData.title}</div>
-          <div className="text-muted text-[11px] mt-0.5">{chartData.subtitle}</div>
+          <div className="text-gray-800 text-[11px] mt-0.5">{chartData.subtitle}</div>
         </div>
         <div className="font-bold rounded-[20px] whitespace-nowrap bg-accent-light text-accent text-[10px] px-[8px] py-[3px]">
           {chartData.badge}

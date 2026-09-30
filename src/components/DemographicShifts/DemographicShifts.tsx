@@ -53,7 +53,7 @@ const PREVIEW_GENDER_INSIGHT = <><strong className="font-semibold text-primary">
 const pillClass: Record<PillVariant, string> = {
   up: 'bg-accent-light text-accent',
   down: 'bg-danger-light text-danger',
-  flat: 'bg-surface-alt text-muted',
+  flat: 'bg-surface-alt text-gray-800',
 }
 
 function DemoBarRows({ rows, insight, baselineLabel, currentLabel }: { rows: DemoRow[]; insight: React.ReactNode; baselineLabel: string; currentLabel: string }) {
@@ -65,14 +65,14 @@ function DemoBarRows({ rows, insight, baselineLabel, currentLabel }: { rows: Dem
             <div className="w-[58px] font-mono text-[11.5px] font-semibold text-secondary shrink-0">{row.label}</div>
             <div className="flex-1 flex flex-col gap-[3px]">
               <div className="flex items-center gap-[7px]">
-                <span className="text-[9px] text-muted w-[22px] shrink-0">{baselineLabel}</span>
+                <span className="text-[9px] text-gray-800 w-[22px] shrink-0">{baselineLabel}</span>
                 <div className="flex-1 h-[9px] bg-surface-alt rounded overflow-hidden">
                   <div className="h-full rounded bg-[#C8DFC8]" style={{ width: `${row.novPct}%` }} />
                 </div>
-                <span className="font-mono text-[10px] font-semibold text-muted w-8 text-right">{row.novPct}%</span>
+                <span className="font-mono text-[10px] font-semibold text-gray-800 w-8 text-right">{row.novPct}%</span>
               </div>
               <div className="flex items-center gap-[7px]">
-                <span className="text-[9px] text-muted w-[22px] shrink-0">{currentLabel}</span>
+                <span className="text-[9px] text-gray-800 w-[22px] shrink-0">{currentLabel}</span>
                 <div className="flex-1 h-[9px] bg-surface-alt rounded overflow-hidden">
                   <div className="h-full rounded" style={{ width: `${row.febPct}%`, background: row.febColor }} />
                 </div>
@@ -167,9 +167,9 @@ export default function DemographicShifts({ previewMode, ageData, genderData }: 
       <div className="flex items-start justify-between px-[22px] py-4 border-b border-border gap-3">
         <div>
           <div className="text-[13.5px] font-semibold">Demographic Shifts Over Time</div>
-          <div className="text-[11.5px] text-muted mt-[2px]">Node 2 age + gender tracking · {timeRange}</div>
+          <div className="text-[11.5px] text-gray-800 mt-[2px]">Node 2 age + gender tracking · {timeRange}</div>
         </div>
-        <span className="font-mono text-[10.5px] text-muted whitespace-nowrap">4-month view</span>
+        <span className="font-mono text-[10.5px] text-gray-800 whitespace-nowrap">4-month view</span>
       </div>
 
       <div className="flex gap-[6px] px-[22px] py-[10px] border-b border-border bg-surface-alt">

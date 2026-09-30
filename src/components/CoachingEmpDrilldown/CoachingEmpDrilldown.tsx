@@ -119,7 +119,7 @@ export default function CoachingEmpDrilldown({ employee, detail }: Props) {
             <div className="text-[14px] font-semibold">
               {employee.name} — {employee.role_title}
             </div>
-            <div className="text-[11.5px] text-muted mt-px">{meta}</div>
+            <div className="text-[11.5px] text-gray-800 mt-px">{meta}</div>
           </div>
         </div>
         <div className="flex gap-5">
@@ -127,19 +127,19 @@ export default function CoachingEmpDrilldown({ employee, detail }: Props) {
             <div className={`font-mono text-[18px] font-semibold leading-none ${statColorMap[winRateBand(winRate)]}`}>
               {winRate}%
             </div>
-            <div className="text-[10px] text-muted uppercase tracking-[.07em]">Win Rate</div>
+            <div className="text-[10px] text-gray-800 uppercase tracking-[.07em]">Win Rate</div>
           </div>
           <div className="flex flex-col gap-0.5 items-end">
             <div className={`font-mono text-[18px] font-semibold leading-none ${statColorMap[avgWeeksBand(avgWks)]}`}>
               {avgWks !== null ? avgWks.toFixed(1) : '—'}
             </div>
-            <div className="text-[10px] text-muted uppercase tracking-[.07em]">Avg Wks</div>
+            <div className="text-[10px] text-gray-800 uppercase tracking-[.07em]">Avg Wks</div>
           </div>
           <div className="flex flex-col gap-0.5 items-end">
             <div className={`font-mono text-[18px] font-semibold leading-none ${statColorMap[stalledBand(stalledCount)]}`}>
               {stalledCount}
             </div>
-            <div className="text-[10px] text-muted uppercase tracking-[.07em]">Stalled</div>
+            <div className="text-[10px] text-gray-800 uppercase tracking-[.07em]">Stalled</div>
           </div>
         </div>
       </div>
@@ -147,24 +147,24 @@ export default function CoachingEmpDrilldown({ employee, detail }: Props) {
       {/* Issue Table */}
       <div className="px-[22px] py-[18px] overflow-x-auto">
         {signals.length === 0 ? (
-          <div className="text-[12.5px] text-muted py-6 text-center">No coaching issues tracked for this employee.</div>
+          <div className="text-[12.5px] text-gray-800 py-6 text-center">No coaching issues tracked for this employee.</div>
         ) : (
           <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th className="text-[10px] font-semibold text-muted uppercase tracking-[.09em] text-left px-3 pb-[10px] border-b border-border first:pl-0 w-[110px]">
+                <th className="text-[10px] font-semibold text-gray-800 uppercase tracking-[.09em] text-left px-3 pb-[10px] border-b border-border first:pl-0 w-[110px]">
                   Category
                 </th>
-                <th className="text-[10px] font-semibold text-muted uppercase tracking-[.09em] text-left px-3 pb-[10px] border-b border-border">
+                <th className="text-[10px] font-semibold text-gray-800 uppercase tracking-[.09em] text-left px-3 pb-[10px] border-b border-border">
                   Issue Flagged
                 </th>
-                <th className="text-[10px] font-semibold text-muted uppercase tracking-[.09em] text-left px-3 pb-[10px] border-b border-border w-[140px]">
+                <th className="text-[10px] font-semibold text-gray-800 uppercase tracking-[.09em] text-left px-3 pb-[10px] border-b border-border w-[140px]">
                   Score Change
                 </th>
-                <th className="text-[10px] font-semibold text-muted uppercase tracking-[.09em] text-left px-3 pb-[10px] border-b border-border w-[100px]">
+                <th className="text-[10px] font-semibold text-gray-800 uppercase tracking-[.09em] text-left px-3 pb-[10px] border-b border-border w-[100px]">
                   Weeks
                 </th>
-                <th className="text-[10px] font-semibold text-muted uppercase tracking-[.09em] text-left px-3 pb-[10px] border-b border-border w-[110px]">
+                <th className="text-[10px] font-semibold text-gray-800 uppercase tracking-[.09em] text-left px-3 pb-[10px] border-b border-border w-[110px]">
                   Status
                 </th>
               </tr>
@@ -173,11 +173,11 @@ export default function CoachingEmpDrilldown({ employee, detail }: Props) {
               {signals.map((issue) => {
                 const delta = issue.score_delta
                 const deltaType = delta === null ? 'flat' : delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat'
-                const deltaColorClass = { up: 'text-accent', down: 'text-danger', flat: 'text-muted' }[deltaType]
+                const deltaColorClass = { up: 'text-accent', down: 'text-danger', flat: 'text-gray-800' }[deltaType]
                 const deltaBgClass = {
                   up: 'bg-accent-light text-accent',
                   down: 'bg-danger-light text-danger',
-                  flat: 'bg-surface-alt text-muted',
+                  flat: 'bg-surface-alt text-gray-800',
                 }[deltaType]
 
                 return (
@@ -205,8 +205,8 @@ export default function CoachingEmpDrilldown({ employee, detail }: Props) {
                     <td className="px-3 py-[13px] text-[12.5px] border-b border-border align-middle">
                       {issue.first_score !== null && issue.current_score !== null ? (
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-[13px] text-muted">{issue.first_score}</span>
-                          <span className="text-[12px] text-muted">→</span>
+                          <span className="font-mono text-[13px] text-gray-800">{issue.first_score}</span>
+                          <span className="text-[12px] text-gray-800">→</span>
                           <span className={`font-mono text-[13px] font-bold ${deltaColorClass}`}>{issue.current_score}</span>
                           {delta !== null && (
                             <span className={`text-[10.5px] font-semibold px-[5px] py-px rounded font-mono ${deltaBgClass}`}>
@@ -216,7 +216,7 @@ export default function CoachingEmpDrilldown({ employee, detail }: Props) {
                           )}
                         </div>
                       ) : (
-                        <span className="font-mono text-[13px] text-muted">—</span>
+                        <span className="font-mono text-[13px] text-gray-800">—</span>
                       )}
                     </td>
                     <td className="px-3 py-[13px] text-[12.5px] border-b border-border align-middle">
@@ -248,13 +248,13 @@ export default function CoachingEmpDrilldown({ employee, detail }: Props) {
           </div>
           <div className="flex flex-col gap-[9px]">
             {categories.length === 0 ? (
-              <div className="text-[11.5px] text-muted">No categories tracked yet.</div>
+              <div className="text-[11.5px] text-gray-800">No categories tracked yet.</div>
             ) : (
               categories.map((cat) => (
                 <div key={cat.category} className="flex flex-col gap-1">
                   <div className="flex items-center justify-between text-[11.5px]">
                     <span className="font-medium text-secondary">{titleCase(cat.category)} coaching</span>
-                    <span className="font-mono text-[11px] text-muted">
+                    <span className="font-mono text-[11px] text-gray-800">
                       {cat.total === 0 ? 'No data' : `${cat.resolved_pct}% resolved`}
                     </span>
                   </div>
@@ -287,7 +287,7 @@ export default function CoachingEmpDrilldown({ employee, detail }: Props) {
           <div className="font-mono text-[22px] font-semibold" style={{ color: circleValueColor }}>
             {winRate}%
           </div>
-          <div className="text-[10px] text-muted uppercase tracking-[.08em] text-center">Win Rate</div>
+          <div className="text-[10px] text-gray-800 uppercase tracking-[.08em] text-center">Win Rate</div>
         </div>
       </div>
     </div>

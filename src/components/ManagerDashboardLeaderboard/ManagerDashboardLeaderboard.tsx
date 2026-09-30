@@ -121,7 +121,7 @@ export default function ManagerDashboardLeaderboard({
       <div className="flex items-center justify-between px-[22px] py-4 border-b border-border gap-3 flex-wrap">
         <div>
           <div className="text-[13.5px] font-semibold">Employee Recognition Leaderboard</div>
-          <div className="text-[11.5px] text-muted mt-[2px]">
+          <div className="text-[11.5px] text-gray-800 mt-[2px]">
             {currentStore?.name
               ? `Rankings for ${currentStore.name}`
               : "Who's saying thank you and pitching value to customers"}
@@ -151,7 +151,7 @@ export default function ManagerDashboardLeaderboard({
       </div>
 
       <div className="flex gap-[6px] px-[22px] py-3 border-b border-border bg-surface-alt flex-wrap">
-        <span className="text-[11px] text-muted self-center mr-1">Sort by:</span>
+        <span className="text-[11px] text-gray-800 self-center mr-1">Sort by:</span>
         {SORTS.map((s) => (
           <button
             key={s.key}
@@ -174,7 +174,7 @@ export default function ManagerDashboardLeaderboard({
               {['Rank', 'Employee', 'Thank You', 'Value Prop.', 'Greeted', 'Score', 'Transactions'].map((h, i) => (
                 <th
                   key={h}
-                  className={`text-[10px] font-semibold text-muted uppercase tracking-[.09em] py-[10px] border-b border-border text-left whitespace-nowrap
+                  className={`text-[10px] font-semibold text-gray-800 uppercase tracking-[.09em] py-[10px] border-b border-border text-left whitespace-nowrap
                     ${i === 0 ? 'pl-[22px] pr-[18px]' : 'px-[18px]'}`}
                 >
                   {h}
@@ -200,7 +200,7 @@ export default function ManagerDashboardLeaderboard({
                     </div>
                     <div>
                       <div className="text-[13px] font-semibold">{emp.name}</div>
-                      <div className="text-[10.5px] text-muted">{emp.role_title}</div>
+                      <div className="text-[10.5px] text-gray-800">{emp.role_title}</div>
                     </div>
                   </div>
                 </td>
@@ -223,7 +223,7 @@ export default function ManagerDashboardLeaderboard({
             ))}
             {employees.length === 0 && !loading && (
               <tr>
-                <td colSpan={7} className="px-[22px] py-[18px] text-[12px] text-muted text-center">
+                <td colSpan={7} className="px-[22px] py-[18px] text-[12px] text-gray-800 text-center">
                   No scored transactions {view === 'week' ? 'this week' : 'yet'}.
                 </td>
               </tr>

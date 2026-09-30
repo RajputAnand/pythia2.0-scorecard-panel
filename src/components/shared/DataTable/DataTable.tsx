@@ -65,7 +65,7 @@ export default function DataTable<T,>({ columns, rows, getRowKey, pagination }: 
                   )}
 
                   <div className="flex items-center gap-4 ml-auto">
-                    <span className="text-[11.5px] text-muted whitespace-nowrap">
+                    <span className="text-[11.5px] text-gray-800 whitespace-nowrap">
                       Page {pagination.page + 1} of {pagination.totalPages} · {pagination.totalCount} results
                     </span>
                     <div className="flex items-center gap-3">

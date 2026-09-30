@@ -35,7 +35,7 @@ const containerColumns: DataTableColumn<DeviceContainerStat>[] = [
     key: 'status',
     header: 'Status',
     render: (c) => (
-      <span className={`inline-flex items-center gap-1.5 text-[11.5px] ${c.status === 'running' ? 'text-accent' : 'text-muted'}`}>
+      <span className={`inline-flex items-center gap-1.5 text-[11.5px] ${c.status === 'running' ? 'text-accent' : 'text-gray-800'}`}>
         <span className={`w-[6px] h-[6px] rounded-full ${c.status === 'running' ? 'bg-accent' : 'bg-muted'}`} />
         {c.status}
       </span>
@@ -68,7 +68,7 @@ const pm2Columns: DataTableColumn<DevicePm2ServiceStat>[] = [
     key: 'status',
     header: 'Status',
     render: (s) => (
-      <span className={`inline-flex items-center gap-1.5 text-[11.5px] ${s.status === 'online' ? 'text-accent' : 'text-muted'}`}>
+      <span className={`inline-flex items-center gap-1.5 text-[11.5px] ${s.status === 'online' ? 'text-accent' : 'text-gray-800'}`}>
         <span className={`w-[6px] h-[6px] rounded-full ${s.status === 'online' ? 'bg-accent' : 'bg-muted'}`} />
         {s.status}
       </span>
@@ -145,11 +145,11 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
           <span className={`w-2 h-2 rounded-full shrink-0 ${alerts.size > 0 ? 'bg-danger' : 'bg-accent'}`} />
           <div>
             <p className="font-semibold text-[14px]">{device.device_id}</p>
-            <p className="text-muted text-[11px] font-mono mt-0.5">{device.store_id}</p>
+            <p className="text-gray-800 text-[11px] font-mono mt-0.5">{device.store_id}</p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-[11px] text-muted">Updated {formatRelativeTime(device.updated_at, now)}</p>
+          <p className="text-[11px] text-gray-800">Updated {formatRelativeTime(device.updated_at, now)}</p>
           {alerts.size > 0 && (
             <p className="text-[11px] text-danger font-medium mt-0.5">
               {alerts.size} metric{alerts.size > 1 ? 's' : ''} in alert
@@ -169,7 +169,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-medium text-muted uppercase tracking-[.06em]">{tile.label}</span>
+                <span className="text-[10px] font-medium text-gray-800 uppercase tracking-[.06em]">{tile.label}</span>
                 <span className="text-[12px]">{tile.icon}</span>
               </div>
               <span className={`text-[20px] font-semibold tracking-[-0.02em] ${inAlert ? 'text-danger' : 'text-primary'}`}>
@@ -197,12 +197,12 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
           <div className="flex items-center gap-2">
             <span className="text-[12px] font-semibold text-primary">Daily Pipeline Statistics</span>
             {dailyStats?.date && (
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface border border-border text-muted">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface border border-border text-gray-800">
                 {dailyStats.date}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3 text-[11px] text-muted">
+          <div className="flex items-center gap-3 text-[11px] text-gray-800">
             <span>💓 {dailyStats?.heartbeat_count?.toLocaleString() ?? 0} heartbeats</span>
             {dailyStats?.synced_at && (
               <span>Synced {formatRelativeTime(dailyStats.synced_at, now)}</span>
@@ -212,7 +212,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
 
         {/* Video Processing Breakdown (Customer vs Employee vs Total) */}
         <div className="mb-3">
-          <div className="text-[10px] font-semibold text-muted uppercase tracking-[.06em] mb-2 flex items-center justify-between">
+          <div className="text-[10px] font-semibold text-gray-800 uppercase tracking-[.06em] mb-2 flex items-center justify-between">
             <span>Video Processing Metrics</span>
             <span className="text-primary font-mono text-[11px]">
               {(dailyStats?.videos?.total?.processed ??
@@ -224,7 +224,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div className="bg-surface rounded-[8px] p-3 border border-border flex flex-col justify-between">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-medium text-muted flex items-center gap-1.5">
+                <span className="text-[11px] font-medium text-gray-800 flex items-center gap-1.5">
                   <span>👷</span> Employee Videos
                 </span>
                 <span className="text-[16px] font-bold text-primary">
@@ -243,7 +243,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
 
             <div className="bg-surface rounded-[8px] p-3 border border-border flex flex-col justify-between">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-medium text-muted flex items-center gap-1.5">
+                <span className="text-[11px] font-medium text-gray-800 flex items-center gap-1.5">
                   <span>🛍️</span> Customer Videos
                 </span>
                 <span className="text-[16px] font-bold text-primary">
@@ -262,7 +262,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
 
             <div className="bg-surface rounded-[8px] p-3 border border-border flex flex-col justify-between">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-medium text-muted flex items-center gap-1.5">
+                <span className="text-[11px] font-medium text-gray-800 flex items-center gap-1.5">
                   <span>🎞️</span> Total Videos
                 </span>
                 <span className="text-[16px] font-bold text-primary">
@@ -294,7 +294,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
         {/* Daily Running Averages */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div className="bg-surface rounded-[8px] p-2.5 border border-border">
-            <span className="text-[9.5px] font-medium text-muted uppercase tracking-[.05em] block mb-1">
+            <span className="text-[9.5px] font-medium text-gray-800 uppercase tracking-[.05em] block mb-1">
               CPU Daily Avg
             </span>
             <div className="flex items-baseline gap-1.5">
@@ -302,7 +302,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
                 {dailyStats?.cpu?.avg_percent != null ? `${dailyStats.cpu.avg_percent.toFixed(1)}%` : '—'}
               </span>
               {dailyStats?.cpu?.latest_percent != null && (
-                <span className="text-[10.5px] text-muted font-mono">
+                <span className="text-[10.5px] text-gray-800 font-mono">
                   latest: {dailyStats.cpu.latest_percent.toFixed(1)}%
                 </span>
               )}
@@ -310,7 +310,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
           </div>
 
           <div className="bg-surface rounded-[8px] p-2.5 border border-border">
-            <span className="text-[9.5px] font-medium text-muted uppercase tracking-[.05em] block mb-1">
+            <span className="text-[9.5px] font-medium text-gray-800 uppercase tracking-[.05em] block mb-1">
               RAM Daily Avg
             </span>
             <div className="flex items-baseline gap-1.5">
@@ -318,7 +318,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
                 {dailyStats?.memory?.avg_percent != null ? `${dailyStats.memory.avg_percent.toFixed(1)}%` : '—'}
               </span>
               {dailyStats?.memory?.used_mb != null && dailyStats?.memory?.total_mb != null && (
-                <span className="text-[10.5px] text-muted font-mono">
+                <span className="text-[10.5px] text-gray-800 font-mono">
                   {dailyStats.memory.used_mb.toFixed(0)}/{dailyStats.memory.total_mb.toFixed(0)} MB
                 </span>
               )}
@@ -326,7 +326,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
           </div>
 
           <div className="bg-surface rounded-[8px] p-2.5 border border-border">
-            <span className="text-[9.5px] font-medium text-muted uppercase tracking-[.05em] block mb-1">
+            <span className="text-[9.5px] font-medium text-gray-800 uppercase tracking-[.05em] block mb-1">
               Temp Daily Avg
             </span>
             <div className="flex items-baseline gap-1.5">
@@ -334,7 +334,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
                 {dailyStats?.temperature?.avg_celsius != null ? `${dailyStats.temperature.avg_celsius.toFixed(1)}°C` : '—'}
               </span>
               {dailyStats?.temperature?.latest_celsius != null && (
-                <span className="text-[10.5px] text-muted font-mono">
+                <span className="text-[10.5px] text-gray-800 font-mono">
                   latest: {dailyStats.temperature.latest_celsius.toFixed(1)}°C
                 </span>
               )}
@@ -345,7 +345,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
 
       {device.cpu_usage_per_core_percent.length > 0 && (
         <div className="px-5 pb-[16px]">
-          <p className="text-[10.5px] font-medium text-muted uppercase tracking-[.06em] mb-2">CPU per core</p>
+          <p className="text-[10.5px] font-medium text-gray-800 uppercase tracking-[.06em] mb-2">CPU per core</p>
           <div className="flex gap-1">
             {device.cpu_usage_per_core_percent.map((pct, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-1" title={`Core ${i}: ${pct.toFixed(1)}%`}>
@@ -355,7 +355,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
                     style={{ height: `${Math.min(100, pct)}%`, background: pct >= 90 ? 'var(--color-danger)' : 'var(--color-cobalt)' }}
                   />
                 </div>
-                <span className="text-[9px] text-muted font-mono">{i}</span>
+                <span className="text-[9px] text-gray-800 font-mono">{i}</span>
               </div>
             ))}
           </div>
@@ -364,7 +364,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
 
       {device.containers.length > 0 && (
         <div className="px-5 pb-[16px]">
-          <p className="text-[10.5px] font-medium text-muted uppercase tracking-[.06em] mb-2">
+          <p className="text-[10.5px] font-medium text-gray-800 uppercase tracking-[.06em] mb-2">
             Pipeline services ({device.containers.length})
           </p>
           <DataTable
@@ -379,7 +379,7 @@ export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
 
       {pm2Services.length > 0 && (
         <div className="px-5 pb-[16px]">
-          <p className="text-[10.5px] font-medium text-muted uppercase tracking-[.06em] mb-2">
+          <p className="text-[10.5px] font-medium text-gray-800 uppercase tracking-[.06em] mb-2">
             pm2 services ({pm2Services.length})
           </p>
           <DataTable

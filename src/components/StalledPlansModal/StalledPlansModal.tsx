@@ -21,11 +21,11 @@ export default function StalledPlansModal({ data, onClose }: StalledPlansModalPr
         <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-border bg-surface rounded-t-2xl">
           <div>
             <h2 className="text-[16px] font-semibold text-primary">Stalled Coaching Plans</h2>
-            <p className="text-[12px] text-muted mt-0.5">Manager action required</p>
+            <p className="text-[12px] text-gray-800 mt-0.5">Manager action required</p>
           </div>
           <div className="flex items-center gap-4">
             {!data.isLoading && !data.isError && data.groups.length > 0 && (
-              <span className="font-mono text-[11px] text-muted whitespace-nowrap">
+              <span className="font-mono text-[11px] text-gray-800 whitespace-nowrap">
                 {data.groups.length} employee{data.groups.length === 1 ? '' : 's'} · {data.openCount} plan
                 {data.openCount === 1 ? '' : 's'} need action
               </span>
@@ -34,7 +34,7 @@ export default function StalledPlansModal({ data, onClose }: StalledPlansModalPr
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="text-muted hover:text-primary cursor-pointer"
+              className="text-gray-800 hover:text-primary cursor-pointer"
             >
               <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <line x1="18" y1="6" x2="6" y2="18" />

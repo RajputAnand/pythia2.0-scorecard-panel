@@ -59,7 +59,7 @@ export default function RejectOrderModal({
             </div>
             <div>
               <h2 className="text-[17px] font-bold text-primary">Reject Reward Order</h2>
-              <p className="text-[12px] text-muted">
+              <p className="text-[12px] text-gray-800">
                 Order #{order.id} · Claimed by <span className="font-semibold text-primary">{order.employeeName}</span>
               </p>
             </div>
@@ -71,7 +71,7 @@ export default function RejectOrderModal({
               <span className="text-[22px]">{order.productEmoji}</span>
               <div>
                 <span className="font-semibold text-primary block leading-tight">{order.productName}</span>
-                <span className="text-[11px] text-muted">{order.category || 'Swag Item'}</span>
+                <span className="text-[11px] text-gray-800">{order.category || 'Swag Item'}</span>
               </div>
             </div>
             <div className="text-right">
@@ -121,14 +121,14 @@ export default function RejectOrderModal({
                 if (error) setError(null)
               }}
               placeholder="Explain why this reward claim is being rejected (visible to the employee)…"
-              className={`w-full rounded-xl border bg-surface px-3 py-2 text-[12.5px] text-primary placeholder:text-muted focus:outline-hidden resize-none transition-colors ${
+              className={`w-full rounded-xl border bg-surface px-3 py-2 text-[12.5px] text-primary placeholder:text-gray-800 focus:outline-hidden resize-none transition-colors ${
                 error ? 'border-danger focus:border-danger' : 'border-border focus:border-accent'
               }`}
             />
             {error && (
               <p className="mt-1 text-[11px] text-danger font-medium">{error}</p>
             )}
-            <p className="mt-1 text-[11px] text-muted">
+            <p className="mt-1 text-[11px] text-gray-800">
               This note will appear in the employee&apos;s orders tab and points will be refunded immediately by {roleTitle}.
             </p>
           </div>

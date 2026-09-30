@@ -148,7 +148,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
             >
               {pendingCount}
             </span>
-            <span className="text-[11.5px] text-muted">
+            <span className="text-[11.5px] text-gray-800">
               {pendingCount > 0 ? 'Needs action' : 'All fulfilled'}
             </span>
           </div>
@@ -163,7 +163,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
             <span className="text-[26px] font-bold font-mono text-accent">
               {completedCount}
             </span>
-            <span className="text-[11.5px] text-muted">
+            <span className="text-[11.5px] text-gray-800">
               {totalOrdersCount} total orders
             </span>
           </div>
@@ -179,7 +179,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
               <span>🪙</span>
               {pointsDeducted.toLocaleString('en-US')}
             </span>
-            <span className="text-[11.5px] text-muted font-medium">pts total</span>
+            <span className="text-[11.5px] text-gray-800 font-medium">pts total</span>
           </div>
         </div>
 
@@ -192,7 +192,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
             <span className="text-[26px] font-bold font-mono text-primary">
               {employeesRewarded}
             </span>
-            <span className="text-[11.5px] text-muted">team members</span>
+            <span className="text-[11.5px] text-gray-800">team members</span>
           </div>
         </div>
       </div>
@@ -261,7 +261,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
             </button>
           </div>
 
-          <div className="hidden sm:flex items-center text-[12px] text-muted py-2">
+          <div className="hidden sm:flex items-center text-[12px] text-gray-800 py-2">
             Points deducted automatically upon employee claim
           </div>
         </div>
@@ -270,7 +270,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
         <div className="p-5 border-b border-border bg-surface flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="relative w-full sm:w-72">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted text-[13px]">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800 text-[13px]">
                 🔍
               </span>
               <input
@@ -278,7 +278,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
                 placeholder="Search by employee, reward, or order ID…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-surface-alt border border-border rounded-lg pl-8 pr-3 py-1.5 text-[12.5px] text-primary placeholder:text-muted focus:outline-none focus:border-accent"
+                className="w-full bg-surface-alt border border-border rounded-lg pl-8 pr-3 py-1.5 text-[12.5px] text-primary placeholder:text-gray-800 focus:outline-none focus:border-accent"
               />
             </div>
 
@@ -293,7 +293,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
             )}
           </div>
 
-          <div className="text-[11.5px] text-muted self-end sm:self-auto">
+          <div className="text-[11.5px] text-gray-800 self-end sm:self-auto">
             Showing {filteredOrders.length} of {currentTabOrders.length} orders
           </div>
         </div>
@@ -312,7 +312,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
                   ? 'No cancelled or rejected orders'
                   : 'No orders found matching criteria'}
               </p>
-              <p className="text-[12px] text-muted mt-1 max-w-sm">
+              <p className="text-[12px] text-gray-800 mt-1 max-w-sm">
                 {searchQuery || selectedCategory !== 'ALL'
                   ? 'Try clearing your search query or category filter.'
                   : activeTab === 'pending'
@@ -366,7 +366,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
                         </td>
 
                         {/* Date Claimed */}
-                        <td className="px-4 py-3.5 text-muted text-[12px]">
+                        <td className="px-4 py-3.5 text-gray-800 text-[12px]">
                           {orderDate}
                         </td>
 
@@ -397,7 +397,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
                                 {order.productName}
                               </span>
                               {order.category && (
-                                <span className="block text-[10.5px] text-muted">
+                                <span className="block text-[10.5px] text-gray-800">
                                   {order.category}
                                 </span>
                               )}
@@ -440,12 +440,12 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
                         {/* Fulfillment Info */}
                         <td className="px-4 py-3.5 text-[11.5px] text-secondary">
                           {isPending ? (
-                            <span className="text-muted italic">Awaiting handover</span>
+                            <span className="text-gray-800 italic">Awaiting handover</span>
                           ) : isCompleted ? (
                             <span>
                               {order.fulfilledBy || 'Manager'}
                               {completedDate && (
-                                <span className="text-muted text-[11px] block">
+                                <span className="text-gray-800 text-[11px] block">
                                   on {completedDate}
                                 </span>
                               )}
@@ -456,7 +456,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
                                 Rejected by {order.rejectedBy || 'Manager'}
                               </span>
                               {order.rejectionReason && (
-                                <span className="text-muted text-[11px] block mt-0.5 line-clamp-2" title={order.rejectionReason}>
+                                <span className="text-gray-800 text-[11px] block mt-0.5 line-clamp-2" title={order.rejectionReason}>
                                   &ldquo;{order.rejectionReason}&rdquo;
                                 </span>
                               )}
@@ -470,7 +470,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
                                 Cancelled by employee
                               </span>
                               {order.cancelledAt && (
-                                <span className="text-muted text-[11px] block">
+                                <span className="text-gray-800 text-[11px] block">
                                   on {new Date(order.cancelledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                 </span>
                               )}
@@ -502,7 +502,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
                                 </button>
                               </div>
                             ) : isCompleted ? (
-                              <span className="text-muted text-[11.5px] italic">
+                              <span className="text-gray-800 text-[11.5px] italic">
                                 Fulfilled
                               </span>
                             ) : isRejected ? (
@@ -510,7 +510,7 @@ export default function ManagerOrdersPanel({ readOnly = false }: ManagerOrdersPa
                                 Rejected
                               </span>
                             ) : (
-                              <span className="text-muted text-[11.5px] italic">
+                              <span className="text-gray-800 text-[11.5px] italic">
                                 Cancelled
                               </span>
                             )}

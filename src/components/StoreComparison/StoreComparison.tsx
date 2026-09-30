@@ -20,7 +20,7 @@ function MetricRow({ label, shortLabel, yoursScore, yoursColor, gap, gapVariant,
   return (
     <>
       <div className={`flex flex-col gap-[6px] px-[22px] py-[14px] bg-[#FAFDF8] ${borderB}`}>
-        <div className="text-[9.5px] font-semibold text-muted uppercase tracking-[.08em]">{label}</div>
+        <div className="text-[9.5px] font-semibold text-gray-800 uppercase tracking-[.08em]">{label}</div>
         <div className="flex items-baseline gap-2">
           <span className="font-mono text-[26px] font-bold leading-none" style={{ color: yoursColor }}>{yoursScore}</span>
           <span className={`font-mono text-[11.5px] font-semibold ${gapVariant === 'behind' ? 'text-amber' : 'text-accent'}`}>{gap}</span>
@@ -30,12 +30,12 @@ function MetricRow({ label, shortLabel, yoursScore, yoursColor, gap, gapVariant,
         </div>
       </div>
       <div className={`flex items-center justify-center border-l border-r border-border ${borderB}`}>
-        <span className="text-[9px] font-semibold text-muted uppercase tracking-[.07em] [writing-mode:vertical-rl] rotate-180">
+        <span className="text-[9px] font-semibold text-gray-800 uppercase tracking-[.07em] [writing-mode:vertical-rl] rotate-180">
           {shortLabel}
         </span>
       </div>
       <div className={`flex flex-col gap-[6px] px-[22px] py-[14px] bg-[#FDFCF4] ${borderB}`}>
-        <div className="text-[9.5px] font-semibold text-muted uppercase tracking-[.08em]">{label}</div>
+        <div className="text-[9.5px] font-semibold text-gray-800 uppercase tracking-[.08em]">{label}</div>
         <div className="flex items-baseline gap-2">
           <span className="font-mono text-[26px] font-bold leading-none text-gold">{theirsScore}</span>
         </div>
@@ -100,15 +100,15 @@ export default function StoreComparison({ previewMode, data, loading }: StoreCom
       <div className="flex flex-col px-[22px] py-[18px] gap-1 border-b border-border bg-accent-light">
         <div className="text-[10px] font-semibold uppercase tracking-[.1em] text-accent">Your Store</div>
         <div className="text-[15px] font-bold">{data?.store_id ? `Store #${data.store_id.slice(-4)}` : (previewMode ? 'Main St. Store' : 'N/A')}</div>
-        <div className="font-mono text-[11.5px] text-muted">{data?.rank ? `Rank #${data.rank}` : (previewMode ? 'Rank #3' : 'N/A')}</div>
+        <div className="font-mono text-[11.5px] text-gray-800">{data?.rank ? `Rank #${data.rank}` : (previewMode ? 'Rank #3' : 'N/A')}</div>
       </div>
       <div className="flex items-center justify-center border-b border-border border-l border-r bg-surface-alt">
-        <span className="text-[9px] font-semibold text-muted uppercase tracking-[.07em] [writing-mode:vertical-rl] rotate-180">vs.</span>
+        <span className="text-[9px] font-semibold text-gray-800 uppercase tracking-[.07em] [writing-mode:vertical-rl] rotate-180">vs.</span>
       </div>
       <div className="flex flex-col px-[22px] py-[18px] gap-1 border-b border-border bg-gold-light">
         <div className="text-[10px] font-semibold uppercase tracking-[.1em] text-gold">Top Performer</div>
         <div className="text-[15px] font-bold">{data?.top_performer?.store_id ? `Store #${data.top_performer.store_id.slice(-4)}` : (previewMode ? 'Store #14' : 'N/A')}</div>
-        <div className="font-mono text-[11.5px] text-muted">{data?.top_performer?.rank ? `Rank #${data.top_performer.rank}` : (previewMode ? 'Rank #1' : 'N/A')}</div>
+        <div className="font-mono text-[11.5px] text-gray-800">{data?.top_performer?.rank ? `Rank #${data.top_performer.rank}` : (previewMode ? 'Rank #1' : 'N/A')}</div>
       </div>
 
       {/* Metric rows */}

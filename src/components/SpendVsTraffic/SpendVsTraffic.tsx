@@ -12,7 +12,7 @@ export default function SpendVsTraffic({ previewMode }: { previewMode?: boolean 
       <div className="flex items-start justify-between px-[22px] py-4 border-b border-border gap-3">
         <div>
           <div className="text-[13.5px] font-semibold">Campaign Spend vs. Foot Traffic Response</div>
-          <div className="text-[11.5px] text-muted mt-[2px]">Monthly · All channels combined · Node 2 foot traffic vs. spend log</div>
+          <div className="text-[11.5px] text-gray-800 mt-[2px]">Monthly · All channels combined · Node 2 foot traffic vs. spend log</div>
         </div>
         <div className="flex gap-[6px] shrink-0">
           <div className="text-[10.5px] px-[10px] py-1 rounded-full bg-accent-light text-accent font-semibold">Social {previewMode ? '4.1x' : 'N/A'} ROAS</div>
@@ -93,7 +93,7 @@ export default function SpendVsTraffic({ previewMode }: { previewMode?: boolean 
         {/* X labels */}
         <div className="flex justify-between mt-[5px] px-1">
           {['November', 'December', 'January', 'February'].map((m) => (
-            <span key={m} className="font-mono text-[9.5px] text-muted text-center">{m}</span>
+            <span key={m} className="font-mono text-[9.5px] text-gray-800 text-center">{m}</span>
           ))}
         </div>
 

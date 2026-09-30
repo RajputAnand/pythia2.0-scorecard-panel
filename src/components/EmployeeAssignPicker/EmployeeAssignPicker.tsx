@@ -135,13 +135,13 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[12.5px] font-medium truncate">{getEmployeeName(selectedEmployee)}</div>
-              <div className="text-[10.5px] text-muted truncate">{selectedEmployee.email}</div>
+              <div className="text-[10.5px] text-gray-800 truncate">{selectedEmployee.email}</div>
             </div>
             <button
               type="button"
               onClick={() => setSelectedEmployee(null)}
               aria-label="Clear selected employee"
-              className="shrink-0 text-muted hover:text-danger transition-colors duration-150 cursor-pointer"
+              className="shrink-0 text-gray-800 hover:text-danger transition-colors duration-150 cursor-pointer"
             >
               <svg className="w-[14px] h-[14px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <line x1="18" y1="6" x2="6" y2="18" />
@@ -164,9 +164,9 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
           <div className="absolute top-[calc(100%+6px)] left-0 right-0 z-30 bg-surface border border-border rounded-[10px] shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] overflow-hidden">
             <ul role="listbox" aria-label="Select employee" className="max-h-[220px] overflow-y-auto list-none m-0 p-[4px]">
               {isLoading ? (
-                <li className="px-[10px] py-[14px] text-center text-[12px] text-muted">Loading…</li>
+                <li className="px-[10px] py-[14px] text-center text-[12px] text-gray-800">Loading…</li>
               ) : employees.length === 0 ? (
-                <li className="px-[10px] py-[14px] text-center text-[12px] text-muted">No employees found</li>
+                <li className="px-[10px] py-[14px] text-center text-[12px] text-gray-800">No employees found</li>
               ) : (
                 employees.map((employee) => (
                   <li
@@ -184,7 +184,7 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-[12.5px] font-medium truncate">{getEmployeeName(employee)}</div>
-                      <div className="text-[10.5px] text-muted truncate">{employee.email}</div>
+                      <div className="text-[10.5px] text-gray-800 truncate">{employee.email}</div>
                     </div>
                   </li>
                 ))
@@ -201,7 +201,7 @@ export default function EmployeeAssignPicker({ identity, onAssigned }: EmployeeA
                 >
                   ‹ Prev
                 </button>
-                <span className="text-[10.5px] text-muted">
+                <span className="text-[10.5px] text-gray-800">
                   Page {page + 1} of {totalPages}
                 </span>
                 <button

@@ -48,7 +48,7 @@ function buildSeries(weeks: ManagerDashboardTrendWeek[], key: RateKey, color: st
 
 function LegendDot({ color, label }: { color: string; label: string }) {
   return (
-    <span className="flex items-center gap-[5px] text-muted">
+    <span className="flex items-center gap-[5px] text-gray-800">
       <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: color }} />
       {label}
     </span>

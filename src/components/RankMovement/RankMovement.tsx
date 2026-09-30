@@ -94,7 +94,7 @@ const previewTracks: StoreTrack[] = [
 const deltaClass: Record<'up' | 'down' | 'flat', string> = {
   up: 'text-accent',
   down: 'text-danger',
-  flat: 'text-muted',
+  flat: 'text-gray-800',
 }
 
 interface RankMovementProps {
@@ -156,7 +156,7 @@ export default function RankMovement({ previewMode, data, loading }: RankMovemen
     <div className={`bg-surface border border-border rounded-[14px] overflow-hidden transition-opacity ${loading ? 'opacity-50' : ''}`}>
       <div className="px-[22px] py-4 border-b border-border">
         <div className="text-[13.5px] font-semibold">Month-over-Month Rank Movement</div>
-        <div className="text-[11.5px] text-muted mt-[2px]">Your store vs. top 5 and nearest competitor</div>
+        <div className="text-[11.5px] text-gray-800 mt-[2px]">Your store vs. top 5 and nearest competitor</div>
       </div>
 
       <div className="flex flex-col gap-[14px] px-[22px] py-5">

@@ -179,7 +179,7 @@ export default function DeviceHealthPanel() {
 
   if (!devices || devices.length === 0) {
     return (
-      <div className="bg-surface border border-border rounded-[14px] px-5 py-[24px] text-center text-muted text-[13px]">
+      <div className="bg-surface border border-border rounded-[14px] px-5 py-[24px] text-center text-gray-800 text-[13px]">
         No devices have reported in yet.
       </div>
     )
@@ -187,7 +187,7 @@ export default function DeviceHealthPanel() {
 
   return (
     <div className="grid gap-4">
-      <div className="flex items-center justify-between text-[12px] text-muted">
+      <div className="flex items-center justify-between text-[12px] text-gray-800">
         <div>
           {currentStore ? (
             <span>
@@ -212,7 +212,7 @@ export default function DeviceHealthPanel() {
       )}
 
       {filteredDevices && filteredDevices.length === 0 ? (
-        <div className="bg-surface border border-border rounded-[14px] px-5 py-[24px] text-center text-muted text-[13px]">
+        <div className="bg-surface border border-border rounded-[14px] px-5 py-[24px] text-center text-gray-800 text-[13px]">
           No devices found for {currentStore?.name || 'this store'}.
         </div>
       ) : (

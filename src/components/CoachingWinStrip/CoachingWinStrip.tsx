@@ -129,7 +129,7 @@ export default function CoachingWinStrip({ summary, previewMode, highlightId, is
         >
           {/* Header */}
           <div className="flex items-center justify-between">
-            <span className="text-[10.5px] font-medium text-muted uppercase tracking-[.07em]">{card.label}</span>
+            <span className="text-[10.5px] font-medium text-gray-800 uppercase tracking-[.07em]">{card.label}</span>
             <div className={`w-[27px] h-[27px] rounded-[8px] flex items-center justify-center text-[13px] ${card.iconBg}`}>
               {card.icon}
             </div>
@@ -149,7 +149,7 @@ export default function CoachingWinStrip({ summary, previewMode, highlightId, is
           </div>
 
           {/* Sub */}
-          <div className="text-[11.5px] text-muted">
+          <div className="text-[11.5px] text-gray-800">
             {card.subBold && <strong className="text-secondary font-medium">{card.subBold}</strong>}
             {card.sub}
           </div>

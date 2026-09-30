@@ -50,13 +50,13 @@ export default function CoachingHealthSnapshot({ summary, previewMode }: Props) 
       <div className="grid grid-cols-3 gap-4">
         <div>
           <div className="text-[22px] font-semibold text-accent leading-none">{team_win_rate.pct}%</div>
-          <div className="text-[11px] text-muted mt-[6px]">
+          <div className="text-[11px] text-gray-800 mt-[6px]">
             Win rate · {team_win_rate.resolved} of {team_win_rate.total} resolved
           </div>
         </div>
         <div>
           <div className="text-[22px] font-semibold text-amber leading-none">{in_progress.count}</div>
-          <div className="text-[11px] text-muted mt-[6px]">
+          <div className="text-[11px] text-gray-800 mt-[6px]">
             In progress · {in_progress.employees_affected} employee{in_progress.employees_affected === 1 ? '' : 's'}
           </div>
         </div>
@@ -64,7 +64,7 @@ export default function CoachingHealthSnapshot({ summary, previewMode }: Props) 
           <div className={`text-[22px] font-semibold leading-none ${ai_stalled.count > 0 ? 'text-danger' : 'text-accent'}`}>
             {ai_stalled.count}
           </div>
-          <div className="text-[11px] text-muted mt-[6px]">
+          <div className="text-[11px] text-gray-800 mt-[6px]">
             {ai_stalled.count > 0 ? 'Stalled · needs manager intervention' : 'No stalled issues'}
           </div>
         </div>

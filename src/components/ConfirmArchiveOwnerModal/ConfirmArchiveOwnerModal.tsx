@@ -25,7 +25,7 @@ export default function ConfirmArchiveOwnerModal({
           </div>
           <div>
             <h2 className="text-[15.5px] font-semibold text-primary">Archive Owner?</h2>
-            <p className="text-[12px] text-muted">This action can be reversed at any time.</p>
+            <p className="text-[12px] text-gray-800">This action can be reversed at any time.</p>
           </div>
         </div>
 

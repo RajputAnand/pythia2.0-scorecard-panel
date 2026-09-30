@@ -22,7 +22,7 @@ interface UnknownIdentityCarouselProps {
 const STATUS_STYLES: Record<string, string> = {
   unresolved: 'bg-danger-light text-danger',
   resolved: 'bg-accent-light text-accent',
-  trashed: 'bg-border text-muted',
+  trashed: 'bg-border text-gray-800',
 }
 
 // Beyond this count, showing one dot per identity overflows/wraps badly —
@@ -118,7 +118,7 @@ export default function UnknownIdentityCarousel({
           {active.status}
         </span>
         <div className="flex items-center gap-3">
-          <span className="font-mono text-[11px] text-muted whitespace-nowrap">
+          <span className="font-mono text-[11px] text-gray-800 whitespace-nowrap">
             Identity {activeIndex + 1} of {totalCount}
           </span>
           {showTrashAction && (
@@ -172,7 +172,7 @@ export default function UnknownIdentityCarousel({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted">
+                <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-800">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <rect x="3" y="3" width="18" height="18" rx="2" />
                     <circle cx="9" cy="9" r="2" />
@@ -224,16 +224,16 @@ export default function UnknownIdentityCarousel({
         {/* Metadata */}
         <div className="w-full max-w-[320px] flex flex-col gap-1 text-[11.5px] text-secondary">
           <div className="flex justify-between gap-2 min-w-0">
-            <span className="text-muted shrink-0">Device</span>
+            <span className="text-gray-800 shrink-0">Device</span>
             <span className="font-mono truncate" title={active.device_id}>{active.device_id}</span>
           </div>
           <div className="flex justify-between gap-2 min-w-0">
-            <span className="text-muted shrink-0">Session</span>
+            <span className="text-gray-800 shrink-0">Session</span>
             <span className="font-mono truncate" title={active.session_id}>{active.session_id}</span>
           </div>
           {photo && (
             <div className="flex justify-between gap-2 min-w-0">
-              <span className="text-muted shrink-0">Captured</span>
+              <span className="text-gray-800 shrink-0">Captured</span>
               <span className="truncate">{new Date(photo.captured_at_utc).toLocaleString('en-US')}</span>
             </div>
           )}
@@ -245,7 +245,7 @@ export default function UnknownIdentityCarousel({
         <div className="flex items-center justify-center gap-[6px] pb-[16px]">
           {visibleDotIndices(loaded, activeIndex).map((i, pos) =>
             i === 'ellipsis' ? (
-              <span key={`ellipsis-${pos}`} className="text-muted text-[10px] px-px select-none">
+              <span key={`ellipsis-${pos}`} className="text-gray-800 text-[10px] px-px select-none">
                 …
               </span>
             ) : (

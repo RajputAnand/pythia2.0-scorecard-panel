@@ -31,7 +31,7 @@ export default function ConfirmFulfillOrderModal({
 
           <div>
             <h2 className="text-[18px] font-bold text-primary">Fulfill Reward Order?</h2>
-            <p className="mt-1 text-[13px] text-muted">
+            <p className="mt-1 text-[13px] text-gray-800">
               Order #{order.id}
             </p>
           </div>

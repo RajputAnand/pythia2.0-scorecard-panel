@@ -145,7 +145,7 @@ export default function DatePicker({ value, onChange, ariaLabel, min, max }: Dat
         aria-label={ariaLabel}
         className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-mono text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent focus:outline-none focus:border-accent whitespace-nowrap shrink-0"
       >
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 text-muted">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 text-gray-800">
           <rect x="1" y="2" width="10" height="9" rx="1.5" stroke="currentColor" strokeWidth="1" />
           <path d="M1 4.5H11" stroke="currentColor" strokeWidth="1" />
           <path d="M3.5 1V2.5M8.5 1V2.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
@@ -193,7 +193,7 @@ export default function DatePicker({ value, onChange, ariaLabel, min, max }: Dat
 
             <div className="grid grid-cols-7 mb-[2px]">
               {WEEKDAY_LABELS.map((label, i) => (
-                <div key={i} className="text-center font-mono text-muted text-[9.5px] py-[4px]">
+                <div key={i} className="text-center font-mono text-gray-800 text-[9.5px] py-[4px]">
                   {label}
                 </div>
               ))}
@@ -226,7 +226,7 @@ export default function DatePicker({ value, onChange, ariaLabel, min, max }: Dat
                               ? 'text-accent font-semibold border border-accent cursor-pointer'
                               : inMonth
                                 ? 'text-primary hover:bg-surface-alt cursor-pointer'
-                                : 'text-muted hover:bg-surface-alt cursor-pointer'
+                                : 'text-gray-800 hover:bg-surface-alt cursor-pointer'
                       }`}
                     >
                       {date.getDate()}

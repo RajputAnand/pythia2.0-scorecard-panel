@@ -112,7 +112,7 @@ export default async function SuperAdminRoiAttributionPage(props: {
             <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-20 text-center">
               <span className="text-[36px]">📊</span>
               <p className="font-semibold text-[14px] text-primary">No store data available</p>
-              <p className="text-[12px] text-muted max-w-md">
+              <p className="text-[12px] text-gray-800 max-w-md">
                 Once a store location is created and active for this tenant, revenue impact, customer dwell time, and ROI metrics will populate here.
               </p>
             </div>

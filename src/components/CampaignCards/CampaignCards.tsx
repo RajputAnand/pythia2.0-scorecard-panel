@@ -49,7 +49,7 @@ const kpiValueClass: Record<KpiVariant, string> = {
 const kpiChangeClass: Record<ChangeVariant, string> = {
   up: 'text-accent',
   down: 'text-danger',
-  flat: 'text-muted',
+  flat: 'text-gray-800',
 }
 
 const roasClass: Record<RoasVariant, string> = {
@@ -286,7 +286,7 @@ export default function CampaignCards({ previewMode }: { previewMode?: boolean }
       <div className="flex items-start justify-between mb-[14px]">
         <div>
           <div className="text-[13.5px] font-semibold">Campaign Performance Cards</div>
-          <div className="text-[11.5px] text-muted mt-[2px]">All active and recent campaigns · Click any card to drill in</div>
+          <div className="text-[11.5px] text-gray-800 mt-[2px]">All active and recent campaigns · Click any card to drill in</div>
         </div>
       </div>
 
@@ -300,7 +300,7 @@ export default function CampaignCards({ previewMode }: { previewMode?: boolean }
               <div className="flex items-start justify-between gap-[10px]">
                 <div>
                   <div className="text-[13.5px] font-bold leading-[1.2]">{c.name}</div>
-                  <div className="font-mono text-[11px] text-muted mt-1">{c.dates}</div>
+                  <div className="font-mono text-[11px] text-gray-800 mt-1">{c.dates}</div>
                 </div>
                 <div
                   className="text-[9.5px] font-bold px-2 py-[3px] rounded-full uppercase tracking-[.06em] whitespace-nowrap shrink-0"
@@ -322,7 +322,7 @@ export default function CampaignCards({ previewMode }: { previewMode?: boolean }
             <div className="grid grid-cols-[1fr_1fr_1fr_1fr] border-b border-border">
               {c.kpis.map((kpi, i) => (
                 <div key={kpi.label} className={`flex flex-col gap-[3px] px-[14px] py-[11px] ${i < 3 ? 'border-r border-border' : ''}`}>
-                  <div className="text-[9px] text-muted uppercase tracking-[.08em]">{kpi.label}</div>
+                  <div className="text-[9px] text-gray-800 uppercase tracking-[.08em]">{kpi.label}</div>
                   <div className={`font-mono text-[15px] font-bold ${kpiValueClass[kpi.valueVariant]}`}>{kpi.value}</div>
                   <div className={`font-mono text-[9.5px] font-semibold ${kpiChangeClass[kpi.changeVariant]}`}>{kpi.change}</div>
                 </div>
@@ -331,7 +331,7 @@ export default function CampaignCards({ previewMode }: { previewMode?: boolean }
 
             {/* Traffic bar */}
             <div className="flex items-center gap-[10px] px-[18px] py-[11px] border-b border-border">
-              <div className="text-[10.5px] text-muted shrink-0 w-20">Traffic vs baseline</div>
+              <div className="text-[10.5px] text-gray-800 shrink-0 w-20">Traffic vs baseline</div>
               <div className="flex-1 h-2 bg-surface-alt rounded overflow-hidden relative">
                 <div className="h-full rounded" style={{ width: c.trafficFillWidth, background: c.trafficFillColor }} />
                 <div className="absolute top-0 h-full w-[2px] left-1/2 bg-black/15" />
@@ -344,7 +344,7 @@ export default function CampaignCards({ previewMode }: { previewMode?: boolean }
 
             {/* ROAS */}
             <div className="flex items-center justify-between px-[18px] pb-[14px] pt-[10px] border-t border-border mt-auto">
-              <div className="text-[11px] text-muted">
+              <div className="text-[11px] text-gray-800">
                 {c.roasLeftTop}<br />
                 <span className="text-[10px]">{c.roasLeftSub}</span>
               </div>

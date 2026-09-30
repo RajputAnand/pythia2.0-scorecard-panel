@@ -149,7 +149,7 @@ export default function KpiVisibilityPanel() {
           <>
             <span className="font-mono font-semibold text-primary">{totalVisible}</span> of{' '}
             <span className="font-mono font-semibold text-primary">{totalCount}</span> KPI items visible across the app
-            <span className="text-muted"> · hover the Preview button on any row to see it with sample data</span>
+            <span className="text-gray-800"> · hover the Preview button on any row to see it with sample data</span>
           </>
         ) : (
           'Loading KPI visibility settings…'
@@ -172,7 +172,7 @@ export default function KpiVisibilityPanel() {
               {label}
               <span
                 className={`font-mono text-[10.5px] rounded-[10px] px-[7px] py-[2px] ${
-                  active ? 'bg-white/20 text-white' : 'bg-surface-alt text-muted'
+                  active ? 'bg-white/20 text-white' : 'bg-surface-alt text-gray-800'
                 }`}
               >
                 {visible}/{total}
@@ -195,7 +195,7 @@ export default function KpiVisibilityPanel() {
               onClick={() => setSelectedPage(page)}
               className={`flex items-center gap-[8px] rounded-[9px] border px-[12px] py-[7px] text-[12.5px] font-medium cursor-pointer transition-colors duration-150 ${
                 !enabled
-                  ? 'bg-surface text-muted border-border opacity-60'
+                  ? 'bg-surface text-gray-800 border-border opacity-60'
                   : active
                     ? 'bg-accent-light text-accent border-accent'
                     : 'bg-surface text-secondary border-border hover:bg-surface-alt'
@@ -207,7 +207,7 @@ export default function KpiVisibilityPanel() {
                   Hidden
                 </span>
               )}
-              <span className="font-mono text-[10.5px] text-muted">{visible}/{total}</span>
+              <span className="font-mono text-[10.5px] text-gray-800">{visible}/{total}</span>
             </button>
           )
         })}
@@ -248,7 +248,7 @@ export default function KpiVisibilityPanel() {
                   <KpiThumbnail type={entry.type} />
                   <div className="min-w-0 flex-1">
                     <div className="text-[12.5px] font-medium truncate">{entry.label}</div>
-                    <div className="text-[11px] text-muted truncate">{entry.description}</div>
+                    <div className="text-[11px] text-gray-800 truncate">{entry.description}</div>
                   </div>
                   <button
                     type="button"
@@ -292,7 +292,7 @@ export default function KpiVisibilityPanel() {
           className="z-999 pointer-events-none rounded-[12px] border border-border bg-surface p-3 shadow-[0_16px_40px_-8px_rgba(0,0,0,.3)]"
         >
           <div className="mb-2 flex items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-[.08em] text-muted">Live preview</span>
+            <span className="text-[10px] font-semibold uppercase tracking-[.08em] text-gray-800">Live preview</span>
             <span className="rounded-full bg-surface-alt px-2 py-[2px] text-[9.5px] text-secondary">Sample data</span>
           </div>
           <div style={{ height: previewHeight, overflow: 'hidden' }}>
@@ -300,7 +300,7 @@ export default function KpiVisibilityPanel() {
               ref={previewContentRef}
               style={{ width: PREVIEW_NATURAL_WIDTH, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: 'top left' }}
             >
-              {getKpiPreview(hover.id) ?? <p className="text-[12px] text-muted">Preview not available for this item.</p>}
+              {getKpiPreview(hover.id) ?? <p className="text-[12px] text-gray-800">Preview not available for this item.</p>}
             </div>
           </div>
         </div>,

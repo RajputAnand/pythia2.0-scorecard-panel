@@ -57,7 +57,7 @@ export default function StaffingToolbar() {
       left={
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 text-[12px] font-medium text-secondary bg-surface-alt border border-border rounded-lg px-2.5 py-1.5">
-            <svg className="w-3.5 h-3.5 text-muted shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 text-gray-800 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
               <line x1="8" y1="2" x2="8" y2="6" />

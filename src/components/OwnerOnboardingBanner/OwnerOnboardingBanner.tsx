@@ -99,7 +99,7 @@ export default function OwnerOnboardingBanner({ user }: OwnerOnboardingBannerPro
               type="button"
               onClick={handleDismiss}
               aria-label="Dismiss banner"
-              className="text-muted hover:text-primary cursor-pointer p-1 rounded-md hover:bg-surface-alt transition-colors"
+              className="text-gray-800 hover:text-primary cursor-pointer p-1 rounded-md hover:bg-surface-alt transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <line x1="18" y1="6" x2="6" y2="18" />

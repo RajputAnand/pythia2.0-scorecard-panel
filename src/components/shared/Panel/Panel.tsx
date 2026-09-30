@@ -14,7 +14,7 @@ export default function Panel({ title, subtitle, badge, children, noPadding }: P
       <div className="flex items-start justify-between gap-[10px] border-b border-border px-5 py-[15px]">
         <div>
           <p className="font-semibold text-[13.5px]">{title}</p>
-          {subtitle && <p className="text-muted text-[11.5px] mt-0.5">{subtitle}</p>}
+          {subtitle && <p className="text-gray-800 text-[11.5px] mt-0.5">{subtitle}</p>}
         </div>
         {badge}
       </div>
