@@ -11,6 +11,7 @@ interface EmployeeSelectorProps {
   onSelectEmployee: (employee: ApiEmployee) => void
   loading?: boolean
   disabled?: boolean
+  align?: 'left' | 'right'
 }
 
 export default function EmployeeSelector({
@@ -19,6 +20,7 @@ export default function EmployeeSelector({
   onSelectEmployee,
   loading = false,
   disabled = false,
+  align = 'left',
 }: EmployeeSelectorProps) {
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -123,7 +125,9 @@ export default function EmployeeSelector({
         <div
           role="listbox"
           aria-label="Select employee"
-          className="absolute top-[calc(100%+6px)] right-0 min-w-[260px] max-w-[320px] bg-surface border border-border rounded-[10px] p-[6px] shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] z-50 flex flex-col gap-1.5"
+          className={`absolute top-[calc(100%+6px)] ${
+            align === 'right' ? 'right-0' : 'left-0'
+          } min-w-[260px] max-w-[320px] bg-surface border border-border rounded-[10px] p-[6px] shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] z-50 flex flex-col gap-1.5`}
         >
           {/* Search box */}
           <div className="relative px-1 pt-1 pb-1">
