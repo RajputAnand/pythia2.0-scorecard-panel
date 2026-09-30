@@ -89,9 +89,8 @@ export default async function SuperAdminStaffingIntelligencePage() {
 
   return (
     <>
-      <Header title="Staffing Intelligence" subtitle="Super Admin">
-        <StaffingHeaderActions />
-      </Header>
+      <Header title="Staffing Intelligence" subtitle="Super Admin · Manager View Mirror" />
+      <StaffingHeaderActions />
 
       <div className="px-[30px] py-6 flex flex-col gap-[18px]">
         {/* No previewMode passed — a KPI toggled off by Super Admin stays hidden here too. */}

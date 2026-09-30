@@ -2,12 +2,28 @@ export default function StaffingIntelligenceLoading() {
   return (
     <div className="animate-pulse">
       {/* Header skeleton */}
-      <div className="flex items-center justify-between px-[30px] py-[18px] border-b border-border">
-        <div className="h-5 w-44 rounded bg-border" />
-        <div className="flex gap-2">
-          <div className="h-9 w-28 rounded bg-border" />
-          <div className="h-9 w-28 rounded bg-border" />
-          <div className="h-9 w-36 rounded bg-border" />
+      <div className="flex items-center justify-between px-4 lg:px-[30px] h-[58px] border-b border-border bg-surface">
+        <div className="flex items-center gap-3">
+          <div className="h-5 w-44 rounded bg-border" />
+          <div className="h-4 w-28 rounded-full bg-border" />
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-28 rounded-lg bg-border" />
+          <div className="h-8 w-8 rounded-full bg-border" />
+        </div>
+      </div>
+
+      {/* Toolbar skeleton */}
+      <div className="flex items-center justify-between px-4 lg:px-[30px] min-h-[50px] py-1.5 border-b border-border bg-surface">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-48 rounded-lg bg-border" />
+          <div className="h-7 w-7 rounded-md bg-border" />
+          <div className="h-7 w-7 rounded-md bg-border" />
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-36 rounded-lg bg-border" />
+          <div className="h-8 w-44 rounded-lg bg-border" />
+          <div className="h-8 w-32 rounded-lg bg-border" />
         </div>
       </div>
 

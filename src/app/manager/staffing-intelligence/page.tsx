@@ -96,9 +96,8 @@ export default async function StaffingIntelligencePage() {
 
   return (
     <>
-      <Header title="Staffing Intelligence">
-        <StaffingHeaderActions />
-      </Header>
+      <Header title="Staffing Intelligence" subtitle="Manager Tools · AI-powered scheduling and recommendations" />
+      <StaffingHeaderActions />
 
       <div className="px-[30px] py-6 flex flex-col gap-[18px]">
         <StaffingInsightStrip data={insights} />
