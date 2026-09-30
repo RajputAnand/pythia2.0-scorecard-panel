@@ -27,11 +27,17 @@ async function isPageHiddenByAdmin(pathname: string, token: string): Promise<boo
 }
 
 export const proxy = auth(async (req) => {
+  // Never intercept Server Action requests with redirects
+  if (req.headers.has('next-action')) {
+    return NextResponse.next()
+  }
+
   const { pathname } = req.nextUrl
   const session = req.auth
+  const isAuthenticated = !!session?.user && session?.error !== 'RefreshAccessTokenError'
 
-  // Unauthenticated: allow public auth routes, redirect everything else to /login
-  if (!session?.user) {
+  // Unauthenticated or expired session: allow public auth routes, redirect everything else to /login
+  if (!isAuthenticated) {
     if (
       pathname === '/login' ||
       pathname === '/login/employee' ||
