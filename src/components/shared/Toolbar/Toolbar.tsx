@@ -14,7 +14,7 @@ export default function Toolbar({
   children,
   left,
   right,
-  sticky = false,
+  sticky = true,
   className = '',
 }: ToolbarProps) {
   const stickyClass = sticky ? 'sticky top-[58px] z-[9]' : ''
