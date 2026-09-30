@@ -33,7 +33,6 @@ export default async function SuperAdminOwnerStoresMirrorPage() {
     <>
       <Header title="Store Management (Mirror)" subtitle="Owner View" />
       <div className="px-[30px] py-[26px]">
-        <StoreListPanel initialData={initialData} readOnly={false} />
         <StoreListPanel initialData={initialData} tenantId={selectedTenantId || undefined} readOnly={false} />
       </div>
     </>
