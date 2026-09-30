@@ -22,54 +22,33 @@ async function resolveLoginRoute(): Promise<string> {
   }
 }
 
-const refreshClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_PYTHIA_2_API_URL,
-  headers: { 
-    'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true',
-  },
-})
+import { requestTokenRefresh } from '@/lib/auth-token'
 
 type RetriableConfig = InternalAxiosRequestConfig & { _retriedAfterRefresh?: boolean }
 
-let refreshPromise: Promise<string | null> | null = null
-
 async function refreshAccessToken(): Promise<string | null> {
-  if (!refreshPromise) {
-    refreshPromise = (async () => {
-      const { getSession, signIn } = await import('next-auth/react')
-      const session = await getSession()
+  const { getSession, signIn } = await import('next-auth/react')
+  const session = await getSession()
 
-      if (session?.user?.role === 'manager') return null
+  if (session?.user?.role === 'manager') return null
 
-      const currentRefreshToken = session?.user?.refreshToken
-      if (!session || !currentRefreshToken || currentRefreshToken.includes('mock')) return null
+  const currentRefreshToken = session?.user?.refreshToken
+  if (!session || !currentRefreshToken || currentRefreshToken.includes('mock')) return null
 
-      try {
-        const { data } = await refreshClient.post(PYTHIA_2_API.auth.refresh, {
-          refresh_token: currentRefreshToken,
-        })
-        if (!data.success) return null
+  const refreshed = await requestTokenRefresh(currentRefreshToken)
+  if (!refreshed?.access_token) return null
 
-        await signIn('credentials', {
-          userData: JSON.stringify({
-            ...session.user,
-            token: data.access_token,
-            pythia2Token: data.access_token,
-            refreshToken: data.refresh_token,
-          }),
-          redirect: false,
-        })
+  await signIn('credentials', {
+    userData: JSON.stringify({
+      ...session.user,
+      token: refreshed.access_token,
+      pythia2Token: refreshed.access_token,
+      refreshToken: refreshed.refresh_token,
+    }),
+    redirect: false,
+  })
 
-        return data.access_token as string
-      } catch {
-        return null
-      }
-    })().finally(() => {
-      refreshPromise = null
-    })
-  }
-  return refreshPromise
+  return refreshed.access_token
 }
 
 function createClient(baseURL: string | undefined): AxiosInstance {
@@ -92,12 +71,31 @@ function createClient(baseURL: string | undefined): AxiosInstance {
 
         // Do not trigger hard redirect to login if request carries a mock token
         if (wasAuthenticatedRequest && !isMockToken) {
-          if (typeof window !== 'undefined' && config && !config._retriedAfterRefresh) {
-            const newAccessToken = await refreshAccessToken()
-            if (newAccessToken) {
-              config._retriedAfterRefresh = true
-              config.headers.set('Authorization', `Bearer ${newAccessToken}`)
-              return client(config)
+          if (config && !config._retriedAfterRefresh) {
+            if (typeof window !== 'undefined') {
+              const newAccessToken = await refreshAccessToken()
+              if (newAccessToken) {
+                config._retriedAfterRefresh = true
+                config.headers.set('Authorization', `Bearer ${newAccessToken}`)
+                return client(config)
+              }
+            } else {
+              // Server-side reactive refresh on 401
+              try {
+                const { auth } = await import('@/auth')
+                const session = await auth()
+                const currentRefreshToken = session?.user?.refreshToken
+                if (currentRefreshToken && !currentRefreshToken.includes('mock')) {
+                  const refreshed = await requestTokenRefresh(currentRefreshToken)
+                  if (refreshed?.access_token) {
+                    config._retriedAfterRefresh = true
+                    config.headers.set('Authorization', `Bearer ${refreshed.access_token}`)
+                    return client(config)
+                  }
+                }
+              } catch (serverRefreshErr) {
+                console.error('[api-client] Server-side 401 token refresh failed:', serverRefreshErr)
+              }
             }
           }
 

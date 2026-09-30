@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import { getJwtExp, isTokenExpired, requestTokenRefresh } from "@/lib/auth-token"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
@@ -34,7 +35,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       } catch {}
       return url.startsWith("/") ? url : baseUrl
     },
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.role = user.role
         token.initials = user.initials
@@ -52,7 +53,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.can_manage_subscription = user.can_manage_subscription
         token.is_root_owner = user.is_root_owner
         token.first_login = user.first_login
+        token.accessTokenExpires = getJwtExp(user.pythia2Token || user.token)
+        return token
       }
+
+      // Pre-emptively refresh access token if expired or expiring within 60 seconds
+      const currentToken = token.pythia2Token || token.token
+      const isExpired = token.accessTokenExpires
+        ? Date.now() >= token.accessTokenExpires - 60000
+        : isTokenExpired(currentToken)
+
+      if (isExpired && token.refreshToken && !token.refreshToken.includes('mock')) {
+        const refreshed = await requestTokenRefresh(token.refreshToken)
+        if (refreshed) {
+          token.token = refreshed.access_token
+          token.pythia2Token = refreshed.access_token
+          token.refreshToken = refreshed.refresh_token
+          token.accessTokenExpires = getJwtExp(refreshed.access_token)
+          delete token.error
+        } else {
+          token.error = "RefreshAccessTokenError"
+        }
+      }
+
       return token
     },
     session({ session, token }) {
@@ -62,6 +85,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.token = t.token
       session.user.pythia2Token = t.pythia2Token
       session.user.refreshToken = t.refreshToken
+      session.user.accessTokenExpires = t.accessTokenExpires
       session.user.score = t.score
       session.user.jobTitle = t.jobTitle
       session.user.points = t.points || 0
@@ -73,6 +97,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.can_manage_subscription = t.can_manage_subscription
       session.user.is_root_owner = t.is_root_owner
       session.user.first_login = t.first_login
+      session.error = t.error
       return session
     },
   },
