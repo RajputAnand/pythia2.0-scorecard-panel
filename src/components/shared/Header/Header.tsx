@@ -1,9 +1,14 @@
 'use client'
 
-import { ReactNode, useEffect, useRef, useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useSession, signOut } from 'next-auth/react'
 import styles from './Header.module.css'
 import { useUserStore } from '@/store/userStore'
+import { fetchStoresForTenant } from '@/queries/stores'
+import { fetchOrganizations } from '@/queries/organizations'
+import { createStripeCustomerPortalSession } from '@/actions/stripe'
+import { fetchOrganizationOwners } from '@/queries/organization-owners'
 
 interface HeaderProps {
   title: string
@@ -11,46 +16,396 @@ interface HeaderProps {
   children?: ReactNode
 }
 
+function formatRole(role?: string): string {
+  switch (role) {
+    case 'employee':
+      return 'Employee'
+    case 'manager':
+      return 'Store Manager'
+    case 'owner':
+      return 'Store Owner'
+    case 'superadmin':
+      return 'Super Admin'
+    default:
+      return role || 'User'
+  }
+}
+
 export default function Header({ title, subtitle, children }: HeaderProps) {
+  const router = useRouter()
   const { data: session } = useSession()
   const role = session?.user?.role
+  const showOrgSelector = role === 'superadmin'
   const showStoreSelector = role === 'owner' || role === 'manager' || role === 'superadmin'
 
-  const { stores, currentStore, setCurrentStore } = useUserStore()
+  const {
+    stores,
+    currentStore,
+    setCurrentStore,
+    organizations,
+    currentOrganization,
+    setOrganizations,
+    setCurrentOrganization,
+  } = useUserStore()
 
-  // Dropdown open/close
+  // Org Dropdown open/close & search
+  const [orgOpen, setOrgOpen] = useState(false)
+  const orgDropdownRef = useRef<HTMLDivElement>(null)
+  const [orgSearch, setOrgSearch] = useState('')
+
+  const filteredOrganizations = useMemo(() => {
+    if (!orgSearch.trim()) return organizations
+    const q = orgSearch.trim().toLowerCase()
+    return organizations.filter(
+      (o) =>
+        (o.name && o.name.toLowerCase().includes(q)) ||
+        (o.tenant_id && o.tenant_id.toLowerCase().includes(q))
+    )
+  }, [organizations, orgSearch])
+
+  // Store Dropdown open/close
   const [open, setOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
+  // Profile Dropdown open/close
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileDropdownRef = useRef<HTMLDivElement>(null)
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false)
+  const [portalError, setPortalError] = useState<string | null>(null)
+  const [canManageSubscription, setCanManageSubscription] = useState<boolean>(() => {
+    if (session?.user?.can_manage_subscription !== undefined || session?.user?.is_root_owner !== undefined) {
+      return Boolean(session?.user?.can_manage_subscription || session?.user?.is_root_owner)
+    }
+    return false
+  })
+
   useEffect(() => {
-    if (!open) return
+    if (role !== 'owner') {
+      setCanManageSubscription(false)
+      return
+    }
+
+    if (session?.user?.can_manage_subscription !== undefined || session?.user?.is_root_owner !== undefined) {
+      setCanManageSubscription(Boolean(session.user.can_manage_subscription || session.user.is_root_owner))
+      return
+    }
+
+    let cancelled = false
+    const token = session?.user?.pythia2Token || session?.user?.token
+    if (!token) return
+
+    fetchOrganizationOwners({ token })
+      .then((res) => {
+        if (cancelled) return
+        const currentUserId = session?.user?.id
+        const me = res.data?.find((o) => o.user_id === currentUserId)
+        if (me) {
+          setCanManageSubscription(Boolean(me.is_root_owner || me.can_manage_subscription))
+        } else {
+          setCanManageSubscription(false)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setCanManageSubscription(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [role, session?.user?.can_manage_subscription, session?.user?.is_root_owner, session?.user?.pythia2Token, session?.user?.token, session?.user?.id])
+
+  useEffect(() => {
+    if (!open && !profileOpen && !orgOpen) return
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target as Node)) {
+        setProfileOpen(false)
+      }
+      if (orgDropdownRef.current && !orgDropdownRef.current.contains(e.target as Node)) {
+        setOrgOpen(false)
+      }
+    }
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false)
+        setProfileOpen(false)
+        setOrgOpen(false)
+      }
     }
     document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
+    document.addEventListener('keydown', keyHandler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('keydown', keyHandler)
+    }
+  }, [open, profileOpen, orgOpen])
+
+  // Fetch organizations for superadmin
+  useEffect(() => {
+    const token = session?.user?.pythia2Token || session?.user?.token
+    if (!token || !showOrgSelector) return
+
+    let cancelled = false
+    fetchOrganizations({ token, limit: 100 })
+      .then((res) => {
+        if (cancelled) return
+        if (res.organizations && res.organizations.length > 0) {
+          setOrganizations(res.organizations)
+          const curr = useUserStore.getState().currentOrganization
+          const exists = curr && res.organizations.some((o) => o.tenant_id === curr.tenant_id)
+          if (!exists) {
+            setCurrentOrganization(res.organizations[0] ?? null)
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load organizations for Header:', err)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [session?.user?.pythia2Token, session?.user?.token, showOrgSelector, setOrganizations, setCurrentOrganization])
+
+  // Fetch stores when selected organization or tenant changes
+  useEffect(() => {
+    const token = session?.user?.pythia2Token || session?.user?.token
+    if (!token || !showStoreSelector) return
+
+    const effectiveTenantId =
+      role === 'superadmin' ? (currentOrganization?.tenant_id || undefined) : session?.user?.tenantId
+
+    let cancelled = false
+    fetchStoresForTenant({ token, tenantId: effectiveTenantId, limit: 100 })
+      .then((res) => {
+        if (cancelled) return
+        if (res.data && res.data.length > 0) {
+          const userStores = res.data.map((s) => ({
+            _id: s.storeNo || s.id || s._id,
+            name: s.name,
+            storeNo: s.storeNo,
+            location: s.location,
+            district: s.district,
+            createdBy: '',
+            updatedBy: null,
+            createdAt: s.createdAt || new Date().toISOString(),
+            updatedAt: s.updatedAt || new Date().toISOString(),
+            __v: 0,
+          }))
+          useUserStore.getState().setStores(userStores)
+          const curr = useUserStore.getState().currentStore
+          const exists =
+            curr &&
+            userStores.some(
+              (s) => (s.storeNo || s._id) === (curr.storeNo || curr._id)
+            )
+          if (!exists) {
+            useUserStore.getState().setCurrentStore(userStores[0] ?? null)
+          }
+        } else if (res.data && res.data.length === 0) {
+          useUserStore.getState().setStores([])
+          useUserStore.getState().setCurrentStore(null)
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load stores for Header store selector:', err)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    session?.user?.pythia2Token,
+    session?.user?.token,
+    session?.user?.tenantId,
+    role,
+    currentOrganization?.tenant_id,
+    showStoreSelector,
+  ])
+
+  async function handleManagePayments() {
+    setIsOpeningPortal(true)
+    setPortalError(null)
+    try {
+      const token = session?.user?.pythia2Token || session?.user?.token
+      const res = await createStripeCustomerPortalSession(window.location.href, token)
+      if (res.success && res.url) {
+        setProfileOpen(false)
+        window.location.href = res.url
+      } else {
+        setPortalError(res.error || 'Unable to open Stripe Customer Portal.')
+      }
+    } catch {
+      setPortalError('Failed to initialize Stripe Customer Portal.')
+    } finally {
+      setIsOpeningPortal(false)
+    }
+  }
+
+  async function handleSignOut() {
+    await signOut({ callbackUrl: '/login' })
+  }
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between bg-surface border-b border-border px-[30px] h-[58px]">
-      <div className="flex items-center gap-[14px]">
-        <span className="font-semibold text-[15.5px]">{title}</span>
+    <header className="sticky top-0 z-10 flex items-center justify-between bg-surface border-b border-border px-4 xl:px-[30px] h-[58px] gap-3 min-w-0">
+      <div className="flex items-center gap-[14px] shrink-0">
+        <span className="font-semibold text-[15.5px] whitespace-nowrap">{title}</span>
         {subtitle && (
-          <span className="font-mono text-secondary bg-surface-alt border border-border rounded-[20px] text-[10.5px] px-[10px] py-[4px]">
+          <span className="font-mono text-secondary bg-surface-alt border border-border rounded-[20px] text-[10.5px] px-[10px] py-[4px] whitespace-nowrap shrink-0">
             {subtitle}
           </span>
         )}
       </div>
 
-      <div className="flex items-center gap-[10px]">
+      <div className="flex items-center gap-1.5 xl:gap-[10px] shrink-0">
+        {/* Organization selector — Super Admin */}
+        {showOrgSelector && (
+          <div ref={orgDropdownRef} className="relative shrink-0">
+            <button
+              id="org-selector-trigger"
+              className="cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface-alt border border-border rounded-lg transition-all duration-150 hover:bg-border hover:text-primary text-[12.5px] px-[12px] py-[6px] whitespace-nowrap shrink-0"
+              onClick={() => setOrgOpen((o) => !o)}
+              aria-haspopup="listbox"
+              aria-expanded={orgOpen}
+            >
+              <svg
+                className="w-[14px] h-[14px] shrink-0 text-accent"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+                <path d="M9 22v-4h6v4" />
+                <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01" />
+              </svg>
+
+              <span className="max-w-[130px] xl:max-w-[160px] overflow-hidden text-ellipsis">
+                {currentOrganization?.name ?? (organizations.length === 0 ? 'No organizations' : 'Select organization')}
+              </span>
+
+              <svg
+                className={`w-[11px] h-[11px] shrink-0 text-muted transition-transform duration-200${
+                  orgOpen ? ' rotate-180' : ''
+                }`}
+                viewBox="0 0 12 12"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2.5 4.5L6 8L9.5 4.5"
+                  stroke="currentColor"
+                  strokeWidth="1.25"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+
+            {orgOpen && (
+              <div className="absolute top-[calc(100%+6px)] right-0 min-w-[270px] max-h-[380px] flex flex-col bg-surface border border-border rounded-[10px] p-[6px] shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] z-50">
+                {organizations.length > 4 && (
+                  <div className="px-2 pb-2 pt-1 border-b border-border mb-1">
+                    <input
+                      type="text"
+                      placeholder="Search organizations..."
+                      value={orgSearch}
+                      onChange={(e) => setOrgSearch(e.target.value)}
+                      className="w-full bg-surface-alt border border-border rounded-md px-2.5 py-1 text-[12px] text-primary placeholder:text-muted focus:outline-none focus:border-accent"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                )}
+
+                <ul
+                  role="listbox"
+                  aria-label="Select organization"
+                  className="overflow-y-auto max-h-[300px] list-none p-0 m-0"
+                >
+                  {/* Individual organizations */}
+                  {filteredOrganizations.map((org) => {
+                    const active = currentOrganization?.tenant_id === org.tenant_id
+                    return (
+                      <li
+                        key={org._id || org.tenant_id}
+                        role="option"
+                        aria-selected={active}
+                        className={`flex items-center justify-between rounded-md cursor-pointer transition-colors duration-100 px-[10px] py-[8px] ${
+                          active ? 'bg-accent-light' : 'hover:bg-surface-alt'
+                        }`}
+                        onClick={() => {
+                          setCurrentOrganization(org)
+                          setOrgOpen(false)
+                          setOrgSearch('')
+                          router.refresh()
+                        }}
+                      >
+                        <div className="flex flex-col overflow-hidden mr-2">
+                          <span
+                            className={`font-sans font-medium text-[13px] truncate ${
+                              active ? 'text-accent font-semibold' : 'text-primary'
+                            }`}
+                          >
+                            {org.name}
+                          </span>
+                          <span className="font-mono text-secondary text-[10px] truncate">
+                            {org.tenant_id}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {org.status && (
+                            <span
+                              className={`text-[9.5px] uppercase font-mono px-1.5 py-0.5 rounded border ${
+                                org.status === 'active'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}
+                            >
+                              {org.status}
+                            </span>
+                          )}
+                          {active && (
+                            <svg
+                              className="w-[12px] h-[12px] shrink-0 text-accent ml-1"
+                              viewBox="0 0 12 12"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M2 6L5 9L10 3"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                      </li>
+                    )
+                  })}
+
+                  {filteredOrganizations.length === 0 && (
+                    <li className="p-3 text-center text-muted text-[12px]">
+                      {orgSearch ? `No organizations match "${orgSearch}"` : 'No organizations found'}
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Store selector — owner, manager, and super admin */}
-        {showStoreSelector && stores.length > 0 && (
-          <div ref={dropdownRef} className="relative">
+        {showStoreSelector && (
+          <div ref={dropdownRef} className="relative shrink-0">
             <button
               id="store-selector-trigger"
-              className="cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface-alt border border-border rounded-lg transition-all duration-150 hover:bg-border hover:text-primary text-[12.5px] px-[12px] py-[6px] whitespace-nowrap"
+              className="cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface-alt border border-border rounded-lg transition-all duration-150 hover:bg-border hover:text-primary text-[12.5px] px-[12px] py-[6px] whitespace-nowrap shrink-0"
               onClick={() => setOpen((o) => !o)}
               aria-haspopup="listbox"
               aria-expanded={open}
@@ -75,8 +430,8 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                 />
               </svg>
 
-              <span className="max-w-[160px] overflow-hidden text-ellipsis">
-                {currentStore?.name ?? 'Select store'}
+              <span className="max-w-[130px] xl:max-w-[160px] overflow-hidden text-ellipsis">
+                {currentStore?.name ?? (stores.length === 0 ? 'No stores' : 'Select store')}
               </span>
 
               <svg
@@ -93,41 +448,139 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
               <ul
                 role="listbox"
                 aria-label="Select store"
-                className="absolute top-[calc(100%+6px)] right-0 min-w-[220px] bg-surface border border-border rounded-[10px] p-[4px] shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] list-none m-0 z-50"
+                className="absolute top-[calc(100%+6px)] right-0 min-w-[220px] max-h-[360px] overflow-y-auto bg-surface border border-border rounded-[10px] p-[4px] shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] list-none m-0 z-50"
               >
-                {stores.map((store) => {
-                  const active = store._id === currentStore?._id
-                  return (
-                    <li
-                      key={store._id}
-                      role="option"
-                      aria-selected={active}
-                      className={`flex items-center gap-2 rounded-md cursor-pointer transition-colors duration-100 px-[10px] py-[9px] ${active ? 'bg-accent-light' : 'hover:bg-surface-alt'}`}
-                      onClick={() => {
-                        setCurrentStore(store)
-                        setOpen(false)
-                      }}
-                    >
-                      <span className={`font-sans font-medium text-[13px] flex-1 whitespace-nowrap overflow-hidden text-ellipsis ${active ? 'text-accent' : 'text-primary'}`}>
-                        {store.name}
-                      </span>
-                      <span className="font-sans text-secondary text-[11px] whitespace-nowrap shrink-0">
-                        {store.location}
-                      </span>
-                      {active && (
-                        <svg className="w-[12px] h-[12px] shrink-0 text-accent ml-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
-                    </li>
-                  )
-                })}
+                {stores.length === 0 ? (
+                  <li className="px-3 py-2 text-center text-muted text-[12px]">
+                    No stores found
+                  </li>
+                ) : (
+                  stores.map((store) => {
+                    const active = currentStore && ((store._id && store._id === currentStore._id) || (store.storeNo && store.storeNo === currentStore.storeNo))
+                    return (
+                      <li
+                        key={store._id || store.storeNo}
+                        role="option"
+                        aria-selected={Boolean(active)}
+                        className={`flex items-center gap-2 rounded-md cursor-pointer transition-colors duration-100 px-[10px] py-[9px] ${active ? 'bg-accent-light' : 'hover:bg-surface-alt'}`}
+                        onClick={() => {
+                          setCurrentStore(store)
+                          setOpen(false)
+                          router.refresh()
+                        }}
+                      >
+                        <span className={`font-sans font-medium text-[13px] flex-1 whitespace-nowrap overflow-hidden text-ellipsis ${active ? 'text-accent font-semibold' : 'text-primary'}`}>
+                          {store.name}
+                        </span>
+                        <span className="font-sans text-secondary text-[11px] whitespace-nowrap shrink-0">
+                          {store.location}
+                        </span>
+                        {active && (
+                          <svg className="w-[12px] h-[12px] shrink-0 text-accent ml-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </li>
+                    )
+                  })
+                )}
               </ul>
             )}
           </div>
         )}
 
         {children && <>{children}</>}
+
+        {/* User Profile DP & Dropdown Menu */}
+        {session?.user && (
+          <div ref={profileDropdownRef} className="relative ml-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => setProfileOpen((prev) => !prev)}
+              aria-label="User profile menu"
+              aria-haspopup="menu"
+              aria-expanded={profileOpen}
+              className="flex items-center justify-center rounded-full bg-accent text-white font-bold w-[34px] h-[34px] text-[12px] cursor-pointer transition-all duration-150 hover:ring-2 hover:ring-accent/30 focus:outline-none"
+            >
+              {session.user.initials || session.user.name?.slice(0, 2).toUpperCase() || 'U'}
+            </button>
+
+            {profileOpen && (
+              <div
+                role="menu"
+                aria-label="User profile options"
+                className="absolute top-[calc(100%+8px)] right-0 min-w-[220px] w-max max-w-[260px] z-50 bg-surface border border-border rounded-xl p-1.5 shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] space-y-1"
+              >
+                <div className="px-2.5 py-1.5 border-b border-border/70 mb-1">
+                  <div className="text-[12.5px] font-semibold text-primary truncate">
+                    {session.user.name}
+                  </div>
+                  <div className="text-[10.5px] text-muted truncate">
+                    {session.user.email || session.user.jobTitle || formatRole(session.user.role)}
+                  </div>
+                </div>
+
+                {portalError && (
+                  <div className="px-2.5 py-1 text-[11px] text-danger bg-danger/10 rounded-md">
+                    {portalError}
+                  </div>
+                )}
+
+                {role === 'owner' && canManageSubscription && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleManagePayments}
+                      disabled={isOpeningPortal}
+                      className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] font-medium text-secondary hover:text-primary hover:bg-surface-alt transition-colors cursor-pointer text-left disabled:opacity-50"
+                    >
+                      {isOpeningPortal ? (
+                        <svg className="shrink-0 w-4 h-4 animate-spin text-accent" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="shrink-0 w-4 h-4 text-secondary"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                          <line x1="1" y1="10" x2="23" y2="10" />
+                        </svg>
+                      )}
+                      <span className="flex-1 min-w-0 leading-snug">
+                        {isOpeningPortal ? 'Opening Portal...' : 'Manage Subscription'}
+                      </span>
+                    </button>
+                    <div className="h-px bg-border/60 mx-1 my-0.5" />
+                  </>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] font-medium text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer text-left"
+                >
+                  <svg
+                    className="shrink-0 w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  <span>Sign out</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </header>
   )

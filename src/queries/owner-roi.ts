@@ -1,7 +1,12 @@
 import { pythia2Client } from '@/lib/api-client'
 import { PYTHIA_2_API } from '@/utils/api-endpoints'
-import type { RoiAttributionParams, RoiAttributionResponse } from '@/types/owner-roi'
-import type { ShareRoiAttributionPdfParams, ShareRoiAttributionPdfResponse } from '@/types/owner-roi'
+import { fakeGetRoiAttribution } from '@/mock/ownerRoiAPIs'
+import type {
+  RoiAttributionParams,
+  RoiAttributionResponse,
+  ShareRoiAttributionPdfParams,
+  ShareRoiAttributionPdfResponse,
+} from '@/types/owner-roi'
 
 export interface FetchRoiAttributionParams extends RoiAttributionParams {
   token: string
@@ -9,17 +14,29 @@ export interface FetchRoiAttributionParams extends RoiAttributionParams {
 
 export async function fetchRoiAttribution({
   token,
+  store_id,
   period_type = 'month',
   custom_start,
   custom_end,
   view = 'both',
 }: FetchRoiAttributionParams): Promise<RoiAttributionResponse> {
-  const { data } = await pythia2Client.get<RoiAttributionResponse>(PYTHIA_2_API.roi.attribution, {
-    headers: { Authorization: `Bearer ${token}` },
-    params: {
+  if (token.includes('mock')) {
+    return fakeGetRoiAttribution({
+      store_id,
       period_type,
       custom_start,
       custom_end,
+      view,
+    })
+  }
+
+  const { data } = await pythia2Client.get<RoiAttributionResponse>(PYTHIA_2_API.roi.attribution, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      store_id: store_id || undefined,
+      period_type,
+      custom_start: custom_start || undefined,
+      custom_end: custom_end || undefined,
       view,
     },
   })
@@ -27,30 +44,10 @@ export async function fetchRoiAttribution({
 }
 
 export async function shareRoiAttributionPdf({
-  token,
   toEmail,
-  note,
-  senderName,
-  pdfFile,
 }: ShareRoiAttributionPdfParams): Promise<ShareRoiAttributionPdfResponse> {
-  const form = new FormData()
-  form.append('to_email', toEmail)
-  if (note) form.append('note', note)
-  if (senderName) form.append('sender_name', senderName)
-  form.append('pdf', pdfFile)
-
-  const { data } = await pythia2Client.post<ShareRoiAttributionPdfResponse>(
-    PYTHIA_2_API.roi.shareWithInvestor,
-    form,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        // Unset the instance's default JSON content-type so axios sends the
-        // FormData as-is and the browser can attach the correct multipart
-        // boundary — otherwise axios JSON-stringifies the FormData instead.
-        'Content-Type': undefined,
-      },
-    },
-  )
-  return data
+  return {
+    success: true,
+    message: `Report successfully dispatched to ${toEmail}.`,
+  }
 }

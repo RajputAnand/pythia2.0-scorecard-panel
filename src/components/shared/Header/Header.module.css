@@ -2,13 +2,13 @@
 
 /* Shared button styles — consumers apply these classes via headerStyles import */
 .btnGhost {
-  @apply cursor-pointer font-sans font-medium text-secondary border border-border bg-transparent rounded-lg transition-all duration-150 hover:bg-surface-alt;
+  @apply cursor-pointer font-sans font-medium text-secondary border border-border bg-transparent rounded-lg transition-all duration-150 hover:bg-surface-alt whitespace-nowrap shrink-0;
   font-size: 12.5px;
   padding: 7px 15px;
 }
 
 .btnAccent {
-  @apply cursor-pointer font-sans font-medium text-white bg-accent border-0 rounded-lg transition-all duration-150;
+  @apply cursor-pointer font-sans font-medium text-white bg-accent border-0 rounded-lg transition-all duration-150 whitespace-nowrap shrink-0;
   font-size: 12.5px;
   padding: 7px 15px;
 }
@@ -18,7 +18,7 @@
 }
 
 .btnPrimary {
-  @apply cursor-pointer font-sans font-medium text-white bg-primary border-0 rounded-lg transition-all duration-150;
+  @apply cursor-pointer font-sans font-medium text-white bg-primary border-0 rounded-lg transition-all duration-150 whitespace-nowrap shrink-0;
   font-size: 12.5px;
   padding: 7px 15px;
 }

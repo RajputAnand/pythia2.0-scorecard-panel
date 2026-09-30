@@ -61,3 +61,44 @@ export interface DeviceStateWsUpdateMessage {
 }
 
 export type DeviceStateWsMessage = DeviceStateWsConnectedMessage | DeviceStateWsUpdateMessage
+
+export interface VideoStatusCounts {
+  processed: number
+  accepted: number
+  rejected: number
+}
+
+export interface VideoStats {
+  employee: VideoStatusCounts
+  customer: VideoStatusCounts
+  total: VideoStatusCounts
+}
+
+export interface DailyPipelineStats {
+  _id?: string
+  id?: string
+  date: string
+  device_id: string
+  store_id?: string | null
+  heartbeat_count: number
+  last_heartbeat_at?: string | null
+  synced_at?: string | null
+  cpu: {
+    latest_percent?: number | null
+    avg_percent?: number | null
+  }
+  memory: {
+    latest_percent?: number | null
+    avg_percent?: number | null
+    total_mb?: number | null
+    used_mb?: number | null
+  }
+  temperature: {
+    latest_celsius?: number | null
+    avg_celsius?: number | null
+  }
+  videos: VideoStats
+  created_at?: string | null
+  updated_at?: string | null
+}
+

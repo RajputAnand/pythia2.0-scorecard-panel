@@ -1,7 +1,9 @@
 import { unstable_rethrow } from 'next/navigation'
+import { cookies } from 'next/headers'
 import Header from '@/components/shared/Header/Header'
 import EmployeeListPanel from '@/components/EmployeeListPanel/EmployeeListPanel'
 import { fetchEmployees } from '@/queries/employees'
+import { fetchStoresForTenant } from '@/queries/stores'
 import { auth } from '@/auth'
 import type { ApiResponseV2Paginated } from '@/types/api'
 import type { ApiEmployee } from '@/types/employee'
@@ -18,10 +20,20 @@ export default async function SuperAdminManagerEmployeesPage() {
   const session = await auth()
   const token = session?.user?.pythia2Token
 
+  const cookieStore = await cookies()
+  const selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
+  const selectedTenantId = cookieStore.get('pythia_selected_tenant_id')?.value
   let initialData: ApiResponseV2Paginated<ApiEmployee[]> | null = null
   if (token) {
     const [employeesResult] = await Promise.allSettled([
-      fetchEmployees({ token, skip: 0, limit: 15 }),
+      fetchEmployees({ token, skip: 0, limit: 15, storeId: selectedStoreId || undefined }),
+      fetchEmployees({
+        token,
+        skip: 0,
+        limit: 15,
+        storeId: selectedStoreId || undefined,
+        tenantId: selectedTenantId || undefined,
+      }),
     ])
     if (employeesResult.status === 'rejected') unstable_rethrow(employeesResult.reason)
     if (employeesResult.status === 'fulfilled') initialData = employeesResult.value
@@ -32,7 +44,7 @@ export default async function SuperAdminManagerEmployeesPage() {
       <Header title="Employees" subtitle="Super Admin · Manage your team and credentials" />
 
       <div className="px-[30px] py-[26px]">
-        <EmployeeListPanel initialData={initialData} />
+        <EmployeeListPanel initialData={initialData} readOnly={true} />
       </div>
     </>
   )

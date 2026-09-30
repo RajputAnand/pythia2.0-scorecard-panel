@@ -1,4 +1,4 @@
-import type { RoiChartData, RoiChartPoint } from '@/types/owner-roi'
+import type { RoiChartData } from '@/types/owner-roi'
 import type { ScoreVsTransactionsData } from '@/types/score-vs-transactions'
 
 const X_POINTS = [20, 135, 250, 345, 440]
@@ -155,7 +155,7 @@ export function mapRoiChartData(
       if (isProjectedOnly && i < points.length - 1) return null
 
       const isProjected = i === points.length - 1 && hasProjected
-      let formattedVal = formatFn ? formatFn(val) : val.toLocaleString('en-US', { maximumFractionDigits: 1 })
+      const formattedVal = formatFn ? formatFn(val) : val.toLocaleString('en-US', { maximumFractionDigits: 1 })
 
       return {
         x: X_POINTS[i] - 5,
@@ -201,7 +201,7 @@ export function mapRoiChartData(
     ? `${apiData.correlation_r.toFixed(2)} correlation`
     : 'N/A correlation'
 
-  const xLabels: { label: string; color?: string; opacity?: number }[] = apiData.metric_a_series.map((p, i) => ({
+  const xLabels: { label: string; color?: string; opacity?: number }[] = apiData.metric_a_series.map((p) => ({
     label: formatLabel(p.period.label)
   }))
   if (hasProjected) {

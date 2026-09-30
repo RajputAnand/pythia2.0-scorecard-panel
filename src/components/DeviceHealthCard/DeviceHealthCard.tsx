@@ -1,6 +1,6 @@
 import DataTable from '@/components/shared/DataTable/DataTable'
 import type { DataTableColumn } from '@/types/data-table'
-import type { DeviceAlertMetric, DeviceContainerStat, DevicePm2ServiceStat, DeviceStateSummary } from '@/types/device-health'
+import type { DailyPipelineStats, DeviceAlertMetric, DeviceContainerStat, DevicePm2ServiceStat, DeviceStateSummary } from '@/types/device-health'
 import { formatRelativeTime } from '@/utils/common'
 
 function formatUptime(seconds: number): string {
@@ -13,6 +13,7 @@ function formatUptime(seconds: number): string {
 
 interface Props {
   device: DeviceStateSummary
+  dailyStats?: DailyPipelineStats | null
   now: Date
 }
 
@@ -101,7 +102,7 @@ const pm2Columns: DataTableColumn<DevicePm2ServiceStat>[] = [
   },
 ]
 
-export default function DeviceHealthCard({ device, now }: Props) {
+export default function DeviceHealthCard({ device, dailyStats, now }: Props) {
   const alerts = new Set(device.active_alerts)
   // Only devices running pm2 (not all of them — some are docker-only) report this.
   const pm2Services = device.pm2_services ?? []
@@ -188,6 +189,158 @@ export default function DeviceHealthCard({ device, now }: Props) {
             </div>
           )
         })}
+      </div>
+
+      {/* Daily Pipeline Statistics & Video Processing KPIs */}
+      <div className="mx-5 mb-[16px] p-4 rounded-[12px] bg-surface-alt/40 border border-border">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b border-border/60">
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] font-semibold text-primary">Daily Pipeline Statistics</span>
+            {dailyStats?.date && (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface border border-border text-muted">
+                {dailyStats.date}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-3 text-[11px] text-muted">
+            <span>💓 {dailyStats?.heartbeat_count?.toLocaleString() ?? 0} heartbeats</span>
+            {dailyStats?.synced_at && (
+              <span>Synced {formatRelativeTime(dailyStats.synced_at, now)}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Video Processing Breakdown (Customer vs Employee vs Total) */}
+        <div className="mb-3">
+          <div className="text-[10px] font-semibold text-muted uppercase tracking-[.06em] mb-2 flex items-center justify-between">
+            <span>Video Processing Metrics</span>
+            <span className="text-primary font-mono text-[11px]">
+              {(dailyStats?.videos?.total?.processed ??
+                ((dailyStats?.videos as any)?.processed ??
+                  ((dailyStats?.videos?.customer?.processed ?? 0) + (dailyStats?.videos?.employee?.processed ?? 0))))}{' '}
+              total videos
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="bg-surface rounded-[8px] p-3 border border-border flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-medium text-muted flex items-center gap-1.5">
+                  <span>👷</span> Employee Videos
+                </span>
+                <span className="text-[16px] font-bold text-primary">
+                  {dailyStats?.videos?.employee?.processed ?? 0}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-[10.5px] font-mono mt-1 pt-1.5 border-t border-border/50">
+                <span className="text-accent flex items-center gap-1">
+                  ✓ {dailyStats?.videos?.employee?.accepted ?? 0} accepted
+                </span>
+                <span className="text-danger flex items-center gap-1">
+                  ✗ {dailyStats?.videos?.employee?.rejected ?? 0} rejected
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-surface rounded-[8px] p-3 border border-border flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-medium text-muted flex items-center gap-1.5">
+                  <span>🛍️</span> Customer Videos
+                </span>
+                <span className="text-[16px] font-bold text-primary">
+                  {dailyStats?.videos?.customer?.processed ?? 0}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-[10.5px] font-mono mt-1 pt-1.5 border-t border-border/50">
+                <span className="text-accent flex items-center gap-1">
+                  ✓ {dailyStats?.videos?.customer?.accepted ?? 0} accepted
+                </span>
+                <span className="text-danger flex items-center gap-1">
+                  ✗ {dailyStats?.videos?.customer?.rejected ?? 0} rejected
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-surface rounded-[8px] p-3 border border-border flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-medium text-muted flex items-center gap-1.5">
+                  <span>🎞️</span> Total Videos
+                </span>
+                <span className="text-[16px] font-bold text-primary">
+                  {dailyStats?.videos?.total?.processed ??
+                    ((dailyStats?.videos as any)?.processed ??
+                      ((dailyStats?.videos?.customer?.processed ?? 0) + (dailyStats?.videos?.employee?.processed ?? 0)))}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-[10.5px] font-mono mt-1 pt-1.5 border-t border-border/50">
+                <span className="text-accent flex items-center gap-1">
+                  ✓{' '}
+                  {dailyStats?.videos?.total?.accepted ??
+                    ((dailyStats?.videos as any)?.accepted ??
+                      ((dailyStats?.videos?.customer?.accepted ?? 0) + (dailyStats?.videos?.employee?.accepted ?? 0)))}
+                  {' accepted'}
+                </span>
+                <span className="text-danger flex items-center gap-1">
+                  ✗{' '}
+                  {dailyStats?.videos?.total?.rejected ??
+                    ((dailyStats?.videos as any)?.rejected ??
+                      ((dailyStats?.videos?.customer?.rejected ?? 0) + (dailyStats?.videos?.employee?.rejected ?? 0)))}
+                  {' rejected'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Daily Running Averages */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="bg-surface rounded-[8px] p-2.5 border border-border">
+            <span className="text-[9.5px] font-medium text-muted uppercase tracking-[.05em] block mb-1">
+              CPU Daily Avg
+            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[15px] font-semibold text-primary">
+                {dailyStats?.cpu?.avg_percent != null ? `${dailyStats.cpu.avg_percent.toFixed(1)}%` : '—'}
+              </span>
+              {dailyStats?.cpu?.latest_percent != null && (
+                <span className="text-[10.5px] text-muted font-mono">
+                  latest: {dailyStats.cpu.latest_percent.toFixed(1)}%
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-surface rounded-[8px] p-2.5 border border-border">
+            <span className="text-[9.5px] font-medium text-muted uppercase tracking-[.05em] block mb-1">
+              RAM Daily Avg
+            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[15px] font-semibold text-primary">
+                {dailyStats?.memory?.avg_percent != null ? `${dailyStats.memory.avg_percent.toFixed(1)}%` : '—'}
+              </span>
+              {dailyStats?.memory?.used_mb != null && dailyStats?.memory?.total_mb != null && (
+                <span className="text-[10.5px] text-muted font-mono">
+                  {dailyStats.memory.used_mb.toFixed(0)}/{dailyStats.memory.total_mb.toFixed(0)} MB
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-surface rounded-[8px] p-2.5 border border-border">
+            <span className="text-[9.5px] font-medium text-muted uppercase tracking-[.05em] block mb-1">
+              Temp Daily Avg
+            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[15px] font-semibold text-primary">
+                {dailyStats?.temperature?.avg_celsius != null ? `${dailyStats.temperature.avg_celsius.toFixed(1)}°C` : '—'}
+              </span>
+              {dailyStats?.temperature?.latest_celsius != null && (
+                <span className="text-[10.5px] text-muted font-mono">
+                  latest: {dailyStats.temperature.latest_celsius.toFixed(1)}°C
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {device.cpu_usage_per_core_percent.length > 0 && (

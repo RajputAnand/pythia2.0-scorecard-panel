@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useToast } from '@/context/ToastContext'
 import { useStaffingStore } from '@/store/staffingStore'
+import { useUserStore } from '@/store/userStore'
 import {
   transformScheduleToStaffEmployees,
   transformRosterToTeamScores,
@@ -72,7 +73,10 @@ export default function StaffingPageContent({
   const fetchAll = useStaffingStore((s) => s.fetchAll)
   const applyRecommendation = useStaffingStore((s) => s.applyRecommendation)
   const applyAllRecommendations = useStaffingStore((s) => s.applyAllRecommendations)
+  const error = useStaffingStore((s) => s.error)
   const dismissRecommendation = useStaffingStore((s) => s.dismissRecommendation)
+
+  const currentStore = useUserStore((s) => s.currentStore)
 
   useEffect(() => {
     hydrate({
@@ -84,11 +88,13 @@ export default function StaffingPageContent({
       insights: initialInsights,
       recommendations: initialRecommendations,
     })
-    // Seed once from server-fetched props — subsequent updates flow through the
-    // store's own actions (fetchAll/goToNextWeek/etc), same pattern as
-    // Sidebar seeding userStore.points from the session on mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [storeId, initialWeekStartDate, initialSchedule, initialRoster, initialHeatmap, initialInsights, initialRecommendations, hydrate])
+
+  useEffect(() => {
+    if (currentStore?._id && currentStore._id !== storeId && token) {
+      fetchAll(token, currentStore._id)
+    }
+  }, [currentStore?._id, storeId, token, fetchAll])
 
   const [editTarget, setEditTarget] = useState<EditTarget>(null)
   const [editDayPart, setEditDayPart] = useState('off')
@@ -191,6 +197,24 @@ export default function StaffingPageContent({
       <div className="grid gap-[18px] items-start" style={{ gridTemplateColumns: '1fr 320px' }}>
         {/* Left: schedule */}
         <div className="flex flex-col gap-[14px]">
+          {error && (
+            <div className="bg-danger-light border border-[#EAB8B3] rounded-[11px] px-4 py-3 flex items-center justify-between gap-[10px]">
+              <div className="flex items-center gap-2 text-[12.5px] text-danger leading-[1.5]">
+                <span className="text-[15px] shrink-0">⚠️</span>
+                <span>{error}</span>
+              </div>
+              {token && (
+                <button
+                  type="button"
+                  onClick={() => fetchAll(token)}
+                  className="rounded-[6px] bg-danger px-3 py-1 text-[11.5px] font-semibold text-white hover:opacity-90 transition-opacity cursor-pointer shrink-0"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+          )}
+
           {criticalAlert && (
             <div className="bg-danger-light border border-[#EAB8B3] rounded-[11px] px-4 py-3 flex items-start gap-[10px]">
               <span className="text-[15px] shrink-0 mt-px">🚨</span>

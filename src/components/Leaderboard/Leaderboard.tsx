@@ -1,7 +1,7 @@
 'use client'
 
 import Panel from '@/components/shared/Panel/Panel'
-import { PosVariant } from '@/types/leaderboart'
+import { PosVariant } from '@/types/leaderboard'
 import type { TeamRankingData } from '@/types/overview'
 import { renderText } from '@/utils/common'
 import { useAdminConfigStore } from '@/store/adminConfigStore'

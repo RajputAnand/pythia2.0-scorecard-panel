@@ -1,8 +1,9 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import { getJwtExp, isTokenExpired, requestTokenRefresh } from "@/lib/auth-token"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   // Required on any host that isn't Vercel/Cloudflare Pages (e.g. AWS Amplify) —
   // without it, auth.js throws UntrustedHost on every request in production
   // because it won't trust the incoming Host header by default.
@@ -27,7 +28,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return url
+      try {
+        if (new URL(url).origin === new URL(baseUrl).origin) return url
+      } catch {}
+      return url.startsWith("/") ? url : baseUrl
+    },
+    async jwt({ token, user }) {
       if (user) {
         token.role = user.role
         token.initials = user.initials
@@ -37,7 +45,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.score = user.score
         token.jobTitle = user.jobTitle
         token.points = user.points
+        token.tenantId = user.tenantId
+        token.tenantName = user.tenantName
+        token.tenantCode = user.tenantCode
+        token.store_ids = user.store_ids
+        token.storeIds = user.storeIds
+        token.can_manage_subscription = user.can_manage_subscription
+        token.is_root_owner = user.is_root_owner
+        token.first_login = user.first_login
+        token.accessTokenExpires = getJwtExp(user.pythia2Token || user.token)
+        return token
       }
+
+      // Pre-emptively refresh access token if expired or expiring within 60 seconds
+      const currentToken = token.pythia2Token || token.token
+      const isExpired = token.accessTokenExpires
+        ? Date.now() >= token.accessTokenExpires - 60000
+        : isTokenExpired(currentToken)
+
+      if (isExpired && token.refreshToken && !token.refreshToken.includes('mock')) {
+        const refreshed = await requestTokenRefresh(token.refreshToken)
+        if (refreshed) {
+          token.token = refreshed.access_token
+          token.pythia2Token = refreshed.access_token
+          token.refreshToken = refreshed.refresh_token
+          token.accessTokenExpires = getJwtExp(refreshed.access_token)
+          delete token.error
+        } else {
+          token.error = "RefreshAccessTokenError"
+          // Stop looping: clear refreshToken and expiration so subsequent session checks do not re-attempt refresh with a dead token
+          delete token.refreshToken
+          delete token.accessTokenExpires
+        }
+      }
+
       return token
     },
     session({ session, token }) {
@@ -47,9 +88,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.token = t.token
       session.user.pythia2Token = t.pythia2Token
       session.user.refreshToken = t.refreshToken
+      session.user.accessTokenExpires = t.accessTokenExpires
       session.user.score = t.score
       session.user.jobTitle = t.jobTitle
       session.user.points = t.points || 0
+      session.user.tenantId = t.tenantId
+      session.user.tenantName = t.tenantName
+      session.user.tenantCode = t.tenantCode
+      session.user.store_ids = t.store_ids
+      session.user.storeIds = t.storeIds
+      session.user.can_manage_subscription = t.can_manage_subscription
+      session.user.is_root_owner = t.is_root_owner
+      session.user.first_login = t.first_login
+      session.error = t.error
       return session
     },
   },

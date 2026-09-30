@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useUserStore } from '@/store/userStore'
 import { fetchTrashedIdentities, fetchUnknownIdentities } from '@/queries/unknown-identities'
 import UnknownIdentityCarousel from '@/components/UnknownIdentityCarousel/UnknownIdentityCarousel'
 import EmployeeAssignPicker from '@/components/EmployeeAssignPicker/EmployeeAssignPicker'
 import RestoreIdentityPanel from '@/components/RestoreIdentityPanel/RestoreIdentityPanel'
+import { extractApiErrorMessage } from '@/utils/common'
 import type { ApiResponseV2Paginated } from '@/types/api'
 import type { UnknownIdentity } from '@/types/unknown-identity'
 
@@ -28,12 +30,12 @@ function PanelSkeleton() {
   )
 }
 
-function PanelError({ onRetry }: { onRetry: () => void }) {
+function PanelError({ message, onRetry }: { message?: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16 text-center px-4">
       <span className="text-[32px]">⚠️</span>
       <p className="font-semibold text-[14px]">Failed to load unknown identities</p>
-      <p className="text-[12px] text-muted">Check your connection and try again.</p>
+      <p className="text-[12px] text-muted max-w-md">{message || 'Check your connection and try again.'}</p>
       <button
         className="mt-1 rounded-[8px] border-0 bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:opacity-85 cursor-pointer"
         onClick={onRetry}
@@ -65,6 +67,8 @@ interface UnknownIdentitiesPanelProps {
 export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitiesPanelProps) {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
+  const currentStore = useUserStore((s) => s.currentStore)
+  const storeId = currentStore?.storeNo || currentStore?._id
 
   const [view, setView] = useState<'active' | 'trashed'>('active')
 
@@ -72,6 +76,7 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
   const [total, setTotal] = useState(initialData?.meta.total ?? initialData?.data.length ?? 0)
   const [isLoading, setIsLoading] = useState(!initialData)
   const [isError, setIsError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isFetchingMore, setIsFetchingMore] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
 
@@ -79,7 +84,17 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
   const [trashedTotal, setTrashedTotal] = useState(0)
   const [isLoadingTrashed, setIsLoadingTrashed] = useState(false)
   const [isErrorTrashed, setIsErrorTrashed] = useState(false)
+  const [trashedErrorMessage, setTrashedErrorMessage] = useState<string | null>(null)
   const [trashedActiveIndex, setTrashedActiveIndex] = useState(0)
+
+  // Sync state if initialData changes (e.g. from server refresh on store switch)
+  useEffect(() => {
+    if (initialData) {
+      setIdentities(initialData.data)
+      setTotal(initialData.meta.total)
+      setActiveIndex(0)
+    }
+  }, [initialData])
 
   // resetIndex=true for the initial load / retry-after-error (start at the
   // top of the list); false after an assign, so the carousel stays on the
@@ -88,15 +103,19 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
     if (!token) return
     setIsLoading(true)
     setIsError(false)
-    fetchUnknownIdentities({ token, skip: 0, limit: PAGE_SIZE })
+    setErrorMessage(null)
+    fetchUnknownIdentities({ token, skip: 0, limit: PAGE_SIZE, storeId: storeId || undefined })
       .then((response) => {
         setIdentities(response.data)
         setTotal(response.meta.total)
         if (resetIndex) setActiveIndex(0)
       })
-      .catch(() => setIsError(true))
+      .catch((err) => {
+        setIsError(true)
+        setErrorMessage(extractApiErrorMessage(err, 'Failed to load unknown identities'))
+      })
       .finally(() => setIsLoading(false))
-  }, [token])
+  }, [token, storeId])
 
   // Fall back to a client-side fetch when the server-side prefetch failed or
   // there was no token yet at request time.
@@ -108,20 +127,35 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
     if (!token) return
     setIsLoadingTrashed(true)
     setIsErrorTrashed(false)
-    fetchTrashedIdentities({ token, skip: 0, limit: PAGE_SIZE })
+    setTrashedErrorMessage(null)
+    fetchTrashedIdentities({ token, skip: 0, limit: PAGE_SIZE, storeId: storeId || undefined })
       .then((response) => {
         setTrashedIdentities(response.data)
         setTrashedTotal(response.meta.total)
         if (resetIndex) setTrashedActiveIndex(0)
       })
-      .catch(() => setIsErrorTrashed(true))
+      .catch((err) => {
+        setIsErrorTrashed(true)
+        setTrashedErrorMessage(extractApiErrorMessage(err, 'Failed to load trashed identities'))
+      })
       .finally(() => setIsLoadingTrashed(false))
-  }, [token])
+  }, [token, storeId])
 
   // Fetch trashed identities lazily, the first time the manager switches to that tab.
   useEffect(() => {
     if (view === 'trashed' && token) loadTrashed()
   }, [view, token, loadTrashed])
+
+  // Re-fetch when storeId changes on the client
+  useEffect(() => {
+    if (token) {
+      if (view === 'active') {
+        loadFirstPage(true)
+      } else {
+        loadTrashed(true)
+      }
+    }
+  }, [storeId])
 
   // Clamp the trashed active index if the list shrinks (e.g. after a restore refetches it).
   if (trashedIdentities.length > 0 && trashedActiveIndex >= trashedIdentities.length) {
@@ -141,17 +175,17 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
     if (activeIndex < identities.length - 5) return
 
     setIsFetchingMore(true)
-    fetchUnknownIdentities({ token, skip: identities.length, limit: PAGE_SIZE })
+    fetchUnknownIdentities({ token, skip: identities.length, limit: PAGE_SIZE, storeId: storeId || undefined })
       .then((response) => {
         setIdentities((prev) => [...prev, ...response.data])
         setTotal(response.meta.total)
       })
       .catch(() => {})
       .finally(() => setIsFetchingMore(false))
-  }, [activeIndex, identities.length, total, token, isLoading, isError, isFetchingMore])
+  }, [activeIndex, identities.length, total, token, isLoading, isError, isFetchingMore, storeId])
 
   function renderActive() {
-    if (isError) return <PanelError onRetry={loadFirstPage} />
+    if (isError) return <PanelError message={errorMessage ?? undefined} onRetry={loadFirstPage} />
     if (isLoading) return <PanelSkeleton />
     if (identities.length === 0) return <PanelEmpty view="active" />
 
@@ -184,7 +218,7 @@ export default function UnknownIdentitiesPanel({ initialData }: UnknownIdentitie
   }
 
   function renderTrashed() {
-    if (isErrorTrashed) return <PanelError onRetry={loadTrashed} />
+    if (isErrorTrashed) return <PanelError message={trashedErrorMessage ?? undefined} onRetry={loadTrashed} />
     if (isLoadingTrashed) return <PanelSkeleton />
     if (trashedIdentities.length === 0) return <PanelEmpty view="trashed" />
 

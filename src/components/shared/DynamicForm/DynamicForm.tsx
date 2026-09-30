@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm, type FieldValues } from 'react-hook-form'
+import { useForm, type FieldValues, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { DynamicFormProps } from '@/types/dynamic-form'
+import type { z } from 'zod'
 
 // ---------------------------------------------------------------------------
 // Eye icons (inline SVG — no extra dep)
@@ -43,19 +44,13 @@ const EyeOffIcon = () => (
   </svg>
 )
 
-// ---------------------------------------------------------------------------
-// DynamicForm
-// ---------------------------------------------------------------------------
-
-import type { z } from 'zod'
-
 /**
  * A generic, fully self-contained form component.
  *
  * - All RHF state lives here — consumers just pass field config + a submit
  *   handler that receives the validated values.
  * - Pass a `zodSchema` to enable automatic field-level validation via
- *   `zodResolver`.  When omitted, raw string values are forwarded.
+ *   `zodResolver`. When omitted, raw string values are forwarded.
  * - Password fields automatically get a show/hide toggle button.
  */
 export default function DynamicForm<T extends z.ZodTypeAny>({
@@ -77,9 +72,9 @@ export default function DynamicForm<T extends z.ZodTypeAny>({
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FieldValues>({
-    ...(zodSchema ? { resolver: zodResolver(zodSchema as any) as any } : {}),
+    ...(zodSchema ? { resolver: zodResolver(zodSchema as Parameters<typeof zodResolver>[0]) as unknown as Resolver<FieldValues> } : {}),
     mode: 'onBlur',
-    defaultValues: Object.fromEntries(fields.map((f) => [f.id, ''])),
+    defaultValues: Object.fromEntries(fields.map((f) => [f.id, f.defaultValue ?? ''])),
   })
 
   const pending = isSubmitting || loading

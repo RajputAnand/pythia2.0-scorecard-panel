@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
+import { useUserStore } from '@/store/userStore'
 import { fetchManagerDashboardLeaderboard } from '@/queries/manager-dashboard'
 import type { ManagerDashboardEmployeeRow, ManagerDashboardSortBy, ManagerDashboardView } from '@/types/manager-dashboard'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
@@ -11,6 +12,9 @@ interface Props {
   initialEmployees: ManagerDashboardEmployeeRow[]
   initialView: ManagerDashboardView
   previewMode?: boolean
+  startDate?: string
+  endDate?: string
+  onEmployeesUpdate?: (employees: ManagerDashboardEmployeeRow[]) => void
 }
 
 const rankClass: Record<'gold' | 'silver' | 'bronze' | 'regular', string> = {
@@ -52,9 +56,18 @@ const VIEWS: { key: ManagerDashboardView; label: string }[] = [
   { key: 'all', label: 'All Time' },
 ]
 
-export default function ManagerDashboardLeaderboard({ initialEmployees, initialView, previewMode }: Props) {
+export default function ManagerDashboardLeaderboard({
+  initialEmployees,
+  initialView,
+  previewMode,
+  startDate,
+  endDate,
+  onEmployeesUpdate,
+}: Props) {
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token
+  const currentStore = useUserStore((s) => s.currentStore)
+  const storeId = currentStore?.storeNo || currentStore?._id
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.managerLeaderboard] ?? true)
 
   const [sortBy, setSortBy] = useState<ManagerDashboardSortBy>('thanked_count')
@@ -62,20 +75,36 @@ export default function ManagerDashboardLeaderboard({ initialEmployees, initialV
   const [employees, setEmployees] = useState<ManagerDashboardEmployeeRow[]>(initialEmployees)
   const [loading, setLoading] = useState(false)
 
+  const hasActiveDateFilter = Boolean(startDate && endDate)
+
+  // Sync state whenever parent server component re-renders with new props
+  useEffect(() => {
+    setEmployees(initialEmployees)
+  }, [initialEmployees])
+
   useEffect(() => {
     if (!token) return
-    if (sortBy === 'thanked_count' && view === initialView) {
-      setEmployees(initialEmployees)
-      return
-    }
     let cancelled = false
     setLoading(true)
-    fetchManagerDashboardLeaderboard({ token, view, sortBy })
+    fetchManagerDashboardLeaderboard({
+      token,
+      view: hasActiveDateFilter ? 'custom' : view,
+      sortBy,
+      storeId: storeId || undefined,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+    })
       .then((rows) => {
-        if (!cancelled) setEmployees(rows)
+        if (!cancelled) {
+          setEmployees(rows)
+          onEmployeesUpdate?.(rows)
+        }
       })
       .catch(() => {
-        if (!cancelled) setEmployees([])
+        if (!cancelled) {
+          setEmployees([])
+          onEmployeesUpdate?.([])
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -83,8 +112,7 @@ export default function ManagerDashboardLeaderboard({ initialEmployees, initialV
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, sortBy, view])
+  }, [token, sortBy, view, storeId, startDate, endDate, hasActiveDateFilter, onEmployeesUpdate])
 
   if (!previewMode && !visible) return null
 
@@ -94,23 +122,31 @@ export default function ManagerDashboardLeaderboard({ initialEmployees, initialV
         <div>
           <div className="text-[13.5px] font-semibold">Employee Recognition Leaderboard</div>
           <div className="text-[11.5px] text-muted mt-[2px]">
-            Who&apos;s saying thank you and pitching value to customers
+            {currentStore?.name
+              ? `Rankings for ${currentStore.name}`
+              : "Who's saying thank you and pitching value to customers"}
           </div>
         </div>
         <div className="flex gap-[6px]">
-          {VIEWS.map((v) => (
-            <button
-              key={v.key}
-              onClick={() => setView(v.key)}
-              className={`px-3 py-[5px] rounded-full border font-sans text-[11.5px] font-medium cursor-pointer transition-all duration-150
-                ${view === v.key
-                  ? 'bg-primary text-white border-primary'
-                  : 'bg-surface text-secondary border-border hover:border-accent hover:text-accent'
-                }`}
-            >
-              {v.label}
-            </button>
-          ))}
+          {hasActiveDateFilter ? (
+            <span className="px-3 py-[5px] rounded-full border border-primary bg-primary text-white font-sans text-[11.5px] font-medium">
+              Custom Range
+            </span>
+          ) : (
+            VIEWS.map((v) => (
+              <button
+                key={v.key}
+                onClick={() => setView(v.key)}
+                className={`px-3 py-[5px] rounded-full border font-sans text-[11.5px] font-medium cursor-pointer transition-all duration-150
+                  ${view === v.key
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-surface text-secondary border-border hover:border-accent hover:text-accent'
+                  }`}
+              >
+                {v.label}
+              </button>
+            ))
+          )}
         </div>
       </div>
 

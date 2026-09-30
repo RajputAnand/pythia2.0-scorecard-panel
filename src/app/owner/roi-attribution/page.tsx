@@ -1,4 +1,5 @@
 import { unstable_rethrow } from 'next/navigation'
+import { cookies } from 'next/headers'
 import Header from '@/components/shared/Header/Header'
 import ExportPdfButton from '@/components/shared/ExportPdfButton/ExportPdfButton'
 import ShareWithInvestorButton from '@/components/shared/ShareWithInvestorButton/ShareWithInvestorButton'
@@ -10,21 +11,38 @@ import CheckoutSpeed from '@/components/CheckoutSpeed/CheckoutSpeed'
 import RevenueImpactTable from '@/components/RevenueImpactTable/RevenueImpactTable'
 import CostPerCoaching from '@/components/CostPerCoaching/CostPerCoaching'
 import ProjectionSummary from '@/components/ProjectionSummary/ProjectionSummary'
+import CreateStoreBanner from '@/components/shared/CreateStoreBanner/CreateStoreBanner'
 import { fetchRoiAttribution } from '@/queries/owner-roi'
+import { fetchStoresForTenant } from '@/queries/stores'
 import { auth } from '@/auth'
+import { extractApiErrorMessage } from '@/utils/common'
 import type { RoiAttributionResponse, RoiAttributionParams } from '@/types/owner-roi'
 
 export default async function RoiAttributionPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const searchParams = await props.searchParams
+  const cookieStore = await cookies()
+  const selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
   const session = await auth()
   const token = session?.user?.pythia2Token
+
+  const tenantId = session?.user?.tenantId
+  let hasStores = true
+
+  if (token) {
+    try {
+      const storesRes = await fetchStoresForTenant({ token, tenantId, limit: 1 })
+      hasStores = (storesRes.data?.length ?? 0) > 0
+    } catch {
+      hasStores = true
+    }
+  }
 
   let data: RoiAttributionResponse | null = null
   let error: string | null = null
 
-  if (token) {
+  if (token && hasStores) {
 
       const periodMap: Record<string, RoiAttributionParams['period_type']> = {
         'This Week': 'week',
@@ -46,6 +64,7 @@ export default async function RoiAttributionPage(props: {
       const [roiResult] = await Promise.allSettled([
         fetchRoiAttribution({
           token,
+          store_id: selectedStoreId,
           period_type: periodKey,
           custom_start: typeof searchParams.custom_start === 'string' ? searchParams.custom_start : undefined,
           custom_end: typeof searchParams.custom_end === 'string' ? searchParams.custom_end : undefined,
@@ -57,9 +76,12 @@ export default async function RoiAttributionPage(props: {
         unstable_rethrow(roiResult.reason)
         console.error(roiResult.reason)
         error = roiResult.reason?.response?.data?.message || roiResult.reason?.message || 'Failed to load ROI data'
+        error = extractApiErrorMessage(roiResult.reason, 'Failed to load ROI data')
       } else {
         data = roiResult.value
       }
+  } else if (!token) {
+    error = 'Authentication token missing. Please sign in again.'
   }
 
   const periodSlug = (data?.meta?.period?.label ?? 'report')
@@ -69,15 +91,33 @@ export default async function RoiAttributionPage(props: {
 
   return (
     <>
-      <Header title="ROI Attribution" subtitle={data?.meta?.period?.label ?? 'Loading...'}>
-        <ExportPdfButton targetId="roi-report-content" fileName={`roi-attribution-${periodSlug}`} />
-        <ShareWithInvestorButton targetId="roi-report-content" fileName={`roi-attribution-${periodSlug}`} />
+      <Header
+        title="ROI Attribution"
+        subtitle={!hasStores ? 'Owner Tools' : (data?.meta?.period?.label ?? 'Loading...')}
+      >
+        {hasStores && (
+          <>
+            <ExportPdfButton targetId="roi-report-content" fileName={`roi-attribution-${periodSlug}`} />
+            <ShareWithInvestorButton targetId="roi-report-content" fileName={`roi-attribution-${periodSlug}`} />
+          </>
+        )}
       </Header>
 
-      <TimeControls />
+      {hasStores && <TimeControls />}
 
       <div id="roi-report-content" className="grid px-[30px] py-[24px] gap-5">
-        {error ? (
+        {!hasStores ? (
+          <div className="flex flex-col gap-6">
+            <CreateStoreBanner featureName="ROI attribution" />
+            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-20 text-center">
+              <span className="text-[36px]">📊</span>
+              <p className="font-semibold text-[14px] text-primary">No store data available</p>
+              <p className="text-[12px] text-muted max-w-md">
+                Once your store location is created and active, revenue impact, customer dwell time, and ROI metrics will populate here.
+              </p>
+            </div>
+          </div>
+        ) : error ? (
           <div className="bg-surface border border-border rounded-lg p-6 text-red-400">
             {error}
           </div>

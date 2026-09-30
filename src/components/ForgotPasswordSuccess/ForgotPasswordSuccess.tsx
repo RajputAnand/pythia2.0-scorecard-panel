@@ -11,6 +11,7 @@ export default function ForgotPasswordSuccess() {
       heading='Check your email'
       message='Password reset link has been sent to your email.'
       actionLabel='← Back to login'
-      action={() => router.replace('/login/employee')} />
+      action={() => router.replace('/login')}
+    />
   )
 }

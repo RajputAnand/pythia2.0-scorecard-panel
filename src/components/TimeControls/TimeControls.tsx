@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import Toolbar from '@/components/shared/Toolbar/Toolbar'
 import DatePicker from '@/components/shared/DatePicker/DatePicker'
 
 const TIME_PERIODS = ['This Week', 'Month over Month', 'Quarter'] as const
@@ -59,65 +60,70 @@ export default function TimeControls() {
   }
 
   return (
-    <div className="flex items-center gap-2 bg-surface border-b border-border px-[30px] h-[50px]">
-      {TIME_PERIODS.map((p) => (
-        <button
-          key={p}
-          disabled={isPending}
-          className={`border rounded-lg font-sans font-medium cursor-pointer transition-all duration-150 text-[12px] px-[14px] py-[6px] disabled:cursor-not-allowed disabled:opacity-60 ${
-            period === p
-              ? 'bg-accent text-white border-accent'
-              : 'border-border text-secondary bg-transparent hover:border-accent hover:text-accent'
-          }`}
-          onClick={() => {
-            updateParams({ period: p, custom_start: null, custom_end: null })
-          }}
-        >
-          {p}
-        </button>
-      ))}
-
-      <div className="bg-border shrink-0 w-px h-5 mx-1" />
-
-      <div className="flex items-center gap-[6px] ml-1">
-        <DatePicker ariaLabel="Custom range start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
-        <span className="text-muted text-[11px]">to</span>
-        <DatePicker ariaLabel="Custom range end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
-        <button
-          disabled={isPending}
-          className={`flex items-center gap-[6px] border rounded-lg font-sans font-medium cursor-pointer transition-all duration-150 text-[11.5px] px-[11px] py-[5px] disabled:cursor-not-allowed disabled:opacity-70 ${
-            period === 'custom'
-              ? 'bg-accent text-white border-accent'
-              : 'border-border bg-transparent text-secondary hover:bg-surface-alt'
-          }`}
-          onClick={handleApplyCustomDates}
-        >
-          {isPending && (
-            <svg className="animate-spin w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-          )}
-          {isPending ? 'Applying…' : 'Apply'}
-        </button>
-      </div>
-
-      <div className="flex items-center gap-2 ml-auto">
-        <span className="text-muted text-[11.5px]">View:</span>
-        <div className="flex border border-border rounded-lg overflow-hidden">
-          {VIEW_OPTIONS.map((v) => (
+    <Toolbar
+      left={
+        <>
+          {TIME_PERIODS.map((p) => (
             <button
-              key={v}
-              className={`font-sans font-medium cursor-pointer transition-all duration-150 text-[11.5px] px-[12px] py-[5px] border-none ${
-                view === v ? 'bg-primary text-white' : 'bg-transparent text-muted'
+              key={p}
+              disabled={isPending}
+              className={`border rounded-lg font-sans font-medium cursor-pointer transition-all duration-150 text-[12px] px-[14px] py-[6px] disabled:cursor-not-allowed disabled:opacity-60 whitespace-nowrap shrink-0 ${
+                period === p
+                  ? 'bg-accent text-white border-accent'
+                  : 'border-border text-secondary bg-transparent hover:border-accent hover:text-accent'
               }`}
-              onClick={() => handleViewSelect(v)}
+              onClick={() => {
+                updateParams({ period: p, custom_start: null, custom_end: null })
+              }}
             >
-              {v}
+              {p}
             </button>
           ))}
+
+          <div className="bg-border shrink-0 w-px h-5 mx-1" />
+
+          <div className="flex items-center gap-[6px] ml-1 shrink-0">
+            <DatePicker ariaLabel="Custom range start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
+            <span className="text-muted text-[11px] shrink-0">to</span>
+            <DatePicker ariaLabel="Custom range end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
+            <button
+              disabled={isPending}
+              className={`flex items-center gap-[6px] border rounded-lg font-sans font-medium cursor-pointer transition-all duration-150 text-[11.5px] px-[11px] py-[5px] disabled:cursor-not-allowed disabled:opacity-70 whitespace-nowrap shrink-0 ${
+                period === 'custom'
+                  ? 'bg-accent text-white border-accent'
+                  : 'border-border bg-transparent text-secondary hover:bg-surface-alt'
+              }`}
+              onClick={handleApplyCustomDates}
+            >
+              {isPending && (
+                <svg className="animate-spin w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
+              {isPending ? 'Applying…' : 'Apply'}
+            </button>
+          </div>
+        </>
+      }
+      right={
+        <div className="flex items-center gap-2">
+          <span className="text-muted text-[11.5px] shrink-0">View:</span>
+          <div className="flex border border-border rounded-lg overflow-hidden shrink-0">
+            {VIEW_OPTIONS.map((v) => (
+              <button
+                key={v}
+                className={`font-sans font-medium cursor-pointer transition-all duration-150 text-[11.5px] px-[12px] py-[5px] border-none whitespace-nowrap ${
+                  view === v ? 'bg-primary text-white' : 'bg-transparent text-muted'
+                }`}
+                onClick={() => handleViewSelect(v)}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-    </div>
+      }
+    />
   )
 }

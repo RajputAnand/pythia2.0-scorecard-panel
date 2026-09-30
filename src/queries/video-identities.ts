@@ -22,6 +22,13 @@ export async function fetchVideoIdentities({
   startDate,
   endDate,
 }: FetchVideoIdentitiesParams): Promise<ApiResponseV2Paginated<VideoIdentityEntry[]>> {
+  if (token.includes('mock')) {
+    return {
+      success: true,
+      meta: { total: 0, skip, limit },
+      data: [],
+    }
+  }
   const { data } = await pythia2Client.get<ApiResponseV2Paginated<VideoIdentityEntry[]>>(
     PYTHIA_2_API.videoIdentities.list,
     {
@@ -40,6 +47,14 @@ export async function fetchVideoIdentities({
 }
 
 export async function fetchVideoIdentityStats({ token }: { token: string }): Promise<VideoIdentityStats> {
+  if (token.includes('mock')) {
+    return {
+      total_videos: 0,
+      identities_matched: 0,
+      unmatched: 0,
+      avg_similarity: null,
+    }
+  }
   const { data } = await pythia2Client.get<ApiResponseV2<VideoIdentityStats>>(PYTHIA_2_API.videoIdentities.stats, {
     headers: { Authorization: `Bearer ${token}` },
   })
@@ -51,12 +66,6 @@ export interface PresignedKey {
   url: string
 }
 
-/**
- * Presigns video/image S3 keys on demand — call only when the user actually
- * opens a video or its photos, not eagerly for every listed row. Keys the
- * caller isn't allowed to view are silently omitted from the result, so the
- * response may come back shorter than `keys`.
- */
 export async function presignVideoIdentityKeys({
   token,
   keys,
@@ -64,6 +73,9 @@ export async function presignVideoIdentityKeys({
   token: string
   keys: string[]
 }): Promise<PresignedKey[]> {
+  if (token.includes('mock')) {
+    return keys.map((k) => ({ key: k, url: '' }))
+  }
   const { data } = await pythia2Client.post<ApiResponseV2<PresignedKey[]>>(
     PYTHIA_2_API.videoIdentities.presign,
     { keys },

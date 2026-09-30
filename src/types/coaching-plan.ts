@@ -36,6 +36,7 @@ export interface ManagerCoachingPlan {
   created_at: string
   updated_at: string
   resolved_at?: string | null
+  first_flagged_at?: string
 }
 
 // Subset of ConversationPlan fields a manager may overwrite via an "edited" action.
@@ -48,7 +49,7 @@ export interface ManagerActionRequestBody {
   edits?: PlanEditFields
 }
 
-export type CoachingView = 'month' | 'all'
+export type CoachingView = 'month' | 'all' | 'custom'
 
 // Mirrors get_coaching_summary in app/services/manager_coaching_service.py —
 // the 4-card summary returned by GET /manager-coaching/summary (and embedded

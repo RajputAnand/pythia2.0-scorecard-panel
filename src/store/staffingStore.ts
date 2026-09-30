@@ -17,6 +17,7 @@ import {
   type UpdateStaffingShiftBody,
 } from '@/queries/staffing'
 import { addDaysToDateString } from '@/lib/staffing-transform'
+import { extractApiErrorMessage } from '@/utils/common'
 import type {
   ApiScheduleResponse,
   ApiRosterMember,
@@ -73,7 +74,7 @@ interface StaffingState {
   lastSyncedAt: string | null
 
   hydrate: (args: HydrateArgs) => void
-  fetchAll: (token: string) => Promise<void>
+  fetchAll: (token: string, storeId?: string) => Promise<void>
   goToPreviousWeek: (token: string) => Promise<void>
   goToNextWeek: (token: string) => Promise<void>
   saveShift: (
@@ -111,7 +112,6 @@ export const useStaffingStore = create<StaffingState>((set, get) => ({
   lastSyncedAt: null,
 
   hydrate({ storeId, weekStartDate, schedule, roster, heatmap, insights, recommendations }) {
-    if (get().hydrated) return
     set({
       hydrated: true,
       storeId,
@@ -126,10 +126,11 @@ export const useStaffingStore = create<StaffingState>((set, get) => ({
     })
   },
 
-  async fetchAll(token) {
-    const { storeId, weekStartDate } = get()
+  async fetchAll(token, customStoreId) {
+    const storeId = customStoreId ?? get().storeId
+    const { weekStartDate } = get()
     if (!storeId || !weekStartDate) return
-    set({ loading: true, error: null })
+    set({ storeId, loading: true, error: null })
     try {
       const [schedule, roster, heatmap, insights, recommendations] = await Promise.all([
         fetchStaffingSchedule({ token, storeId, weekStartDate }),
@@ -149,8 +150,8 @@ export const useStaffingStore = create<StaffingState>((set, get) => ({
         loading: false,
         lastSyncedAt: new Date().toISOString(),
       })
-    } catch {
-      set({ loading: false, error: 'Failed to load staffing data' })
+    } catch (err: unknown) {
+      set({ loading: false, error: extractApiErrorMessage(err, 'Failed to load staffing data') })
     }
   },
 
@@ -178,8 +179,8 @@ export const useStaffingStore = create<StaffingState>((set, get) => ({
       }
       set({ savingShift: false })
       await get().fetchAll(token)
-    } catch {
-      set({ savingShift: false, error: 'Failed to save shift' })
+    } catch (err: unknown) {
+      set({ savingShift: false, error: extractApiErrorMessage(err, 'Failed to save shift') })
     }
   },
 
@@ -189,8 +190,8 @@ export const useStaffingStore = create<StaffingState>((set, get) => ({
       await deleteStaffingShift({ token, shiftId })
       set({ savingShift: false })
       await get().fetchAll(token)
-    } catch {
-      set({ savingShift: false, error: 'Failed to remove shift' })
+    } catch (err: unknown) {
+      set({ savingShift: false, error: extractApiErrorMessage(err, 'Failed to remove shift') })
     }
   },
 
@@ -214,8 +215,8 @@ export const useStaffingStore = create<StaffingState>((set, get) => ({
       set({ publishing: false })
       await get().fetchAll(token)
       return true
-    } catch {
-      set({ publishing: false, error: 'Failed to publish schedule' })
+    } catch (err: unknown) {
+      set({ publishing: false, error: extractApiErrorMessage(err, 'Failed to publish schedule') })
       return false
     }
   },
@@ -226,8 +227,8 @@ export const useStaffingStore = create<StaffingState>((set, get) => ({
     set({ generationStatus: 'generating', pollingRecommendations: true })
     try {
       await generateStaffingRecommendations({ token, storeId, weekStartDate })
-    } catch {
-      set({ generationStatus: 'failed', pollingRecommendations: false })
+    } catch (err: unknown) {
+      set({ generationStatus: 'failed', pollingRecommendations: false, error: extractApiErrorMessage(err, 'Failed to generate recommendations') })
       return
     }
 
@@ -270,8 +271,8 @@ export const useStaffingStore = create<StaffingState>((set, get) => ({
       }))
       await get().fetchAll(token)
       return true
-    } catch {
-      set({ applyingId: null, error: 'Failed to apply recommendation' })
+    } catch (err: unknown) {
+      set({ applyingId: null, error: extractApiErrorMessage(err, 'Failed to apply recommendation') })
       return false
     }
   },
@@ -302,8 +303,8 @@ export const useStaffingStore = create<StaffingState>((set, get) => ({
         criticalAlert: state.criticalAlert?.recommendation_id === recommendationId ? null : state.criticalAlert,
       }))
       return true
-    } catch {
-      set({ applyingId: null, error: 'Failed to dismiss recommendation' })
+    } catch (err: unknown) {
+      set({ applyingId: null, error: extractApiErrorMessage(err, 'Failed to dismiss recommendation') })
       return false
     }
   },

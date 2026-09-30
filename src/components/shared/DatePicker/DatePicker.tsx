@@ -63,8 +63,34 @@ export default function DatePicker({ value, onChange, ariaLabel, min, max }: Dat
 
   useEffect(() => {
     if (!open || !triggerRef.current) return
-    const rect = triggerRef.current.getBoundingClientRect()
-    setPosition({ top: rect.bottom + 6, left: rect.left })
+
+    const updatePosition = () => {
+      if (!triggerRef.current) return
+      const rect = triggerRef.current.getBoundingClientRect()
+      const PANEL_WIDTH = 240
+      const PANEL_HEIGHT = 310
+      const MARGIN = 16
+
+      let left = rect.left
+      if (left + PANEL_WIDTH + MARGIN > window.innerWidth) {
+        left = Math.max(MARGIN, Math.min(rect.right - PANEL_WIDTH, window.innerWidth - PANEL_WIDTH - MARGIN))
+      }
+
+      let top = rect.bottom + 6
+      if (top + PANEL_HEIGHT > window.innerHeight && rect.top - PANEL_HEIGHT - 6 > 0) {
+        top = rect.top - PANEL_HEIGHT - 6
+      }
+
+      setPosition({ top, left })
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
   }, [open])
 
   const handleToggle = () => {
@@ -109,7 +135,7 @@ export default function DatePicker({ value, onChange, ariaLabel, min, max }: Dat
   const selectedKey = selected ? toDateKey(selected) : null
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block shrink-0">
       <button
         ref={triggerRef}
         type="button"
@@ -117,14 +143,14 @@ export default function DatePicker({ value, onChange, ariaLabel, min, max }: Dat
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={ariaLabel}
-        className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-mono text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent focus:outline-none focus:border-accent"
+        className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-mono text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent focus:outline-none focus:border-accent whitespace-nowrap shrink-0"
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 text-muted">
           <rect x="1" y="2" width="10" height="9" rx="1.5" stroke="currentColor" strokeWidth="1" />
           <path d="M1 4.5H11" stroke="currentColor" strokeWidth="1" />
           <path d="M3.5 1V2.5M8.5 1V2.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
         </svg>
-        {formatDisplay(value)}
+        <span className="whitespace-nowrap">{formatDisplay(value)}</span>
       </button>
 
       {open &&

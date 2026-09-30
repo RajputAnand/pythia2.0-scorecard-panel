@@ -1,5 +1,10 @@
-import LoginForm from '@/components/LoginForm/LoginForm'
+import { redirect } from 'next/navigation'
 
-export default function OwnerLoginPage() {
-  return <LoginForm role="owner" />
+export default async function OwnerLoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirectTo?: string }>
+}) {
+  const { redirectTo } = await searchParams
+  redirect(`/login?redirectTo=${encodeURIComponent(redirectTo || '/owner/stores')}`)
 }

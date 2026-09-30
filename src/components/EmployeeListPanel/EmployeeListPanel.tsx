@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
+import { useUserStore } from '@/store/userStore'
 import {
   fetchEmployees,
   fetchArchivedEmployees,
@@ -15,7 +16,10 @@ import { useToast } from '@/context/ToastContext'
 import DataTable from '@/components/shared/DataTable/DataTable'
 import RevealCredentialsModal from '@/components/RevealCredentialsModal/RevealCredentialsModal'
 import ConfirmArchiveEmployeeModal from '@/components/ConfirmArchiveEmployeeModal/ConfirmArchiveEmployeeModal'
+import CreateUserModal from '@/components/CreateUserModal/CreateUserModal'
 import type { ApiEmployee } from '@/types/employee'
+import type { ApiManager } from '@/types/manager'
+import type { OrganizationOwner } from '@/types/organization-owner'
 import type { ApiMeta, ApiResponseV2Paginated } from '@/types/api'
 import type { DataTableColumn } from '@/types/data-table'
 
@@ -31,12 +35,12 @@ function TableSkeleton() {
   )
 }
 
-function PanelError({ onRetry }: { onRetry: () => void }) {
+function PanelError({ message, onRetry }: { message?: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16 text-center px-4">
       <span className="text-[32px]">⚠️</span>
       <p className="font-semibold text-[14px]">Failed to load employees</p>
-      <p className="text-[12px] text-muted">Check your connection and try again.</p>
+      <p className="text-[12px] text-muted max-w-md">{message || 'Check your connection and try again.'}</p>
       <button
         className="mt-1 rounded-[8px] border-0 bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:opacity-85 cursor-pointer"
         onClick={onRetry}
@@ -47,7 +51,17 @@ function PanelError({ onRetry }: { onRetry: () => void }) {
   )
 }
 
-function PanelEmpty({ search, view }: { search: string; view: 'active' | 'archived' }) {
+function PanelEmpty({
+  search,
+  view,
+  onAddEmployee,
+  readOnly,
+}: {
+  search: string
+  view: 'active' | 'archived'
+  onAddEmployee?: () => void
+  readOnly?: boolean
+}) {
   return (
     <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-16">
       <span className="text-[32px]">{view === 'archived' ? '🗄️' : '🔍'}</span>
@@ -58,21 +72,43 @@ function PanelEmpty({ search, view }: { search: string; view: 'active' | 'archiv
         <p className="text-[11.5px] text-muted">No results for &quot;{search}&quot;.</p>
       ) : view === 'archived' ? (
         <p className="text-[11.5px] text-muted">Employees you archive will show up here and can be unarchived.</p>
-      ) : null}
+      ) : (
+        <>
+          <p className="text-[11.5px] text-muted">No employees have been added to this store yet.</p>
+          {!readOnly && onAddEmployee && (
+            <button
+              type="button"
+              onClick={onAddEmployee}
+              className="mt-2 rounded-[8px] bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:bg-accent-mid transition-colors cursor-pointer shadow-sm"
+            >
+              + Add First Employee
+            </button>
+          )}
+        </>
+      )}
     </div>
   )
 }
 
 interface EmployeeListPanelProps {
   initialData: ApiResponseV2Paginated<ApiEmployee[]> | null
+  readOnly?: boolean
 }
 
-export default function EmployeeListPanel({ initialData }: EmployeeListPanelProps) {
+export default function EmployeeListPanel({ initialData, readOnly = false }: EmployeeListPanelProps) {
   const { data: session } = useSession()
-  const token = session?.user?.pythia2Token
+  const token = session?.user?.pythia2Token || session?.user?.token || ''
   const { showToast } = useToast()
+  const currentStore = useUserStore((s) => s.currentStore)
+  const currentOrganization = useUserStore((s) => s.currentOrganization)
+  const currentStoreId = currentStore?.storeNo || currentStore?._id
+
+  const userRole = session?.user?.role
+  const isOwnerOrAdmin = userRole === 'owner' || userRole === 'superadmin'
+  const effectiveTenantId = userRole === 'superadmin' ? currentOrganization?.tenant_id : session?.user?.tenantId
 
   const [view, setView] = useState<'active' | 'archived'>('active')
+  const [isCreating, setIsCreating] = useState(false)
 
   // ---- Active employees ----
 
@@ -88,8 +124,18 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
   const [skip, setSkip] = useState(0)
   const [employees, setEmployees] = useState<ApiEmployee[]>(initialData?.data ?? [])
   const [meta, setMeta] = useState<ApiMeta | undefined>(initialData?.meta)
+
+  // Sync state if initialData changes (e.g. from server refresh on store switch)
+  useEffect(() => {
+    if (initialData) {
+      setEmployees(initialData.data ?? [])
+      setMeta(initialData.meta)
+      setIsLoading(false)
+    }
+  }, [initialData])
   const [isLoading, setIsLoading] = useState(!trustedInitialData)
   const [isError, setIsError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [revealingId, setRevealingId] = useState<string | null>(null)
   const [unrevealableIds, setUnrevealableIds] = useState<Set<string>>(new Set())
   const [revealed, setRevealed] = useState<{ name: string; userId: string; password: string } | null>(null)
@@ -101,6 +147,34 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
   // fetches normally, and an empty/untrusted seed always re-fetches.
   const skipNextFetch = useRef(!!trustedInitialData)
   const [retryToken, setRetryToken] = useState(0)
+
+  const lastStoreId = useRef(currentStoreId)
+  useEffect(() => {
+    if (lastStoreId.current !== currentStoreId) {
+      lastStoreId.current = currentStoreId
+      skipNextFetch.current = false
+      setSkip(0)
+      setArchivedSkip(0)
+      setRetryToken((r) => r + 1)
+      if (hasLoadedArchived.current) {
+        setArchivedRetryToken((r) => r + 1)
+      }
+    }
+  }, [currentStoreId])
+
+  const lastTenantId = useRef(effectiveTenantId)
+  useEffect(() => {
+    if (lastTenantId.current !== effectiveTenantId) {
+      lastTenantId.current = effectiveTenantId
+      skipNextFetch.current = false
+      setSkip(0)
+      setArchivedSkip(0)
+      setRetryToken((r) => r + 1)
+      if (hasLoadedArchived.current) {
+        setArchivedRetryToken((r) => r + 1)
+      }
+    }
+  }, [effectiveTenantId])
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
@@ -123,14 +197,26 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
     let cancelled = false
     setIsLoading(true)
     setIsError(false)
-    fetchEmployees({ token, search: debouncedSearch, skip, limit: PAGE_SIZE })
+    setErrorMessage(null)
+    fetchEmployees({ token, search: debouncedSearch, skip, limit: PAGE_SIZE, storeId: currentStoreId })
+    fetchEmployees({
+      token,
+      search: debouncedSearch,
+      skip,
+      limit: PAGE_SIZE,
+      storeId: currentStoreId,
+      tenantId: effectiveTenantId,
+    })
       .then((response) => {
         if (cancelled) return
         setEmployees(response.data ?? [])
         setMeta(response.meta)
       })
-      .catch(() => {
-        if (!cancelled) setIsError(true)
+      .catch((err) => {
+        if (!cancelled) {
+          setIsError(true)
+          setErrorMessage(extractApiErrorMessage(err, 'Failed to load employees'))
+        }
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)
@@ -139,7 +225,7 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
       cancelled = true
     }
     // retryToken intentionally re-runs this effect on manual retry without changing search/skip
-  }, [token, debouncedSearch, skip, retryToken])
+  }, [token, debouncedSearch, skip, retryToken, currentStoreId, effectiveTenantId])
 
   const page = meta ? Math.floor(meta.skip / meta.limit) : 0
   const totalPages = meta ? Math.max(1, Math.ceil(meta.total / meta.limit)) : 1
@@ -153,6 +239,7 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
   const [archivedMeta, setArchivedMeta] = useState<ApiMeta | undefined>(undefined)
   const [isLoadingArchived, setIsLoadingArchived] = useState(false)
   const [isErrorArchived, setIsErrorArchived] = useState(false)
+  const [archivedErrorMessage, setArchivedErrorMessage] = useState<string | null>(null)
   const [unarchivingId, setUnarchivingId] = useState<string | null>(null)
   const [archivedRetryToken, setArchivedRetryToken] = useState(0)
   const hasLoadedArchived = useRef(false)
@@ -173,14 +260,25 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
     hasLoadedArchived.current = true
     setIsLoadingArchived(true)
     setIsErrorArchived(false)
-    fetchArchivedEmployees({ token, search: archivedDebouncedSearch, skip: archivedSkip, limit: PAGE_SIZE })
+    setArchivedErrorMessage(null)
+    fetchArchivedEmployees({
+      token,
+      search: archivedDebouncedSearch,
+      skip: archivedSkip,
+      limit: PAGE_SIZE,
+      storeId: currentStoreId,
+      tenantId: effectiveTenantId,
+    })
       .then((response) => {
         setArchivedEmployees(response.data ?? [])
         setArchivedMeta(response.meta)
       })
-      .catch(() => setIsErrorArchived(true))
+      .catch((err) => {
+        setIsErrorArchived(true)
+        setArchivedErrorMessage(extractApiErrorMessage(err, 'Failed to load archived employees'))
+      })
       .finally(() => setIsLoadingArchived(false))
-  }, [token, archivedDebouncedSearch, archivedSkip])
+  }, [token, archivedDebouncedSearch, archivedSkip, currentStoreId, effectiveTenantId])
 
   // Fetch archived employees lazily, the first time the manager switches to that tab.
   useEffect(() => {
@@ -385,25 +483,42 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setView('active')}
-          className={`rounded-full px-[14px] py-[6px] text-[12px] font-semibold transition-colors duration-150 cursor-pointer ${
-            view === 'active' ? 'bg-accent text-white' : 'bg-surface border border-border text-secondary hover:text-primary'
-          }`}
-        >
-          Active
-        </button>
-        <button
-          type="button"
-          onClick={() => setView('archived')}
-          className={`rounded-full px-[14px] py-[6px] text-[12px] font-semibold transition-colors duration-150 cursor-pointer ${
-            view === 'archived' ? 'bg-accent text-white' : 'bg-surface border border-border text-secondary hover:text-primary'
-          }`}
-        >
-          Archived
-        </button>
+      {/* Action Bar: View Tabs + Add Employee button */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setView('active')}
+            className={`rounded-full px-[14px] py-[6px] text-[12px] font-semibold transition-colors duration-150 cursor-pointer ${
+              view === 'active' ? 'bg-accent text-white' : 'bg-surface border border-border text-secondary hover:text-primary'
+            }`}
+          >
+            Active
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('archived')}
+            className={`rounded-full px-[14px] py-[6px] text-[12px] font-semibold transition-colors duration-150 cursor-pointer ${
+              view === 'archived' ? 'bg-accent text-white' : 'bg-surface border border-border text-secondary hover:text-primary'
+            }`}
+          >
+            Archived
+          </button>
+        </div>
+
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={() => setIsCreating(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-accent text-white text-[12.5px] font-semibold hover:bg-accent-mid transition-colors cursor-pointer whitespace-nowrap shadow-sm ml-auto"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            {isOwnerOrAdmin ? 'Add User' : 'Add Employee'}
+          </button>
+        )}
       </div>
 
       <input
@@ -416,11 +531,16 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
 
       {view === 'active' ? (
         isError ? (
-          <PanelError onRetry={() => setRetryToken((n) => n + 1)} />
+          <PanelError message={errorMessage ?? undefined} onRetry={() => setRetryToken((n) => n + 1)} />
         ) : isLoading ? (
           <TableSkeleton />
         ) : employees.length === 0 ? (
-          <PanelEmpty search={debouncedSearch} view="active" />
+          <PanelEmpty
+            search={debouncedSearch}
+            view="active"
+            onAddEmployee={() => setIsCreating(true)}
+            readOnly={readOnly}
+          />
         ) : (
           <DataTable
             columns={activeColumns}
@@ -436,7 +556,7 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
           />
         )
       ) : isErrorArchived ? (
-        <PanelError onRetry={() => setArchivedRetryToken((n) => n + 1)} />
+        <PanelError message={archivedErrorMessage ?? undefined} onRetry={() => setArchivedRetryToken((n) => n + 1)} />
       ) : isLoadingArchived ? (
         <TableSkeleton />
       ) : archivedEmployees.length === 0 ? (
@@ -471,6 +591,32 @@ export default function EmployeeListPanel({ initialData }: EmployeeListPanelProp
           isArchiving={isArchiving}
           onConfirm={handleConfirmArchive}
           onCancel={() => setPendingArchive(null)}
+        />
+      )}
+
+      {isCreating && (
+        <CreateUserModal
+          token={token || 'mock-token'}
+          storeId={currentStoreId}
+          initialRole="employee"
+          allowedRoles={isOwnerOrAdmin ? ['employee', 'manager', 'owner'] : ['employee']}
+          tenantId={session?.user?.tenantId}
+          onClose={() => setIsCreating(false)}
+          onCreated={(createdRole, user) => {
+            setIsCreating(false)
+            if (createdRole === 'employee') {
+              const newEmployee = user as ApiEmployee
+              setEmployees((prev) => [newEmployee, ...prev.filter((e) => e.user_id !== newEmployee.user_id)])
+              setMeta((prev) => (prev ? { ...prev, total: prev.total + 1 } : undefined))
+              showToast(`Employee ${getEmployeeName(newEmployee)} created successfully.`)
+            } else if (createdRole === 'manager') {
+              const mgr = user as ApiManager
+              showToast(`Manager ${mgr.first_name} ${mgr.last_name} created successfully. You can view them in the Managers tab.`)
+            } else if (createdRole === 'owner') {
+              const own = user as OrganizationOwner
+              showToast(`Co-Owner ${own.first_name} ${own.last_name} created successfully. You can view them in the Co-Owners tab.`)
+            }
+          }}
         />
       )}
     </div>

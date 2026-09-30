@@ -1,4 +1,5 @@
 import { unstable_rethrow } from 'next/navigation'
+import { cookies } from 'next/headers'
 import Header from '@/components/shared/Header/Header'
 import ManagerDashboardKpiStrip from '@/components/ManagerDashboardKpiStrip/ManagerDashboardKpiStrip'
 import EmployeeSpotlightCard from '@/components/EmployeeSpotlightCard/EmployeeSpotlightCard'
@@ -8,10 +9,12 @@ import UnknownIdentitiesAlertCard from '@/components/UnknownIdentitiesAlertCard/
 import CoachingHealthSnapshot from '@/components/CoachingHealthSnapshot/CoachingHealthSnapshot'
 import DemographicShifts from '@/components/DemographicShifts/DemographicShifts'
 import CustomerSegmentShifts from '@/components/CustomerSegmentShifts/CustomerSegmentShifts'
+import ManagerDashboardContent from '@/components/ManagerDashboardContent/ManagerDashboardContent'
 import { fetchManagerDashboardSummary, fetchManagerDashboardLeaderboard, fetchManagerDashboardTrend } from '@/queries/manager-dashboard'
 import { fetchUnknownIdentitiesCount } from '@/queries/unknown-identities'
 import { fetchCoachingSummary } from '@/queries/manager-coaching'
 import { fetchAgeDistribution, fetchGenderDistribution, fetchCustomerSegments } from '@/queries/demographics'
+import { fetchStoresForTenant } from '@/queries/stores'
 import { auth } from '@/auth'
 import type { ManagerDashboardEmployeeRow, ManagerDashboardSummary, ManagerDashboardTrendWeek } from '@/types/manager-dashboard'
 import type { CoachingSummary } from '@/types/coaching-plan'
@@ -29,6 +32,18 @@ export default async function SuperAdminManagerDashboardPage() {
   const session = await auth()
   const token = session?.user?.pythia2Token
 
+  const cookieStore = await cookies()
+  let selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
+
+  if (!selectedStoreId && token) {
+    try {
+      const storesRes = await fetchStoresForTenant({ token, limit: 1 })
+      selectedStoreId = storesRes.data?.[0]?.storeNo || storesRes.data?.[0]?.id || storesRes.data?.[0]?._id
+    } catch {
+      // fallback if stores fetch fails
+    }
+  }
+
   let summary: ManagerDashboardSummary | null = null
   let employees: ManagerDashboardEmployeeRow[] = []
   let trendWeeks: ManagerDashboardTrendWeek[] | null = null
@@ -40,14 +55,14 @@ export default async function SuperAdminManagerDashboardPage() {
 
   if (token) {
     const [summaryResult, employeesResult, trendResult, unknownResult, coachingResult, ageResult, genderResult, segmentsResult] = await Promise.allSettled([
-      fetchManagerDashboardSummary({ token, view: 'all' }),
-      fetchManagerDashboardLeaderboard({ token, view: 'all', sortBy: 'thanked_count' }),
-      fetchManagerDashboardTrend({ token, weeks: 8 }),
-      fetchUnknownIdentitiesCount({ token }),
-      fetchCoachingSummary({ token, view: 'month' }),
-      fetchAgeDistribution({ token, storeId: '69c19e66a27efce5858b6487' }),
-      fetchGenderDistribution({ token, storeId: '69c19e66a27efce5858b6487' }),
-      fetchCustomerSegments({ token, storeId: '69c19e66a27efce5858b6487' }),
+      fetchManagerDashboardSummary({ token, view: 'all', storeId: selectedStoreId }),
+      fetchManagerDashboardLeaderboard({ token, view: 'all', sortBy: 'thanked_count', storeId: selectedStoreId }),
+      fetchManagerDashboardTrend({ token, weeks: 8, storeId: selectedStoreId }),
+      fetchUnknownIdentitiesCount({ token, storeId: selectedStoreId }),
+      fetchCoachingSummary({ token, view: 'month', storeId: selectedStoreId }),
+      fetchAgeDistribution({ token, storeId: selectedStoreId }),
+      fetchGenderDistribution({ token, storeId: selectedStoreId }),
+      fetchCustomerSegments({ token, storeId: selectedStoreId }),
     ])
     // Promise.allSettled swallows thrown errors as 'rejected' results, including
     // the NEXT_REDIRECT next/navigation throws server-side on a 401 (session
@@ -67,23 +82,17 @@ export default async function SuperAdminManagerDashboardPage() {
   }
 
   return (
-    <>
-      <Header title="Manager Dashboard" subtitle="Super Admin" />
-
-      <div className="px-[30px] py-[26px] flex flex-col gap-5">
-        <UnknownIdentitiesAlertCard count={unknownIdentitiesCount} />
-        <EmployeeSpotlightCard topEmployee={employees[0] ?? null} view="all" />
-        <ManagerDashboardKpiStrip summary={summary} />
-        <ManagerDashboardLeaderboard initialEmployees={employees} initialView="all" />
-        <div className="grid grid-cols-[1fr_1fr] gap-[18px] items-start">
-          <DemographicShifts ageData={ageData} genderData={genderData} />
-          <CustomerSegmentShifts customerSegmentsData={customerSegmentsData} />
-        </div>
-        <div className="grid grid-cols-2 gap-5 items-start">
-          <CoachingHealthSnapshot summary={coachingSummary} />
-          <ManagerDashboardTrendChart weeks={trendWeeks} />
-        </div>
-      </div>
-    </>
+    <ManagerDashboardContent
+      initialSummary={summary}
+      initialEmployees={employees}
+      initialTrendWeeks={trendWeeks}
+      initialUnknownIdentitiesCount={unknownIdentitiesCount}
+      initialCoachingSummary={coachingSummary}
+      initialAgeData={ageData}
+      initialGenderData={genderData}
+      initialCustomerSegmentsData={customerSegmentsData}
+      selectedStoreId={selectedStoreId}
+      subtitle="Super Admin"
+    />
   )
 }

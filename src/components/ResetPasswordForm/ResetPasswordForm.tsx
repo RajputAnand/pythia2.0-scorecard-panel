@@ -108,7 +108,7 @@ export default function ResetPasswordForm() {
             {/* <button onClick={() => router.push('/forgot-password')} className="w-full bg-accent cursor-pointer text-white font-semibold text-[13.5px] rounded-lg py-[11px] hover:bg-accent-mid transition-colors mt-2">
               Request a new link
             </button> */}
-            <button onClick={() => router.push('/login/employee')} className="w-full bg-surface cursor-pointer border border-border text-secondary font-semibold text-[13.5px] rounded-lg py-[11px] hover:bg-surface-alt transition-colors mt-2">
+            <button onClick={() => router.push('/login')} className="w-full bg-surface cursor-pointer border border-border text-secondary font-semibold text-[13.5px] rounded-lg py-[11px] hover:bg-surface-alt transition-colors mt-2">
               ← Back to login
             </button>
           </div>
@@ -155,7 +155,7 @@ export default function ResetPasswordForm() {
 
         {/* Back link */}
         <div className="mt-6 pt-6 border-t border-border text-center">
-          <button onClick={() => router.push('/login/employee')} className="w-full bg-surface border border-border text-secondary font-semibold text-[13.5px] rounded-lg py-[11px] hover:bg-surface-alt transition-colors">
+          <button onClick={() => router.push('/login')} className="w-full bg-surface border border-border text-secondary font-semibold text-[13.5px] rounded-lg py-[11px] hover:bg-surface-alt transition-colors">
             ← Back to login
           </button>
         </div>

@@ -1,10 +1,11 @@
 import { unstable_rethrow } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { auth } from '@/auth'
 import Header from '@/components/shared/Header/Header'
-import StaffingHeaderActions from '@/components/StaffingHeaderActions/StaffingHeaderActions'
+import StaffingToolbar from '@/components/StaffingToolbar/StaffingToolbar'
 import StaffingInsightStrip from '@/components/StaffingInsightStrip/StaffingInsightStrip'
 import StaffingPageContent from '@/components/StaffingPageContent/StaffingPageContent'
-import { STORES } from '@/lib/store-data'
+import { fetchStoresForTenant } from '@/queries/stores'
 import {
   fetchStaffingSchedule,
   fetchStaffingRoster,
@@ -49,7 +50,19 @@ function mondayOf(date: Date): string {
 export default async function StaffingIntelligencePage() {
   const session = await auth()
   const token = session?.user?.pythia2Token
-  const storeId = STORES[0]?._id ?? ''
+
+  const cookieStore = await cookies()
+  let storeId = cookieStore.get('pythia_selected_store_id')?.value ?? ''
+
+  if (!storeId && token) {
+    try {
+      const storesRes = await fetchStoresForTenant({ token, limit: 1 })
+      storeId = storesRes.data?.[0]?.storeNo || storesRes.data?.[0]?.id || storesRes.data?.[0]?._id || ''
+    } catch {
+      // fallback
+    }
+  }
+
   const weekStartDate = mondayOf(new Date())
 
   let schedule: ApiScheduleResponse | null = null
@@ -83,9 +96,8 @@ export default async function StaffingIntelligencePage() {
 
   return (
     <>
-      <Header title="Staffing Intelligence">
-        <StaffingHeaderActions />
-      </Header>
+      <Header title="Staffing Intelligence" subtitle="Manager Tools · AI-powered scheduling and recommendations" />
+      <StaffingToolbar />
 
       <div className="px-[30px] py-6 flex flex-col gap-[18px]">
         <StaffingInsightStrip data={insights} />

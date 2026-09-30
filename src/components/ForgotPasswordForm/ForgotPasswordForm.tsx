@@ -79,7 +79,7 @@ export default function ForgotPasswordForm() {
 
         {/* Back link */}
         <div className="mt-6 pt-6 border-t border-border text-center">
-          <button onClick={() => router.push('/login/employee')} className="w-full bg-surface border border-border text-secondary font-semibold text-[13.5px] rounded-lg py-[11px] hover:bg-surface-alt transition-colors">
+          <button onClick={() => router.push('/login')} className="w-full bg-surface border border-border text-secondary font-semibold text-[13.5px] rounded-lg py-[11px] hover:bg-surface-alt transition-colors">
             ← Back to login
           </button>
         </div>
