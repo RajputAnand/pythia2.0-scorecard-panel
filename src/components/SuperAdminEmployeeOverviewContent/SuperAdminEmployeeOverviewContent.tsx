@@ -5,6 +5,7 @@ import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import styles from './SuperAdminEmployeeOverviewContent.module.css'
 import Header from '@/components/shared/Header/Header'
+import Toolbar from '@/components/shared/Toolbar/Toolbar'
 import EmployeeSelector from '@/components/shared/EmployeeSelector/EmployeeSelector'
 import WeekNavButtons from '@/components/shared/WeekNavButtons/WeekNavButtons'
 import DatePicker from '@/components/shared/DatePicker/DatePicker'
@@ -344,45 +345,52 @@ export default function SuperAdminEmployeeOverviewContent({
       <Header
         title="Employee Overview"
         subtitle={weekLabel}
-      >
-        <div className="flex items-center gap-1.5 xl:gap-2 shrink-0">
-          <EmployeeSelector
-            employees={employees}
-            selectedEmployee={selectedEmployee}
-            onSelectEmployee={(emp) => {
-              setSelectedEmployee(emp)
-            }}
-            loading={employeesLoading}
-          />
-          {!hasActiveDateFilter && (
-            <WeekNavButtons
-              weekOffset={weekOffset}
-              loading={loading}
-              onPrevious={() => setWeekOffset((n) => Math.min(1, n + 1))}
-              onNext={() => setWeekOffset((n) => Math.max(0, n - 1))}
+      />
+
+      <Toolbar
+        left={
+          <div className="flex items-center gap-2 flex-wrap">
+            <EmployeeSelector
+              employees={employees}
+              selectedEmployee={selectedEmployee}
+              onSelectEmployee={(emp) => {
+                setSelectedEmployee(emp)
+              }}
+              loading={employeesLoading}
             />
-          )}
-          {!hasActiveDateFilter && <div className="bg-border shrink-0 w-px h-5" />}
-          <div className="flex items-center gap-[6px] shrink-0">
-            <DatePicker ariaLabel="Filter start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
-            <span className="text-muted text-[11px] shrink-0">to</span>
-            <DatePicker ariaLabel="Filter end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
+            {!hasActiveDateFilter && (
+              <WeekNavButtons
+                weekOffset={weekOffset}
+                loading={loading}
+                onPrevious={() => setWeekOffset((n) => Math.min(1, n + 1))}
+                onNext={() => setWeekOffset((n) => Math.max(0, n - 1))}
+              />
+            )}
           </div>
-          {hasActiveDateFilter && (
-            <button
-              type="button"
-              onClick={clearDateFilter}
-              className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-sans font-medium text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent hover:text-accent whitespace-nowrap shrink-0"
-            >
-              <svg className="w-[11px] h-[11px] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-              <span>Clear filter</span>
-            </button>
-          )}
-        </div>
-      </Header>
+        }
+        right={
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-[6px] shrink-0">
+              <DatePicker ariaLabel="Filter start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
+              <span className="text-muted text-[11px] shrink-0">to</span>
+              <DatePicker ariaLabel="Filter end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
+            </div>
+            {hasActiveDateFilter && (
+              <button
+                type="button"
+                onClick={clearDateFilter}
+                className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-sans font-medium text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent hover:text-accent whitespace-nowrap shrink-0"
+              >
+                <svg className="w-[11px] h-[11px] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+                <span>Clear filter</span>
+              </button>
+            )}
+          </div>
+        }
+      />
 
       <div className={styles.container}>
         {employeesLoading && employees.length === 0 ? (

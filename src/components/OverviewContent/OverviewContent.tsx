@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useUserStore } from '@/store/userStore'
 import Header from '@/components/shared/Header/Header'
+import Toolbar from '@/components/shared/Toolbar/Toolbar'
 import WeekNavButtons from '@/components/shared/WeekNavButtons/WeekNavButtons'
 import DatePicker from '@/components/shared/DatePicker/DatePicker'
 import HeroBanner from '@/components/HeroBanner/HeroBanner'
@@ -90,32 +91,37 @@ export default function OverviewContent({
 
   return (
     <>
-      <Header title="My Dashboard" subtitle={weekLabel}>
-        <div className="flex items-center gap-2">
-          {!hasActiveDateFilter && (
+      <Header title="My Dashboard" subtitle={weekLabel} />
+
+      <Toolbar
+        left={
+          !hasActiveDateFilter ? (
             <WeekNavButtons weekOffset={weekOffset} loading={loading} onPrevious={goToPreviousWeek} onNext={goToNextWeek} />
-          )}
-          {!hasActiveDateFilter && <div className="bg-border shrink-0 w-px h-5" />}
-          <div className="flex items-center gap-[6px]">
-            <DatePicker ariaLabel="Filter start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
-            <span className="text-muted text-[11px]">to</span>
-            <DatePicker ariaLabel="Filter end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
+          ) : undefined
+        }
+        right={
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-[6px]">
+              <DatePicker ariaLabel="Filter start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
+              <span className="text-muted text-[11px]">to</span>
+              <DatePicker ariaLabel="Filter end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
+            </div>
+            {hasActiveDateFilter && (
+              <button
+                type="button"
+                onClick={clearDateFilter}
+                className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-sans font-medium text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent hover:text-accent whitespace-nowrap"
+              >
+                <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+                Clear filter
+              </button>
+            )}
           </div>
-          {hasActiveDateFilter && (
-            <button
-              type="button"
-              onClick={clearDateFilter}
-              className="cursor-pointer flex items-center gap-[6px] border border-border rounded-[7px] font-sans font-medium text-secondary bg-surface text-[11.5px] px-[10px] py-[5px] transition-colors duration-150 hover:border-accent hover:text-accent"
-            >
-              <svg className="w-[11px] h-[11px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-              Clear filter
-            </button>
-          )}
-        </div>
-      </Header>
+        }
+      />
 
       <div className="grid px-[30px] py-[24px] gap-5">
         {loading ? (
