@@ -29,7 +29,7 @@ export default function ConfirmCancelOrderModal({
 
           <div>
             <h2 className="text-[18px] font-bold text-primary">Cancel Reward Claim?</h2>
-            <p className="mt-1 text-[13px] text-muted">
+            <p className="mt-1 text-[13px] text-gray-800">
               Order #{order.id}
             </p>
           </div>

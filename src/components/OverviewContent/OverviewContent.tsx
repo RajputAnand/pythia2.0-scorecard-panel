@@ -22,7 +22,7 @@ function OverviewEmpty({ message }: { message?: string | null }) {
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16">
       <span className="text-[32px]">📋</span>
       <p className="font-semibold text-[14px]">{message ? 'Dashboard unavailable' : 'No dashboard data yet'}</p>
-      <p className="text-[12px] text-muted">{message ?? 'Your scorecard will appear once your first shift is logged.'}</p>
+      <p className="text-[12px] text-gray-800">{message ?? 'Your scorecard will appear once your first shift is logged.'}</p>
     </div>
   )
 }
@@ -103,7 +103,7 @@ export default function OverviewContent({
           <div className="flex items-center gap-2 shrink-0">
             <div className="flex items-center gap-[6px]">
               <DatePicker ariaLabel="Filter start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
-              <span className="text-muted text-[11px]">to</span>
+              <span className="text-gray-800 text-[11px]">to</span>
               <DatePicker ariaLabel="Filter end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
             </div>
             {hasActiveDateFilter && (

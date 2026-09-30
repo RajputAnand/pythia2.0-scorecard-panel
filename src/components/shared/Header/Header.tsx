@@ -289,7 +289,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
               </span>
 
               <svg
-                className={`w-[11px] h-[11px] shrink-0 text-muted transition-transform duration-200${
+                className={`w-[11px] h-[11px] shrink-0 text-gray-800 transition-transform duration-200${
                   orgOpen ? ' rotate-180' : ''
                 }`}
                 viewBox="0 0 12 12"
@@ -315,7 +315,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                       placeholder="Search organizations..."
                       value={orgSearch}
                       onChange={(e) => setOrgSearch(e.target.value)}
-                      className="w-full bg-surface-alt border border-border rounded-md px-2.5 py-1 text-[12px] text-primary placeholder:text-muted focus:outline-none focus:border-accent"
+                      className="w-full bg-surface-alt border border-border rounded-md px-2.5 py-1 text-[12px] text-primary placeholder:text-gray-800 focus:outline-none focus:border-accent"
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
@@ -390,7 +390,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                   })}
 
                   {filteredOrganizations.length === 0 && (
-                    <li className="p-3 text-center text-muted text-[12px]">
+                    <li className="p-3 text-center text-gray-800 text-[12px]">
                       {orgSearch ? `No organizations match "${orgSearch}"` : 'No organizations found'}
                     </li>
                   )}
@@ -435,7 +435,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
               </span>
 
               <svg
-                className={`w-[11px] h-[11px] shrink-0 text-muted transition-transform duration-200${open ? ' rotate-180' : ''}`}
+                className={`w-[11px] h-[11px] shrink-0 text-gray-800 transition-transform duration-200${open ? ' rotate-180' : ''}`}
                 viewBox="0 0 12 12"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -451,7 +451,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                 className="absolute top-[calc(100%+6px)] right-0 min-w-[220px] max-h-[360px] overflow-y-auto bg-surface border border-border rounded-[10px] p-[4px] shadow-[0_8px_24px_-4px_rgba(26,23,20,0.12),0_2px_8px_-2px_rgba(26,23,20,0.06)] list-none m-0 z-50"
               >
                 {stores.length === 0 ? (
-                  <li className="px-3 py-2 text-center text-muted text-[12px]">
+                  <li className="px-3 py-2 text-center text-gray-800 text-[12px]">
                     No stores found
                   </li>
                 ) : (
@@ -515,7 +515,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                   <div className="text-[12.5px] font-semibold text-primary truncate">
                     {session.user.name}
                   </div>
-                  <div className="text-[10.5px] text-muted truncate">
+                  <div className="text-[10.5px] text-gray-800 truncate">
                     {session.user.email || session.user.jobTitle || formatRole(session.user.role)}
                   </div>
                 </div>
@@ -562,7 +562,7 @@ export default function Header({ title, subtitle, children }: HeaderProps) {
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] font-medium text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer text-left"
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12px] font-medium text-gray-800 hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer text-left"
                 >
                   <svg
                     className="shrink-0 w-4 h-4"

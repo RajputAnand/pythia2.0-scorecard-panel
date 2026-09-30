@@ -275,7 +275,7 @@ export default function StaffingPageContent({
               </div>
               <div className="px-4 py-[14px] flex flex-col gap-3">
                 <div className="flex flex-col gap-[5px]">
-                  <div className="text-[10.5px] font-semibold text-muted uppercase tracking-[.08em]">Shift Hours</div>
+                  <div className="text-[10.5px] font-semibold text-gray-800 uppercase tracking-[.08em]">Shift Hours</div>
                   <select
                     className="w-full px-[10px] py-2 border border-border rounded-lg font-sans text-[13px] text-primary bg-surface cursor-pointer focus:outline-none focus:border-accent"
                     value={editDayPart}
@@ -289,7 +289,7 @@ export default function StaffingPageContent({
                   </select>
                 </div>
                 <div className="flex flex-col gap-[5px]">
-                  <div className="text-[10.5px] font-semibold text-muted uppercase tracking-[.08em]">Paired With</div>
+                  <div className="text-[10.5px] font-semibold text-gray-800 uppercase tracking-[.08em]">Paired With</div>
                   <select
                     className="w-full px-[10px] py-2 border border-border rounded-lg font-sans text-[13px] text-primary bg-surface cursor-pointer focus:outline-none focus:border-accent"
                     value={editPaired}
@@ -310,7 +310,7 @@ export default function StaffingPageContent({
                 </button>
                 <button
                   onClick={closeEdit}
-                  className="px-[14px] py-[9px] bg-transparent text-muted border border-border rounded-lg font-sans text-[13px] cursor-pointer hover:bg-surface-alt transition-colors"
+                  className="px-[14px] py-[9px] bg-transparent text-gray-800 border border-border rounded-lg font-sans text-[13px] cursor-pointer hover:bg-surface-alt transition-colors"
                 >
                   Cancel
                 </button>

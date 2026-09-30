@@ -84,7 +84,7 @@ export default function TimeControls() {
 
           <div className="flex items-center gap-[6px] ml-1 shrink-0">
             <DatePicker ariaLabel="Custom range start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
-            <span className="text-muted text-[11px] shrink-0">to</span>
+            <span className="text-gray-800 text-[11px] shrink-0">to</span>
             <DatePicker ariaLabel="Custom range end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
             <button
               disabled={isPending}
@@ -108,13 +108,13 @@ export default function TimeControls() {
       }
       right={
         <div className="flex items-center gap-2">
-          <span className="text-muted text-[11.5px] shrink-0">View:</span>
+          <span className="text-gray-800 text-[11.5px] shrink-0">View:</span>
           <div className="flex border border-border rounded-lg overflow-hidden shrink-0">
             {VIEW_OPTIONS.map((v) => (
               <button
                 key={v}
                 className={`font-sans font-medium cursor-pointer transition-all duration-150 text-[11.5px] px-[12px] py-[5px] border-none whitespace-nowrap ${
-                  view === v ? 'bg-primary text-white' : 'bg-transparent text-muted'
+                  view === v ? 'bg-primary text-white' : 'bg-transparent text-gray-800'
                 }`}
                 onClick={() => handleViewSelect(v)}
               >

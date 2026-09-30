@@ -66,7 +66,7 @@ function PanelError({ message, onRetry }: { message?: string; onRetry: () => voi
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16 text-center px-4">
       <span className="text-[32px]">⚠️</span>
       <p className="font-semibold text-[14px]">Failed to load video identities</p>
-      <p className="text-[12px] text-muted max-w-md">{message || 'Check your connection and try again.'}</p>
+      <p className="text-[12px] text-gray-800 max-w-md">{message || 'Check your connection and try again.'}</p>
       <button
         className="mt-1 rounded-[8px] border-0 bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:opacity-85 cursor-pointer"
         onClick={onRetry}
@@ -139,9 +139,9 @@ function MediaLightbox({ state, onClose }: { state: MediaModalState; onClose: ()
 
         <div className="max-h-full overflow-auto rounded-[14px] bg-surface p-4">
           {state.loading ? (
-            <div className="flex h-56 w-56 items-center justify-center text-muted text-[12.5px]">Loading {label}…</div>
+            <div className="flex h-56 w-56 items-center justify-center text-gray-800 text-[12.5px]">Loading {label}…</div>
           ) : state.error || urls.length === 0 ? (
-            <div className="flex h-56 w-56 flex-col items-center justify-center gap-2 text-muted">
+            <div className="flex h-56 w-56 flex-col items-center justify-center gap-2 text-gray-800">
               <span className="text-[24px]">⚠️</span>
               <span className="text-[12.5px]">{state.type === 'video' ? 'Video unavailable' : 'Photo unavailable'}</span>
             </div>
@@ -214,7 +214,7 @@ function MediaLightbox({ state, onClose }: { state: MediaModalState; onClose: ()
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="font-mono text-[10.5px] text-muted mr-1">
+                <span className="font-mono text-[10.5px] text-gray-800 mr-1">
                   {activeIndex + 1} of {urls.length}
                 </span>
                 {urls.map((url, i) => (
@@ -423,7 +423,7 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
         {statCards.map((card) => (
           <div key={card.key} className="bg-surface border border-border rounded-[13px] px-5 py-[18px] flex flex-col gap-[10px]">
             <div className="flex items-center justify-between">
-              <span className="text-[10.5px] font-medium text-muted uppercase tracking-[.07em]">{card.label}</span>
+              <span className="text-[10.5px] font-medium text-gray-800 uppercase tracking-[.07em]">{card.label}</span>
               <div className={`w-[27px] h-[27px] rounded-[8px] flex items-center justify-center text-[13px] ${card.iconBg}`}>
                 {card.icon}
               </div>
@@ -436,7 +436,7 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
       {/* Filter bar */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[220px] max-w-[320px]">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-[13px] h-[13px] text-muted" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-[13px] h-[13px] text-gray-800" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -445,7 +445,7 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search employee name or ID"
-            className="w-full bg-surface border border-border rounded-lg pl-8 pr-3 py-[7px] text-[12.5px] text-primary placeholder:text-muted focus:outline-none focus:border-accent"
+            className="w-full bg-surface border border-border rounded-lg pl-8 pr-3 py-[7px] text-[12.5px] text-primary placeholder:text-gray-800 focus:outline-none focus:border-accent"
           />
         </div>
         <div className="flex items-center gap-1.5">
@@ -468,7 +468,7 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
         <div className="bg-border shrink-0 w-px h-5" />
         <div className="flex items-center gap-[6px]">
           <DatePicker ariaLabel="Filter start date" value={dateFrom} onChange={setDateFrom} max={dateTo} />
-          <span className="text-muted text-[11px]">to</span>
+          <span className="text-gray-800 text-[11px]">to</span>
           <DatePicker ariaLabel="Filter end date" value={dateTo} onChange={setDateTo} min={dateFrom} />
         </div>
         {hasActiveFilters && (
@@ -497,7 +497,7 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
       ) : isLoading ? (
         <PanelSkeleton />
       ) : entries.length === 0 ? (
-        <div className="bg-surface border border-border rounded-[14px] py-16 flex flex-col items-center justify-center gap-2 text-muted">
+        <div className="bg-surface border border-border rounded-[14px] py-16 flex flex-col items-center justify-center gap-2 text-gray-800">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
             <rect x="2" y="5" width="15" height="14" rx="2" />
             <path d="M17 9l5-3v12l-5-3" />
@@ -586,7 +586,7 @@ function MatchChip({ match, onViewImages }: { match: VideoIdentityMatch; onViewI
   if (match.status === 'unknown') {
     return (
       <div className="flex items-center gap-2 bg-surface-alt border border-border rounded-[10px] pl-[7px] pr-[10px] py-[6px]">
-        <div className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-border text-muted font-semibold text-[10.5px]">
+        <div className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-border text-gray-800 font-semibold text-[10.5px]">
           ?
         </div>
         <span className="rounded-full px-[8px] py-[2px] text-[9.5px] font-semibold whitespace-nowrap bg-amber-light text-amber">
@@ -613,7 +613,7 @@ function MatchChip({ match, onViewImages }: { match: VideoIdentityMatch; onViewI
       </div>
       <div className="flex flex-col min-w-0">
         <span className="text-[12px] font-medium text-primary truncate">{displayName}</span>
-        {match.user_id && <span className="font-mono text-[10px] text-muted truncate">{match.user_id}</span>}
+        {match.user_id && <span className="font-mono text-[10px] text-gray-800 truncate">{match.user_id}</span>}
       </div>
       <span className="rounded-full px-[8px] py-[2px] text-[9.5px] font-semibold whitespace-nowrap bg-accent-light text-accent">
         Identified

@@ -7,7 +7,7 @@
 }
 
 .table th {
-  @apply text-muted font-semibold uppercase border-b border-border text-left;
+  @apply text-gray-800 font-semibold uppercase border-b border-border text-left;
   font-size: 10px;
   letter-spacing: .09em;
   padding: 0 14px 10px;

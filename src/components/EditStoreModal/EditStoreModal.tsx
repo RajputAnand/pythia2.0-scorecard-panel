@@ -86,7 +86,7 @@ export default function EditStoreModal({ token, store, onClose, onUpdated }: Edi
       >
         <div className="flex items-center justify-between">
           <h2 className="text-[16px] font-semibold text-primary">Edit Store: {store.storeNo}</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="text-muted hover:text-primary cursor-pointer">
+          <button type="button" onClick={onClose} aria-label="Close" className="text-gray-800 hover:text-primary cursor-pointer">
             <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />

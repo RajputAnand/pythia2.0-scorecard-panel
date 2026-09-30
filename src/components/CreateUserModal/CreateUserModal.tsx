@@ -338,7 +338,7 @@ export default function CreateUserModal({
                 type="button"
                 onClick={handleDismiss}
                 aria-label="Close"
-                className="text-muted hover:text-primary cursor-pointer transition-colors"
+                className="text-gray-800 hover:text-primary cursor-pointer transition-colors"
               >
                 <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -346,7 +346,7 @@ export default function CreateUserModal({
                 </svg>
               </button>
             </div>
-            <p className="text-[12px] text-muted mb-4">
+            <p className="text-[12px] text-gray-800 mb-4">
               Select the user role and configure their access details below.
             </p>
 
@@ -374,7 +374,7 @@ export default function CreateUserModal({
                   ariaLabel="Select user role"
                   triggerClassName="py-2.5 text-[13px] bg-surface-alt border-border"
                 />
-                <p className="text-[11px] text-muted">{activeRoleOption.description}</p>
+                <p className="text-[11px] text-gray-800">{activeRoleOption.description}</p>
               </div>
 
               {/* Name Fields */}
@@ -387,7 +387,7 @@ export default function CreateUserModal({
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="Jane"
-                    className="w-full px-3 py-2 text-[13px] bg-surface-alt border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-accent text-primary placeholder:text-muted"
+                    className="w-full px-3 py-2 text-[13px] bg-surface-alt border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-accent text-primary placeholder:text-gray-800"
                   />
                 </div>
                 <div>
@@ -398,7 +398,7 @@ export default function CreateUserModal({
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="Doe"
-                    className="w-full px-3 py-2 text-[13px] bg-surface-alt border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-accent text-primary placeholder:text-muted"
+                    className="w-full px-3 py-2 text-[13px] bg-surface-alt border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-accent text-primary placeholder:text-gray-800"
                   />
                 </div>
               </div>
@@ -414,7 +414,7 @@ export default function CreateUserModal({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="jane.doe@example.com"
-                  className="w-full px-3 py-2 text-[13px] bg-surface-alt border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-accent text-primary placeholder:text-muted"
+                  className="w-full px-3 py-2 text-[13px] bg-surface-alt border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-accent text-primary placeholder:text-gray-800"
                 />
               </div>
 
@@ -426,7 +426,7 @@ export default function CreateUserModal({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+1 (555) 000-0000"
-                  className="w-full px-3 py-2 text-[13px] bg-surface-alt border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-accent text-primary placeholder:text-muted"
+                  className="w-full px-3 py-2 text-[13px] bg-surface-alt border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-accent text-primary placeholder:text-gray-800"
                 />
               </div>
 
@@ -505,7 +505,7 @@ export default function CreateUserModal({
                       <span className="block text-[12.5px] font-medium text-primary">
                         Allow maintenance of payment methods & subscription
                       </span>
-                      <span className="block text-[11px] text-muted leading-relaxed mt-0.5">
+                      <span className="block text-[11px] text-gray-800 leading-relaxed mt-0.5">
                         Grants access to the Stripe Customer Portal to add or update payment methods, view invoices, and manage subscription settings on behalf of this organization.
                       </span>
                     </div>

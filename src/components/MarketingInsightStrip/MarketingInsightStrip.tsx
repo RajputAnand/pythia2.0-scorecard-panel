@@ -78,13 +78,13 @@ export default function MarketingInsightStrip({ previewMode, highlightId }: Mark
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10.5px] font-medium text-muted uppercase tracking-[.07em]">{c.label}</span>
+            <span className="text-[10.5px] font-medium text-gray-800 uppercase tracking-[.07em]">{c.label}</span>
             <div className={`w-[26px] h-[26px] rounded-lg flex items-center justify-center text-[12px] ${c.iconBg}`}>
               {c.icon}
             </div>
           </div>
           <div className={`font-mono text-[26px] font-bold tracking-[-0.02em] leading-none ${c.valueColor}`}>{c.value}</div>
-          <div className="text-[11.5px] text-muted leading-[1.4]">{c.sub}</div>
+          <div className="text-[11.5px] text-gray-800 leading-[1.4]">{c.sub}</div>
         </div>
         )
       })}

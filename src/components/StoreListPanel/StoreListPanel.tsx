@@ -38,7 +38,7 @@ function PanelError({ message, onRetry }: { message?: string; onRetry: () => voi
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16 text-center px-4">
       <span className="text-[32px]">⚠️</span>
       <p className="font-semibold text-[14px]">Failed to load stores</p>
-      <p className="text-[12px] text-muted max-w-md">{message || 'Check your connection and try again.'}</p>
+      <p className="text-[12px] text-gray-800 max-w-md">{message || 'Check your connection and try again.'}</p>
       <button
         type="button"
         className="mt-1 rounded-[8px] border-0 bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:opacity-85 cursor-pointer"
@@ -58,11 +58,11 @@ function PanelEmpty({ search, view }: { search: string; view: 'active' | 'deacti
         {view === 'deactivated' ? 'No deactivated stores' : 'No stores found'}
       </p>
       {search ? (
-        <p className="text-[11.5px] text-muted">No results for &quot;{search}&quot;.</p>
+        <p className="text-[11.5px] text-gray-800">No results for &quot;{search}&quot;.</p>
       ) : view === 'deactivated' ? (
-        <p className="text-[11.5px] text-muted">Stores you deactivate will show up here and can be reactivated anytime.</p>
+        <p className="text-[11.5px] text-gray-800">Stores you deactivate will show up here and can be reactivated anytime.</p>
       ) : (
-        <p className="text-[11.5px] text-muted">Click &quot;+ Add Store&quot; above to create your first store location to see ROI attribution and Benchmarking.</p>
+        <p className="text-[11.5px] text-gray-800">Click &quot;+ Add Store&quot; above to create your first store location to see ROI attribution and Benchmarking.</p>
       )}
     </div>
   )
@@ -330,7 +330,7 @@ export default function StoreListPanel({
       render: (s) => (
         <div>
           <div className="font-semibold text-primary">{s.name}</div>
-          <div className="text-[11px] font-mono text-muted">{s.storeNo}</div>
+          <div className="text-[11px] font-mono text-gray-800">{s.storeNo}</div>
         </div>
       ),
     },
@@ -341,9 +341,9 @@ export default function StoreListPanel({
         const addressText = s.fullAddress || (s.address ? `${s.address.street || ''}, ${s.address.city || ''} ${s.address.state || ''}`.trim() : '')
         return (
           <div className="max-w-[280px]">
-            <div className="text-secondary font-medium text-[12.5px]">{s.location} · <span className="text-muted text-[11px]">{s.district}</span></div>
+            <div className="text-secondary font-medium text-[12.5px]">{s.location} · <span className="text-gray-800 text-[11px]">{s.district}</span></div>
             {addressText && (
-              <div className="text-[11px] text-muted truncate mt-0.5" title={addressText}>
+              <div className="text-[11px] text-gray-800 truncate mt-0.5" title={addressText}>
                 {addressText}
               </div>
             )}
@@ -367,11 +367,11 @@ export default function StoreListPanel({
             </span>
           </div>
           {s.lastHeartbeat ? (
-            <div className="text-[10.5px] text-muted">
+            <div className="text-[10.5px] text-gray-800">
               Last seen {new Date(s.lastHeartbeat).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </div>
           ) : (
-            <div className="text-[10.5px] text-muted font-mono">No heartbeat yet</div>
+            <div className="text-[10.5px] text-gray-800 font-mono">No heartbeat yet</div>
           )}
         </div>
       ),
@@ -388,7 +388,7 @@ export default function StoreListPanel({
             type="button"
             title="Copy pairing code"
             onClick={() => handleCopyPairingCode(s.pairingCode)}
-            className="text-muted hover:text-accent text-[12px] cursor-pointer"
+            className="text-gray-800 hover:text-accent text-[12px] cursor-pointer"
           >
             📋
           </button>
@@ -460,7 +460,7 @@ export default function StoreListPanel({
       render: (s) => (
         <div>
           <div className="font-semibold text-primary">{s.name}</div>
-          <div className="text-[11px] font-mono text-muted">{s.storeNo}</div>
+          <div className="text-[11px] font-mono text-gray-800">{s.storeNo}</div>
         </div>
       ),
     },
@@ -471,9 +471,9 @@ export default function StoreListPanel({
         const addressText = s.fullAddress || (s.address ? `${s.address.street || ''}, ${s.address.city || ''} ${s.address.state || ''}`.trim() : '')
         return (
           <div className="max-w-[280px]">
-            <div className="text-secondary font-medium text-[12.5px]">{s.location} · <span className="text-muted text-[11px]">{s.district}</span></div>
+            <div className="text-secondary font-medium text-[12.5px]">{s.location} · <span className="text-gray-800 text-[11px]">{s.district}</span></div>
             {addressText && (
-              <div className="text-[11px] text-muted truncate mt-0.5" title={addressText}>
+              <div className="text-[11px] text-gray-800 truncate mt-0.5" title={addressText}>
                 {addressText}
               </div>
             )}
@@ -485,7 +485,7 @@ export default function StoreListPanel({
       key: 'deactivated_at',
       header: 'Deactivated At',
       render: (s) => (
-        <span className="text-[11.5px] text-muted">
+        <span className="text-[11.5px] text-gray-800">
           {s.deactivated_at ? new Date(s.deactivated_at).toLocaleDateString() : '—'}
         </span>
       ),

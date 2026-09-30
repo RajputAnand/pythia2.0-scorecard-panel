@@ -121,7 +121,7 @@ export default function PostDemoRecaps() {
           </div>
           <div>
             <div className="text-[13px] font-semibold text-primary">{demo?.name || 'Unknown'}</div>
-            <div className="text-[11px] text-muted">{demo?.email || '—'}</div>
+            <div className="text-[11px] text-gray-800">{demo?.email || '—'}</div>
           </div>
         </div>
       ),
@@ -153,7 +153,7 @@ export default function PostDemoRecaps() {
       key: 'date',
       header: 'Date & Time',
       render: (demo) => (
-        <span className="text-[12px] text-muted">
+        <span className="text-[12px] text-gray-800">
           {demo?.startTime ? new Date(demo.startTime).toLocaleString(undefined, {
             month: 'short',
             day: 'numeric',
@@ -170,7 +170,7 @@ export default function PostDemoRecaps() {
       render: (demo) => {
         const isSent = demo?.id ? sentDemoIds.has(demo.id) : false
         return isSent ? (
-          <button disabled className="px-4 py-[6px] rounded-[8px] border text-[11.5px] font-semibold bg-surface border-border text-muted cursor-not-allowed">
+          <button disabled className="px-4 py-[6px] rounded-[8px] border text-[11.5px] font-semibold bg-surface border-border text-gray-800 cursor-not-allowed">
             Sent
           </button>
         ) : (
@@ -300,7 +300,7 @@ export default function PostDemoRecaps() {
                   {['Prospect Name', 'Status', 'Event Type', 'Date & Time', ''].map((h, i) => (
                     <th
                       key={i}
-                      className={`text-[10px] font-semibold text-muted uppercase tracking-[.09em] py-[10px] border-b border-border text-left whitespace-nowrap
+                      className={`text-[10px] font-semibold text-gray-800 uppercase tracking-[.09em] py-[10px] border-b border-border text-left whitespace-nowrap
                         ${i === 0 ? 'pl-[22px] pr-[18px]' : 'px-[18px]'} ${i === 4 ? 'text-right' : ''}`}
                     >
                       {h}
@@ -357,7 +357,7 @@ export default function PostDemoRecaps() {
           </div>
         )}
         {demos.length === 0 && !loadingDemos && (
-          <div className="px-[22px] py-[32px] text-[13px] text-muted text-center border-t border-border">
+          <div className="px-[22px] py-[32px] text-[13px] text-gray-800 text-center border-t border-border">
             No recent demos found.
           </div>
         )}
@@ -373,9 +373,9 @@ export default function PostDemoRecaps() {
                 <h3 className="text-[18px] font-bold tracking-tight text-primary">
                   Recap for {activeDemo.name.split(' ')[0]}
                 </h3>
-                <p className="text-[13.5px] text-muted mt-1.5">{activeDemo.email}</p>
+                <p className="text-[13.5px] text-gray-800 mt-1.5">{activeDemo.email}</p>
               </div>
-              <button onClick={closeModal} className="text-muted hover:text-primary p-1.5 rounded-full hover:bg-surface transition-all">
+              <button onClick={closeModal} className="text-gray-800 hover:text-primary p-1.5 rounded-full hover:bg-surface transition-all">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
             </div>
@@ -390,7 +390,7 @@ export default function PostDemoRecaps() {
                 <input
                   type="text"
                   {...register('recap1')}
-                  className={`w-full bg-surface-alt border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:border-accent transition-colors ${errors.recap1 ? 'border-danger focus:ring-danger/20' : 'border-border focus:ring-accent/20'}`}
+                  className={`w-full bg-surface-alt border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:border-accent transition-colors ${errors.recap1 ? 'border-danger focus:ring-danger/20' : 'border-border focus:ring-accent/20'}`}
                   placeholder="e.g. Discussed the $1,500/month inventory shrinkage..."
                 />
                 {errors.recap1 && <p className="text-[11.5px] text-danger mt-0.5">{errors.recap1.message}</p>}
@@ -405,7 +405,7 @@ export default function PostDemoRecaps() {
                 <input
                   type="text"
                   {...register('recap2')}
-                  className={`w-full bg-surface-alt border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:border-accent transition-colors ${errors.recap2 ? 'border-danger focus:ring-danger/20' : 'border-border focus:ring-accent/20'}`}
+                  className={`w-full bg-surface-alt border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:border-accent transition-colors ${errors.recap2 ? 'border-danger focus:ring-danger/20' : 'border-border focus:ring-accent/20'}`}
                   placeholder="e.g. You wanted to run a pilot in one store..."
                 />
                 {errors.recap2 && <p className="text-[11.5px] text-danger mt-0.5">{errors.recap2.message}</p>}
@@ -414,39 +414,39 @@ export default function PostDemoRecaps() {
               <div className="flex flex-col gap-[6px]">
                 <div className="flex items-center justify-between">
                   <label className="text-[12px] font-medium text-secondary uppercase tracking-[.07em]">
-                    Recap Point 3 <span className="normal-case tracking-normal font-normal text-muted ml-1">(Optional)</span>
+                    Recap Point 3 <span className="normal-case tracking-normal font-normal text-gray-800 ml-1">(Optional)</span>
                   </label>
                 </div>
                 <input
                   type="text"
                   {...register('recap3')}
-                  className="w-full bg-surface-alt border border-border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
+                  className="w-full bg-surface-alt border border-border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
                 />
               </div>
 
               <div className="flex flex-col gap-[6px]">
                 <div className="flex items-center justify-between">
                   <label className="text-[12px] font-medium text-secondary uppercase tracking-[.07em]">
-                    Recap Point 4 <span className="normal-case tracking-normal font-normal text-muted ml-1">(Optional)</span>
+                    Recap Point 4 <span className="normal-case tracking-normal font-normal text-gray-800 ml-1">(Optional)</span>
                   </label>
                 </div>
                 <input
                   type="text"
                   {...register('recap4')}
-                  className="w-full bg-surface-alt border border-border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
+                  className="w-full bg-surface-alt border border-border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
                 />
               </div>
 
               <div className="flex flex-col gap-[6px]">
                 <div className="flex items-center justify-between">
                   <label className="text-[12px] font-medium text-secondary uppercase tracking-[.07em]">
-                    Recap Point 5 <span className="normal-case tracking-normal font-normal text-muted ml-1">(Optional)</span>
+                    Recap Point 5 <span className="normal-case tracking-normal font-normal text-gray-800 ml-1">(Optional)</span>
                   </label>
                 </div>
                 <input
                   type="text"
                   {...register('recap5')}
-                  className="w-full bg-surface-alt border border-border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
+                  className="w-full bg-surface-alt border border-border rounded-lg px-3 py-[10px] text-[13.5px] text-primary placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
                 />
               </div>
 
@@ -491,9 +491,9 @@ export default function PostDemoRecaps() {
             <div className="px-8 py-6 border-b border-border flex items-start justify-between bg-surface-alt/50 rounded-t-[20px]">
               <div>
                 <h3 className="text-[18px] font-bold tracking-tight text-primary">Trigger Sequence 3</h3>
-                <p className="text-[13.5px] text-muted mt-1.5">Enter prospect emails below to enroll them in the sequence.</p>
+                <p className="text-[13.5px] text-gray-800 mt-1.5">Enter prospect emails below to enroll them in the sequence.</p>
               </div>
-              <button onClick={() => setIsBulkModalOpen(false)} className="text-muted hover:text-primary p-1.5 rounded-full hover:bg-surface transition-all">
+              <button onClick={() => setIsBulkModalOpen(false)} className="text-gray-800 hover:text-primary p-1.5 rounded-full hover:bg-surface transition-all">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
             </div>
@@ -510,10 +510,10 @@ export default function PostDemoRecaps() {
                   value={bulkEmails}
                   onChange={(e) => setBulkEmails(e.target.value)}
                   required
-                  className="w-full bg-surface-alt border border-border rounded-xl px-4 py-[14px] text-[14px] text-primary font-mono placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all resize-none shadow-inner"
+                  className="w-full bg-surface-alt border border-border rounded-xl px-4 py-[14px] text-[14px] text-primary font-mono placeholder:text-gray-800 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all resize-none shadow-inner"
                   placeholder="john@example.com, jane@example.com&#10;mike@example.com"
                 />
-                <p className="text-[12px] text-muted mt-2">
+                <p className="text-[12px] text-gray-800 mt-2">
                   These prospects will be automatically enrolled in the &quot;Trigger Cold Prospect Flow&quot; metric in Klaviyo.
                 </p>
               </div>

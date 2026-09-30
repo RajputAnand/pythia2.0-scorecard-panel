@@ -22,7 +22,7 @@ const shiftTimeColor: Record<ShiftVariant, string> = {
   high: 'text-accent',
   mid: 'text-amber',
   low: 'text-danger',
-  off: 'text-muted',
+  off: 'text-gray-800',
   gap: 'text-danger',
   fatigue: 'text-amber',
   suggested: 'text-accent',
@@ -73,7 +73,7 @@ export default function StaffingSchedulePanel({
       <div className="flex items-center justify-between px-5 py-[15px] border-b border-border">
         <div>
           <div className="text-[13.5px] font-semibold">Weekly Schedule</div>
-          <div className="text-[11.5px] text-muted mt-0.5">Click any shift to edit · Pythia flags are shown inline</div>
+          <div className="text-[11.5px] text-gray-800 mt-0.5">Click any shift to edit · Pythia flags are shown inline</div>
         </div>
         <button
           onClick={onApplyAllSuggestions}
@@ -111,20 +111,20 @@ export default function StaffingSchedulePanel({
 
       {/* Heatmap */}
       <div className="px-5 pt-3 pb-2 border-b border-border">
-        <div className="text-[9.5px] font-semibold text-muted uppercase tracking-[.09em] mb-2">Customer traffic by hour · Node 2 data</div>
+        <div className="text-[9.5px] font-semibold text-gray-800 uppercase tracking-[.09em] mb-2">Customer traffic by hour · Node 2 data</div>
         <div className="grid gap-[3px]" style={{ gridTemplateColumns: '80px repeat(7,1fr)' }}>
           <div />
           {dayLabels.map((d, i) => (
             <div
               key={i}
-              className={`text-[9.5px] font-semibold text-center pb-1 ${d.includes('⚠') ? 'text-danger' : d.includes('●') ? 'text-accent font-bold' : 'text-muted'}`}
+              className={`text-[9.5px] font-semibold text-center pb-1 ${d.includes('⚠') ? 'text-danger' : d.includes('●') ? 'text-accent font-bold' : 'text-gray-800'}`}
             >
               {d.split(' ').slice(0, 2).join(' ')}
             </div>
           ))}
           {heatmapRows.map((row) => (
             <Fragment key={row.label}>
-              <div className="text-[9.5px] text-muted font-mono flex items-center">{row.label}</div>
+              <div className="text-[9.5px] text-gray-800 font-mono flex items-center">{row.label}</div>
               {row.cells.map((color, ci) => (
                 <div key={ci} className="h-[18px] rounded-[3px]" style={{ background: color }} />
               ))}
@@ -138,7 +138,7 @@ export default function StaffingSchedulePanel({
         <table className="w-full border-collapse" style={{ minWidth: 580 }}>
           <thead>
             <tr>
-              <th className="text-[10px] font-semibold text-muted uppercase tracking-[.08em] px-2 pt-[10px] pb-2 border-b border-border text-center whitespace-nowrap pl-5 w-[130px]">
+              <th className="text-[10px] font-semibold text-gray-800 uppercase tracking-[.08em] px-2 pt-[10px] pb-2 border-b border-border text-center whitespace-nowrap pl-5 w-[130px]">
                 Employee
               </th>
               {dayLabels.map((d, i) => (
@@ -148,7 +148,7 @@ export default function StaffingSchedulePanel({
                     ? 'bg-accent-light text-accent'
                     : d.includes('⚠')
                       ? 'bg-surface-alt text-danger'
-                      : 'bg-surface-alt text-muted'
+                      : 'bg-surface-alt text-gray-800'
                     }`}
                 >
                   {d}
@@ -207,7 +207,7 @@ export default function StaffingSchedulePanel({
             ))}
             {employees.length === 0 && (
               <tr>
-                <td colSpan={8} className="text-center text-[12px] text-muted py-8">
+                <td colSpan={8} className="text-center text-[12px] text-gray-800 py-8">
                   No employees on record for this store
                 </td>
               </tr>
@@ -216,7 +216,7 @@ export default function StaffingSchedulePanel({
             {/* Peak row */}
             <tr>
               <td className="bg-surface-alt px-2 pt-[6px] pb-[6px] pl-5">
-                <div className="text-[9.5px] font-semibold text-muted uppercase tracking-[.07em] py-[6px]">Peak Traffic</div>
+                <div className="text-[9.5px] font-semibold text-gray-800 uppercase tracking-[.07em] py-[6px]">Peak Traffic</div>
               </td>
               {peakBars.map((bar, i) => (
                 <td key={i} className="bg-surface-alt px-[6px] py-1 last:pr-5">
@@ -239,7 +239,7 @@ export default function StaffingSchedulePanel({
 
       {/* Footer */}
       <div className="flex items-center justify-between px-5 py-3 border-t border-border bg-surface-alt">
-        <div className="text-[11.5px] text-muted">
+        <div className="text-[11.5px] text-gray-800">
           {lastSyncedAt ? (
             <>
               Synced <strong className="text-secondary font-medium">{formatRelativeTime(lastSyncedAt)}</strong>

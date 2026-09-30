@@ -23,7 +23,7 @@ const statusPillClass: Record<ManagerPlanStatus, string> = {
   acknowledged: 'bg-amber-light text-amber',
   in_progress: 'bg-amber-light text-amber',
   resolved: 'bg-accent-light text-accent',
-  dismissed: 'bg-surface-alt text-muted',
+  dismissed: 'bg-surface-alt text-gray-800',
 }
 
 const statusLabel: Record<ManagerPlanStatus, string> = {
@@ -59,7 +59,7 @@ function PanelError({ onRetry }: { onRetry: () => void }) {
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16">
       <span className="text-[32px]">⚠️</span>
       <p className="font-semibold text-[14px]">Failed to load coaching plans</p>
-      <p className="text-[12px] text-muted">Check your connection and try again.</p>
+      <p className="text-[12px] text-gray-800">Check your connection and try again.</p>
       <button
         className="mt-1 rounded-[8px] border-0 bg-accent px-4 py-2 text-[12.5px] font-semibold text-white hover:opacity-85 cursor-pointer"
         onClick={onRetry}
@@ -75,7 +75,7 @@ function PanelEmpty() {
     <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-16">
       <span className="text-[32px]">🎉</span>
       <p className="font-semibold text-[13px]">No stalled coaching plans</p>
-      <p className="text-[11.5px] text-muted">Every AI-escalated issue currently has a manager decision on file.</p>
+      <p className="text-[11.5px] text-gray-800">Every AI-escalated issue currently has a manager decision on file.</p>
     </div>
   )
 }
@@ -206,7 +206,7 @@ export default function StalledPlansPanel({ data }: StalledPlansPanelProps) {
                       {statusLabel[plan.status]}
                     </span>
                   </div>
-                  <span className="text-[11px] text-muted font-mono">
+                  <span className="text-[11px] text-gray-800 font-mono">
                     Escalated {weeksSince(plan.created_at)}+ week{weeksSince(plan.created_at) === 1 ? '' : 's'} ago
                   </span>
                 </div>
@@ -216,7 +216,7 @@ export default function StalledPlansPanel({ data }: StalledPlansPanelProps) {
                     if (!isEditing && !plan.plan[key]) return null
                     return (
                       <div key={key} className="flex flex-col gap-1">
-                        <span className="text-[10px] font-semibold text-muted uppercase tracking-[.07em]">{label}</span>
+                        <span className="text-[10px] font-semibold text-gray-800 uppercase tracking-[.07em]">{label}</span>
                         {isEditing ? (
                           <textarea
                             value={editDraft?.[key] ?? ''}
@@ -225,7 +225,7 @@ export default function StalledPlansPanel({ data }: StalledPlansPanelProps) {
                             className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-[12.5px] outline-none focus:border-accent transition-colors duration-150 resize-y"
                           />
                         ) : (
-                          <p className={`text-[12.5px] leading-[1.5] ${key === 'confidence_note' ? 'text-muted italic' : 'text-primary'}`}>
+                          <p className={`text-[12.5px] leading-[1.5] ${key === 'confidence_note' ? 'text-gray-800 italic' : 'text-primary'}`}>
                             {plan.plan[key]}
                           </p>
                         )}
@@ -235,7 +235,7 @@ export default function StalledPlansPanel({ data }: StalledPlansPanelProps) {
 
                   {isEditing && (
                     <div className="flex flex-col gap-1 pt-1">
-                      <span className="text-[10px] font-semibold text-muted uppercase tracking-[.07em]">
+                      <span className="text-[10px] font-semibold text-gray-800 uppercase tracking-[.07em]">
                         Reason for edit (required)
                       </span>
                       <input

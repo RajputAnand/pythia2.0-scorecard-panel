@@ -42,7 +42,7 @@ export default function EmployeeSpotlightCard({ topEmployee, view, previewMode, 
 
   if (!topEmployee || topEmployee.thanked_count === 0) {
     return (
-      <div className="bg-surface border border-border rounded-2xl px-8 py-6 text-center text-[12.5px] text-muted">
+      <div className="bg-surface border border-border rounded-2xl px-8 py-6 text-center text-[12.5px] text-gray-800">
         No employee has been thanked by a customer {periodLabel} yet — the spotlight will light up here once one is.
       </div>
     )

@@ -225,7 +225,7 @@ export default function OwnerSwagStore({
             <span className="text-[26px] font-bold text-primary font-mono">
               {activeCount}
             </span>
-            <span className="text-[12px] text-muted">
+            <span className="text-[12px] text-gray-800">
               {archivedCount} archived
             </span>
           </div>
@@ -244,7 +244,7 @@ export default function OwnerSwagStore({
             >
               {pendingCount}
             </span>
-            <span className="text-[11.5px] text-muted">
+            <span className="text-[11.5px] text-gray-800">
               {pendingCount > 0 ? 'Awaiting action' : 'All clear'}
             </span>
           </div>
@@ -260,7 +260,7 @@ export default function OwnerSwagStore({
               <span>🪙</span>
               {totalPoints.toLocaleString('en-US')}
             </span>
-            <span className="text-[11.5px] text-muted font-medium">pts total</span>
+            <span className="text-[11.5px] text-gray-800 font-medium">pts total</span>
           </div>
         </div>
 
@@ -273,7 +273,7 @@ export default function OwnerSwagStore({
             <span className="text-[26px] font-bold font-mono text-accent">
               {completedCount}
             </span>
-            <span className="text-[11.5px] text-muted">
+            <span className="text-[11.5px] text-gray-800">
               {totalOrdersCount} total orders
             </span>
           </div>
@@ -347,7 +347,7 @@ export default function OwnerSwagStore({
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-5">
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 <div className="relative w-full sm:w-64">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted text-[13px]">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-800 text-[13px]">
                     🔍
                   </span>
                   <input
@@ -355,7 +355,7 @@ export default function OwnerSwagStore({
                     placeholder="Search rewards…"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-surface-alt border border-border rounded-lg pl-8 pr-3 py-1.5 text-[12.5px] text-primary placeholder:text-muted focus:outline-none focus:border-accent"
+                    className="w-full bg-surface-alt border border-border rounded-lg pl-8 pr-3 py-1.5 text-[12.5px] text-primary placeholder:text-gray-800 focus:outline-none focus:border-accent"
                   />
                 </div>
 
@@ -380,7 +380,7 @@ export default function OwnerSwagStore({
                     ? 'No archived rewards found'
                     : 'No active rewards found'}
                 </p>
-                <p className="text-[12px] text-muted mt-1 max-w-sm">
+                <p className="text-[12px] text-gray-800 mt-1 max-w-sm">
                   {searchQuery || selectedCategory !== 'ALL'
                     ? 'Try adjusting your search query or category filter.'
                     : activeTab === 'archived'
@@ -433,7 +433,7 @@ export default function OwnerSwagStore({
                             <span className="font-mono font-bold text-[14px] text-gold flex items-center gap-1 bg-surface-alt/70 px-2.5 py-1 rounded-lg border border-border">
                               <span>🪙</span>
                               {product.cost.toLocaleString('en-US')}
-                              <span className="text-[10px] text-muted">pts</span>
+                              <span className="text-[10px] text-gray-800">pts</span>
                             </span>
                           </div>
                         </div>
@@ -448,7 +448,7 @@ export default function OwnerSwagStore({
                       <div className="mt-4 pt-3.5 border-t border-border flex flex-col gap-3">
                         <div className="flex items-center justify-between text-[11.5px]">
                           {/* Stock Status */}
-                          <span className="text-muted">
+                          <span className="text-gray-800">
                             {product.stock == null ? (
                               <span className="text-secondary font-medium">♾️ Unlimited Stock</span>
                             ) : product.stock === 0 ? (
@@ -467,11 +467,11 @@ export default function OwnerSwagStore({
                                 <span>🔒</span> {pendingCount} pending order{pendingCount > 1 ? 's' : ''}
                               </span>
                             ) : productOrders.length > 0 ? (
-                              <span className="text-muted text-[11px]">
+                              <span className="text-gray-800 text-[11px]">
                                 ✓ {productOrders.length} fulfilled
                               </span>
                             ) : (
-                              <span className="text-muted text-[11px]">0 orders</span>
+                              <span className="text-gray-800 text-[11px]">0 orders</span>
                             )}
                           </div>
                         </div>
@@ -545,13 +545,13 @@ export default function OwnerSwagStore({
                 <h3 className="font-semibold text-[14px] text-primary">
                   Employee Redemptions & Fulfillment
                 </h3>
-                <p className="text-[12px] text-muted mt-0.5">
+                <p className="text-[12px] text-gray-800 mt-0.5">
                   Fulfill rewards claimed by employees. Completing open orders unlocks deletion
                   for products that no longer have pending obligations.
                 </p>
               </div>
 
-              <div className="text-[11.5px] text-muted">
+              <div className="text-[11.5px] text-gray-800">
                 {orders.length} total orders recorded
               </div>
             </div>
@@ -560,7 +560,7 @@ export default function OwnerSwagStore({
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <span className="text-[36px] mb-2">📦</span>
                 <p className="font-semibold text-[13.5px] text-primary">No redemptions yet</p>
-                <p className="text-[12px] text-muted mt-1">
+                <p className="text-[12px] text-gray-800 mt-1">
                   When employees claim rewards from the swag store, their orders will appear here.
                 </p>
               </div>
@@ -620,7 +620,7 @@ export default function OwnerSwagStore({
                             )}
                           </td>
 
-                          <td className="px-4 py-3 text-muted text-[12px]">
+                          <td className="px-4 py-3 text-gray-800 text-[12px]">
                             {orderDate}
                           </td>
 
@@ -640,7 +640,7 @@ export default function OwnerSwagStore({
                                   ✕ Rejected
                                 </span>
                                 {order.rejectionReason && (
-                                  <span className="block text-[10.5px] text-muted mt-0.5 truncate max-w-[160px]" title={order.rejectionReason}>
+                                  <span className="block text-[10.5px] text-gray-800 mt-0.5 truncate max-w-[160px]" title={order.rejectionReason}>
                                     &ldquo;{order.rejectionReason}&rdquo;
                                   </span>
                                 )}
@@ -678,7 +678,7 @@ export default function OwnerSwagStore({
                                   </button>
                                 </div>
                               ) : isCompleted ? (
-                                <span className="text-muted text-[11.5px] italic">
+                                <span className="text-gray-800 text-[11.5px] italic">
                                   Fulfilled
                                 </span>
                               ) : isRejected ? (
@@ -686,7 +686,7 @@ export default function OwnerSwagStore({
                                   Rejected
                                 </span>
                               ) : (
-                                <span className="text-muted text-[11.5px] italic">
+                                <span className="text-gray-800 text-[11.5px] italic">
                                   Cancelled
                                 </span>
                               )}

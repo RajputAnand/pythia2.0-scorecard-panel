@@ -116,53 +116,53 @@ export default function ManagerDashboardKpiStrip({ summary, previewMode, highlig
       {steps.map((step) => {
         const dimmed = highlightId != null && step.id !== highlightId
         return (
-        <div
-          key={step.key}
+          <div
+            key={step.key}
           className={`bg-surface border rounded-[13px] px-5 py-[18px] flex flex-col gap-[10px] transition-all duration-200 ${
             dimmed
-              ? 'border-border opacity-35 blur-[1.5px] saturate-50'
-              : highlightId != null
-                ? 'border-accent ring-2 ring-accent/40 shadow-[0_4px_18px_rgba(0,0,0,.07)]'
-                : 'border-border hover:shadow-[0_4px_18px_rgba(0,0,0,.07)]'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[10.5px] font-medium text-muted uppercase tracking-[.06em] leading-tight">
-              {step.label}
-            </span>
-            <div className={`w-[27px] h-[27px] rounded-[8px] flex items-center justify-center text-[13px] shrink-0 ${step.iconBg}`}>
-              {step.icon}
+                ? 'border-border opacity-35 blur-[1.5px] saturate-50'
+                : highlightId != null
+                  ? 'border-accent ring-2 ring-accent/40 shadow-[0_4px_18px_rgba(0,0,0,.07)]'
+                  : 'border-border hover:shadow-[0_4px_18px_rgba(0,0,0,.07)]'
+              }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10.5px] font-medium uppercase tracking-[.06em] leading-tight text-black">
+                {step.label}
+              </span>
+              <div className={`w-[27px] h-[27px] rounded-[8px] flex items-center justify-center text-[13px] shrink-0 ${step.iconBg}`}>
+                {step.icon}
+              </div>
+            </div>
+
+            {step.card.tracked ? (
+              <>
+                <div className={`text-[30px] font-semibold tracking-[-0.02em] leading-none ${step.valueColor}`}>
+                  {step.card.rate}%
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1 h-[6px] bg-surface-alt rounded-[3px] overflow-hidden">
+                    <div className="h-full rounded-[3px]" style={{ width: `${step.card.rate}%`, background: step.barColor }} />
+                  </div>
+                  <span className={`font-mono text-[11px] font-medium shrink-0 ${step.valueColor}`}>{step.card.count}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-[30px] font-semibold tracking-[-0.02em] leading-none text-gray-800">—</div>
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1 h-[6px] bg-surface-alt rounded-[3px] overflow-hidden" />
+                  <span className="font-mono text-[11px] font-medium shrink-0 text-gray-800">n/a</span>
+                </div>
+              </>
+            )}
+
+            <div className="text-[11.5px] text-gray-800 leading-snug">
+              <strong className={`font-mono font-semibold ${step.valueColor}`}>+25 pts</strong> / visit
+              {!step.card.tracked && <span className="italic"> · tracking coming soon</span>}
+              <div className="mt-[3px] text-[12.5px] text-gray-800">{step.blurb}</div>
             </div>
           </div>
-
-          {step.card.tracked ? (
-            <>
-              <div className={`text-[30px] font-semibold tracking-[-0.02em] leading-none ${step.valueColor}`}>
-                {step.card.rate}%
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="flex-1 h-[6px] bg-surface-alt rounded-[3px] overflow-hidden">
-                  <div className="h-full rounded-[3px]" style={{ width: `${step.card.rate}%`, background: step.barColor }} />
-                </div>
-                <span className={`font-mono text-[11px] font-medium shrink-0 ${step.valueColor}`}>{step.card.count}</span>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="text-[30px] font-semibold tracking-[-0.02em] leading-none text-muted">—</div>
-              <div className="flex items-center gap-1.5">
-                <div className="flex-1 h-[6px] bg-surface-alt rounded-[3px] overflow-hidden" />
-                <span className="font-mono text-[11px] font-medium shrink-0 text-muted">n/a</span>
-              </div>
-            </>
-          )}
-
-          <div className="text-[11.5px] text-muted leading-snug">
-            <strong className={`font-mono font-semibold ${step.valueColor}`}>+25 pts</strong> / visit
-            {!step.card.tracked && <span className="italic"> · tracking coming soon</span>}
-            <div className="mt-[3px] text-[10.5px] opacity-80">{step.blurb}</div>
-          </div>
-        </div>
         )
       })}
     </div>

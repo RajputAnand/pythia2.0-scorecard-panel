@@ -37,18 +37,18 @@ export default function RestoreIdentityPanel({ identity, onRestored }: RestoreId
 
       <div className="flex flex-col gap-1 text-[11.5px] text-secondary">
         <div className="flex justify-between gap-2 min-w-0">
-          <span className="text-muted shrink-0">Store</span>
+          <span className="text-gray-800 shrink-0">Store</span>
           <span className="font-mono truncate" title={identity.store_id}>{identity.store_id}</span>
         </div>
         {identity.trashed_at_utc && (
           <div className="flex justify-between gap-2 min-w-0">
-            <span className="text-muted shrink-0">Trashed</span>
+            <span className="text-gray-800 shrink-0">Trashed</span>
             <span className="truncate">{new Date(identity.trashed_at_utc).toLocaleString('en-US')}</span>
           </div>
         )}
       </div>
 
-      <p className="text-[11.5px] text-muted">
+      <p className="text-[11.5px] text-gray-800">
         This identity and its scores are hidden but not deleted. Restoring it puts it back among unresolved identities.
       </p>
 

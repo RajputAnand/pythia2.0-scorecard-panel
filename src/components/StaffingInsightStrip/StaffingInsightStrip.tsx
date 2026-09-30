@@ -119,7 +119,7 @@ export default function StaffingInsightStrip({ data, previewMode, highlightId }:
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10.5px] font-medium text-muted uppercase tracking-[.07em]">{card.label}</span>
+            <span className="text-[10.5px] font-medium text-gray-800 uppercase tracking-[.07em]">{card.label}</span>
             <div className={`w-[26px] h-[26px] rounded-[8px] flex items-center justify-center text-[12px] ${iconBg[card.iconVariant]}`}>
               {card.icon}
             </div>
@@ -127,7 +127,7 @@ export default function StaffingInsightStrip({ data, previewMode, highlightId }:
           <div className={`font-mono text-[26px] font-bold tracking-[-0.02em] leading-none ${valueColor[card.valueVariant]}`}>
             {card.value}
           </div>
-          <div className="text-[11.5px] text-muted leading-[1.4]">
+          <div className="text-[11.5px] text-gray-800 leading-[1.4]">
             <strong className="text-secondary font-medium">{card.subBold}</strong>
             {card.sub}
           </div>

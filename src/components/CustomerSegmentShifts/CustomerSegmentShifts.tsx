@@ -155,7 +155,7 @@ export default function CustomerSegmentShifts({ previewMode, customerSegmentsDat
     <div className="bg-surface border border-border rounded-[14px] overflow-hidden">
       <div className="px-[22px] py-4 border-b border-border">
         <div className="text-[13.5px] font-semibold">Customer Segment Shifts</div>
-        <div className="text-[11.5px] text-muted mt-[2px]">Growing, stable, and shrinking visitor groups</div>
+        <div className="text-[11.5px] text-gray-800 mt-[2px]">Growing, stable, and shrinking visitor groups</div>
       </div>
 
       <div className="flex flex-col gap-[10px] px-[22px] py-5">
@@ -169,16 +169,16 @@ export default function CustomerSegmentShifts({ previewMode, customerSegmentsDat
             </div>
             <div className="flex-1">
               <div className="text-[12.5px] font-semibold">{seg.name}</div>
-              <div className="text-[11px] text-muted mt-px">{seg.detail}</div>
+              <div className="text-[11px] text-gray-800 mt-px">{seg.detail}</div>
             </div>
             <div className="flex gap-[14px]">
               <div className="flex flex-col items-end gap-px">
                 <div className={`font-mono text-[15px] font-bold ${seg.visitColor}`}>{seg.visitGrowth}</div>
-                <div className="text-[9px] text-muted uppercase tracking-[.06em]">Visit growth</div>
+                <div className="text-[9px] text-gray-800 uppercase tracking-[.06em]">Visit growth</div>
               </div>
               <div className="flex flex-col items-end gap-px">
                 <div className={`font-mono text-[15px] font-bold ${seg.basketColor}`}>{seg.avgBasket}</div>
-                <div className="text-[9px] text-muted uppercase tracking-[.06em]">Avg basket</div>
+                <div className="text-[9px] text-gray-800 uppercase tracking-[.06em]">Avg basket</div>
               </div>
             </div>
           </div>

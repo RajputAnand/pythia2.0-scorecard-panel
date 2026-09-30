@@ -11,7 +11,7 @@ function ProgressEmpty({ message }: { message?: string | null }) {
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16">
       <span className="text-[32px]">📋</span>
       <p className="font-semibold text-[14px]">{message ? 'Progress unavailable' : 'No progress data yet'}</p>
-      <p className="text-[12px] text-muted">{message ?? 'Your weekly progress will appear once your first shift is logged.'}</p>
+      <p className="text-[12px] text-gray-800">{message ?? 'Your weekly progress will appear once your first shift is logged.'}</p>
     </div>
   )
 }

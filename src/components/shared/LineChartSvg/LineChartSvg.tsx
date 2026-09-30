@@ -113,7 +113,7 @@ export default function LineChartSvg({
           <span
             key={`${label}-${index}`}
             className={`font-mono text-center text-[9.5px] ${
-              highlight ? 'text-accent font-semibold' : color ? '' : 'text-muted'
+              highlight ? 'text-accent font-semibold' : color ? '' : 'text-gray-800'
             }`}
             style={color !== undefined || opacity !== undefined ? { color, opacity } : undefined}
           >

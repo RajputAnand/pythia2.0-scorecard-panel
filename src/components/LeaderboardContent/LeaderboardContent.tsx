@@ -12,7 +12,7 @@ function LeaderboardEmpty({ message }: { message?: string | null }) {
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-surface py-16">
       <span className="text-[32px]">📋</span>
       <p className="font-semibold text-[14px]">{message ? 'Leaderboard unavailable' : 'No leaderboard data yet'}</p>
-      <p className="text-[12px] text-muted">{message ?? "Rankings will appear once your team's shifts are logged."}</p>
+      <p className="text-[12px] text-gray-800">{message ?? "Rankings will appear once your team's shifts are logged."}</p>
     </div>
   )
 }

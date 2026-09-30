@@ -46,7 +46,7 @@ export default function StaffingRecommendations({
           <div key={rec.id} className="px-[18px] py-[13px] border-b border-border last:border-b-0 flex flex-col gap-2">
             <div className="flex items-start justify-between gap-2">
               <span
-                className={`text-[9.5px] font-bold px-[7px] py-[2px] rounded-[5px] uppercase tracking-[.07em] whitespace-nowrap ${typePillClass[rec.type] ?? 'bg-surface-alt text-muted'}`}
+                className={`text-[9.5px] font-bold px-[7px] py-[2px] rounded-[5px] uppercase tracking-[.07em] whitespace-nowrap ${typePillClass[rec.type] ?? 'bg-surface-alt text-gray-800'}`}
               >
                 {rec.type_label}
               </span>
@@ -70,7 +70,7 @@ export default function StaffingRecommendations({
                   <button
                     onClick={() => onDismiss(rec.id)}
                     disabled={applyingId === rec.id}
-                    className="flex-1 py-[7px] px-[10px] rounded-lg text-[11.5px] font-semibold bg-surface-alt text-muted border border-border cursor-pointer font-sans transition-colors hover:bg-border disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex-1 py-[7px] px-[10px] rounded-lg text-[11.5px] font-semibold bg-surface-alt text-gray-800 border border-border cursor-pointer font-sans transition-colors hover:bg-border disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     Dismiss
                   </button>
@@ -80,12 +80,12 @@ export default function StaffingRecommendations({
           </div>
         ))}
         {visible.length === 0 && !isGenerating && (
-          <div className="px-[18px] py-8 text-center text-[12.5px] text-muted">
+          <div className="px-[18px] py-8 text-center text-[12.5px] text-gray-800">
             {generationStatus === 'idle' ? 'No recommendations yet — use Refresh in the header to generate' : 'All recommendations handled ✓'}
           </div>
         )}
         {isGenerating && visible.length === 0 && (
-          <div className="px-[18px] py-8 text-center text-[12.5px] text-muted">Generating recommendations…</div>
+          <div className="px-[18px] py-8 text-center text-[12.5px] text-gray-800">Generating recommendations…</div>
         )}
       </div>
     </div>
