@@ -25,6 +25,7 @@ declare module "next-auth" {
     can_manage_subscription?: boolean
     is_root_owner?: boolean
     first_login?: boolean
+    isDemo?: boolean
   }
 }
 
@@ -48,5 +49,6 @@ declare module "next-auth/jwt" {
     can_manage_subscription?: boolean
     is_root_owner?: boolean
     first_login?: boolean
+    isDemo?: boolean
   }
 }
