@@ -30,6 +30,7 @@ export interface FetchBenchmarkAllStoresParams {
   limit?: number
   signal?: AbortSignal
   filter_mode?: string
+  selectedStoreId: string | null
 }
 
 
@@ -48,8 +49,12 @@ export async function fetchBenchmarkAllStoreData({
   skip = 0,
   limit = 20,
   signal,
-  filter_mode
+  filter_mode,
+  selectedStoreId
 }: FetchBenchmarkAllStoresParams): Promise<BenchmarkingAllStoreDataResponse> {
+  if (token?.includes('demo-mock')) {
+    return fakeGetAllStoreData()
+  }
   if (!token) {
     return {
       success: true,
@@ -77,7 +82,8 @@ export async function fetchBenchmarkAllStoreData({
         search: search || undefined,
         skip,
         limit,
-        filter_mode
+        filter_mode,
+        ...(filter_mode === "near_you" && {selected_store_id: selectedStoreId})
       },
       signal,
     },
@@ -101,4 +107,3 @@ export async function fetchBenchmarkAllStoreData({
     data: mapped,
   }
 }
-

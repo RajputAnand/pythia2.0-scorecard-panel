@@ -70,7 +70,7 @@ export default function OwnerDashboardContent({ subtitlePrefix, initialHasStores
     let cancelled = false
     setLoading(true)
 
-    fetchBenchmarkAllStoreData({ token, limit: 10 })
+    fetchBenchmarkAllStoreData({ token, limit: 5, selectedStoreId })
       .then((res) => {
         if (!cancelled) {
           setAllStoreData(res?.data || [])
