@@ -71,7 +71,7 @@ export async function fetchOrganizationOwners({
   search,
   isActive,
 }: FetchOrganizationOwnersParams): Promise<{ success: boolean; data: OrganizationOwner[]; total: number }> {
-  if (!token) {
+  if (!token || token.includes('demo-mock')) {
     return getMockOwners(search, isActive)
   }
 
@@ -99,7 +99,7 @@ export async function createSubOwner({
   phone,
   canManageSubscription = false,
 }: CreateSubOwnerParams): Promise<CreateSubOwnerResult> {
-  if (!token) {
+  if (!token || token.includes('demo-mock')) {
     const createdId = 'OWN-' + Math.floor(100 + Math.random() * 900)
     mockPermissions.set(createdId, canManageSubscription)
     return {
@@ -135,7 +135,7 @@ export async function deactivateSubOwner({
   token?: string
   userId: string
 }): Promise<{ success: boolean; user_id: string; is_active: boolean; already_inactive: boolean }> {
-  if (!token) {
+  if (!token || token.includes('demo-mock')) {
     mockInactive.add(userId)
     return { success: true, user_id: userId, is_active: false, already_inactive: false }
   }
@@ -158,7 +158,7 @@ export async function fetchSubOwnerCredentials({
   token?: string
   userId: string
 }): Promise<OwnerCredentialsResult> {
-  if (!token) {
+  if (!token || token.includes('demo-mock')) {
     return {
       success: true,
       user_id: userId,
@@ -186,7 +186,7 @@ export async function toggleSubOwnerSubscriptionPermission({
   userId: string
   canManageSubscription: boolean
 }): Promise<{ success: boolean; user_id: string; can_manage_subscription: boolean }> {
-  if (!token) {
+  if (!token || token.includes('demo-mock')) {
     mockPermissions.set(userId, canManageSubscription)
     return { success: true, user_id: userId, can_manage_subscription: canManageSubscription }
   }

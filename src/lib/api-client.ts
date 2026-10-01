@@ -67,7 +67,7 @@ function createClient(baseURL: string | undefined): AxiosInstance {
         const config = error.config as RetriableConfig | undefined
         const authHeader = (config?.headers?.get?.('Authorization') as string) || ''
         const wasAuthenticatedRequest = !!authHeader
-        const isMockToken = authHeader.includes('mock') || authHeader.includes('test')
+        const isMockToken = authHeader.includes('mock') || authHeader.includes('test') || authHeader.includes('demo-frontend-')
 
         // Do not trigger hard redirect to login if request carries a mock token
         if (wasAuthenticatedRequest && !isMockToken) {

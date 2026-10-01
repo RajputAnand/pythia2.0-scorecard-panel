@@ -23,7 +23,22 @@ const MOCK_ROSTER: ApiRosterMember[] = [
     score: 92,
     score_tier: 'high',
   },
+  { employee_id: 'EMP-103', first_name: 'Avery', last_name: 'Patel', score: 76, score_tier: 'mid' },
 ]
+
+function addDays(date: string, days: number) {
+  const value = new Date(`${date}T12:00:00Z`)
+  value.setUTCDate(value.getUTCDate() + days)
+  return value.toISOString().slice(0, 10)
+}
+
+function mockShifts(storeId: string, weekStartDate: string) {
+  return [
+    { id: 'demo-shift-101', employee_id: 'EMP-101', employee_first_name: 'Marcus', employee_last_name: 'Rivera', employee_score: 88, employee_score_tier: 'high' as const, date: addDays(weekStartDate, 0), day_part: 'morning', status: 'scheduled', source: 'actual' as const, paired_with: 'EMP-102', flags: [] },
+    { id: 'demo-shift-102', employee_id: 'EMP-102', employee_first_name: 'Jessica', employee_last_name: 'Chen', employee_score: 92, employee_score_tier: 'high' as const, date: addDays(weekStartDate, 1), day_part: 'afternoon', status: 'scheduled', source: 'suggested' as const, paired_with: null, flags: [{ type: 'coverage_gap' as const, severity: 'warning' as const }] },
+    { id: 'demo-shift-103', employee_id: 'EMP-103', employee_first_name: 'Avery', employee_last_name: 'Patel', employee_score: 76, employee_score_tier: 'mid' as const, date: addDays(weekStartDate, 2), day_part: 'evening', status: 'scheduled', source: 'actual' as const, paired_with: null, flags: [{ type: 'fatigue_shift' as const, severity: 'warning' as const }] },
+  ]
+}
 
 export interface FetchStaffingScheduleParams {
   token: string
@@ -39,13 +54,14 @@ export async function fetchStaffingSchedule({
   signal,
 }: FetchStaffingScheduleParams): Promise<ApiScheduleResponse> {
   if (token.includes('mock')) {
+    const shifts = mockShifts(storeId, weekStartDate)
     return {
       store_id: storeId,
       week_start_date: weekStartDate,
-      week_end_date: weekStartDate,
-      total_shifts: 0,
-      by_employee: {},
-      shifts: [],
+      week_end_date: addDays(weekStartDate, 6),
+      total_shifts: shifts.length,
+      by_employee: Object.fromEntries(shifts.map((shift) => [shift.employee_id, [shift]])),
+      shifts,
     }
   }
   const { data } = await pythia2Client.get<ApiScheduleResponse & { success: boolean }>(
@@ -193,8 +209,12 @@ export async function fetchStaffingHeatmap({
     return {
       store_id: storeId,
       week_start_date: weekStartDate,
-      week_end_date: weekStartDate,
-      days: [],
+      week_end_date: addDays(weekStartDate, 6),
+      days: [0, 1, 2].map((offset, index) => ({
+        date_local: addDays(weekStartDate, offset), day_label: ['Mon', 'Tue', 'Wed'][index],
+        cells: [{ segment: 'morning', count: 4 + index, intensity: 'moderate' as const }, { segment: 'afternoon', count: 7 + index, intensity: 'high' as const }, { segment: 'evening', count: 10 + index, intensity: 'very_high' as const }],
+        peak_segment: 'evening', peak_intensity: 'very_high',
+      })),
     }
   }
   const { data } = await pythia2Client.get<ApiTrafficHeatmap & { success: boolean }>(
@@ -221,18 +241,18 @@ export async function fetchStaffingInsights({
 }): Promise<ApiInsights> {
   if (token.includes('mock')) {
     return {
-      coverage_gaps: 0,
-      coverage_gaps_sub_bold: '0 gaps',
-      coverage_gaps_sub: 'across peak hours',
-      fatigue_flags: 0,
-      fatigue_flags_sub_bold: '0 flags',
-      fatigue_flags_sub: 'overtime avoided',
-      weak_pairings: 0,
-      weak_pairings_sub_bold: '0 weak',
-      weak_pairings_sub: 'optimal balance',
-      optimized_shifts: 0,
-      optimized_shifts_sub_bold: '0 shifts',
-      optimized_shifts_sub: 'scheduled',
+      coverage_gaps: 1,
+      coverage_gaps_sub_bold: '1 gap',
+      coverage_gaps_sub: 'during peak hours',
+      fatigue_flags: 1,
+      fatigue_flags_sub_bold: '1 flag',
+      fatigue_flags_sub: 'review weekly hours',
+      weak_pairings: 1,
+      weak_pairings_sub_bold: '1 pairing',
+      weak_pairings_sub: 'could improve team balance',
+      optimized_shifts: 3,
+      optimized_shifts_sub_bold: '3 shifts',
+      optimized_shifts_sub: 'scheduled this week',
     }
   }
   const { data } = await pythia2Client.get<ApiInsights & { success: boolean }>(PYTHIA_2_API.staffing.insights, {
@@ -255,13 +275,18 @@ export async function fetchStaffingRecommendations({
   signal?: AbortSignal
 }): Promise<ApiRecommendationsResponse> {
   if (token.includes('mock')) {
+    const recommendations = [
+      { id: 'demo-rec-101', type: 'coverage_gap' as const, type_label: 'Coverage Gap', text: 'Add coverage for Tuesday evening', detail: 'Peak traffic is expected between 5–7 PM.', severity: 'critical' as const, target: { date: addDays(weekStartDate, 1), day_part: 'evening', suggested_employee_id: 'EMP-103' }, status: 'active' as const, created_at: `${weekStartDate}T09:00:00Z` },
+      { id: 'demo-rec-102', type: 'weak_pairing' as const, type_label: 'Team Pairing', text: 'Pair Marcus with Jessica', detail: 'This pairing has a strong customer service score.', severity: 'warning' as const, target: { date: addDays(weekStartDate, 2), employee_ids: ['EMP-101', 'EMP-102'] }, status: 'active' as const, created_at: `${weekStartDate}T09:05:00Z` },
+      { id: 'demo-rec-103', type: 'fatigue_shift' as const, type_label: 'Fatigue Risk', text: 'Review Avery’s evening shift', detail: 'Consider reducing consecutive evening shifts.', severity: 'warning' as const, target: { date: addDays(weekStartDate, 2), employee_id: 'EMP-103' }, status: 'active' as const, created_at: `${weekStartDate}T09:10:00Z` },
+    ]
     return {
       store_id: storeId,
       week_start_date: weekStartDate,
-      generation_status: 'idle',
-      generated_at: null,
-      critical_alert: null,
-      recommendations: [],
+      generation_status: 'done',
+      generated_at: `${weekStartDate}T09:00:00Z`,
+      critical_alert: { recommendation_id: 'demo-rec-101', text: 'Tuesday evening needs additional coverage', detail: 'One high traffic segment has no scheduled staff.' },
+      recommendations,
     }
   }
   const { data } = await pythia2Client.get<ApiRecommendationsResponse & { success: boolean }>(

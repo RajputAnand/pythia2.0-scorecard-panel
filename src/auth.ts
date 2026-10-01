@@ -53,6 +53,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.can_manage_subscription = user.can_manage_subscription
         token.is_root_owner = user.is_root_owner
         token.first_login = user.first_login
+        token.isDemo = user.isDemo
         token.accessTokenExpires = getJwtExp(user.pythia2Token || user.token)
         return token
       }
@@ -100,6 +101,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.can_manage_subscription = t.can_manage_subscription
       session.user.is_root_owner = t.is_root_owner
       session.user.first_login = t.first_login
+      session.user.isDemo = t.isDemo
       session.error = t.error
       return session
     },

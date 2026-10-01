@@ -7,6 +7,7 @@ import { pythia1Client, pythia2Client } from "@/lib/api-client"
 import { PYTHIA_2_API } from "@/utils/api-endpoints"
 import { extractApiErrorMessage } from "@/utils/common"
 import type { ForgotPasswordResult, ResetPasswordResult, LoginResponse, P1LoginResponse, P1ProfileResponse } from "@/types/auth"
+import { DEMO_USERS, isDemoModeEnabled } from '@/lib/demo-user'
 
 // Manager and Owner auth are normally fully on Pythia 1.0: no Pythia 2.0 JWT is ever
 // issued or accepted for these roles (see PYTHIA1_AUTH_HANDOFF.md and dependencies_p1.py's
@@ -101,6 +102,31 @@ export async function login(_prev: string | null | undefined | unknown, formData
 
     if (!identifier || !password) {
       return { success: false, error: 'Email/User ID and password are required.' }
+    }
+
+    const demoUser = DEMO_USERS.find((user) => user.email.toLowerCase() === identifier.toLowerCase() && user.password === password)
+    if (demoUser) {
+      if (requestedRole && requestedRole !== demoUser.role) {
+        return { success: false, error: `This account is registered as '${demoUser.role}'. Please switch to the '${demoUser.role}' login.` }
+      }
+
+      const { password: _password, ...demoProfile } = demoUser
+      const demoToken = isDemoModeEnabled() ? `demo-mock-${demoUser.role}` : `demo-frontend-${demoUser.role}`
+      await signIn('credentials', {
+        email: demoUser.email,
+        password,
+        userData: JSON.stringify({
+          ...demoProfile,
+          token: demoToken,
+          pythia2Token: demoToken,
+          store_ids: demoUser.storeIds,
+          isDemo: true,
+          can_manage_subscription: demoUser.role === 'owner',
+          is_root_owner: demoUser.role === 'owner',
+        }),
+        redirect: false,
+      })
+      return { success: true, role: demoUser.role }
     }
 
     let result: LoginResponse

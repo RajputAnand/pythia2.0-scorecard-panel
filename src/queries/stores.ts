@@ -53,6 +53,12 @@ function mapApiStoreToTenantStore(s: any, tenantId?: string): TenantStore {
   }
 }
 
+const DEMO_STORES = [
+  { store_code: 'STORE-001', store_name: 'Lion Mart Downtown', location_city: 'Austin', district_region: 'Central', full_address: '100 Congress Ave, Austin, TX', tenant_id: 'TENANT-DEMO', is_active: true, status: 'live', nodes_online: 3, manager_count: 1, employee_count: 3 },
+  { store_code: 'STORE-002', store_name: 'Lion Mart North', location_city: 'Austin', district_region: 'North', full_address: '2500 North Loop, Austin, TX', tenant_id: 'TENANT-DEMO', is_active: true, status: 'live', nodes_online: 2, manager_count: 1, employee_count: 2 },
+  { store_code: 'STORE-003', store_name: 'Lion Mart South', location_city: 'Austin', district_region: 'South', full_address: '800 South Lamar, Austin, TX', tenant_id: 'TENANT-DEMO', is_active: true, status: 'live', nodes_online: 2, manager_count: 1, employee_count: 2 },
+]
+
 export async function fetchStoresForTenant({
   token,
   tenantId,
@@ -70,6 +76,12 @@ export async function fetchStoresForTenant({
   }
 
   const isActive = status === 'archived' || status === 'deactivated' ? false : true
+  if (token.includes('demo-mock')) {
+    const term = (search || '').toLowerCase()
+    const matching = DEMO_STORES.filter((s) => s.is_active === isActive && (!tenantId || tenantId === s.tenant_id) && (!term || `${s.store_name} ${s.store_code} ${s.location_city}`.toLowerCase().includes(term)))
+    const stores = matching.map((s) => mapApiStoreToTenantStore(s, tenantId))
+    return { success: true, meta: { total: stores.length, skip, limit }, data: stores.slice(skip, skip + limit) }
+  }
   const { data: response } = await pythia2Client.get<ApiResponseV2Paginated<any[]>>(
     PYTHIA_2_API.stores.list,
     {
@@ -116,6 +128,10 @@ export async function fetchStore({
   token?: string
   storeCode: string
 }): Promise<ApiResponseV2<TenantStore>> {
+  if (token?.includes('demo-mock')) {
+    const store = DEMO_STORES.find((s) => s.store_code === storeCode) || DEMO_STORES[0]
+    return { success: true, data: mapApiStoreToTenantStore(store) }
+  }
   const { data: response } = await pythia2Client.get<ApiResponseV2<any>>(
     PYTHIA_2_API.stores.detail(storeCode),
     { headers: token ? { Authorization: `Bearer ${token}` } : undefined },
