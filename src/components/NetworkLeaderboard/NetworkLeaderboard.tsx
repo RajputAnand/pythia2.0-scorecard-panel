@@ -101,10 +101,11 @@ interface NetworkLeaderboardProps {
   loading?: boolean
   selectedStoreId?: string | null
   onSelectStore?: (storeId: string) => void
+  setSelectedStoreData?: any
 }
 
 export default function NetworkLeaderboard({ 
-  previewMode, data, loading, selectedStoreId, onSelectStore 
+  previewMode, data, loading, selectedStoreId, onSelectStore, setSelectedStoreData
 }: NetworkLeaderboardProps = {}) {
   const router = useRouter()
   const pathname = usePathname()
@@ -159,6 +160,7 @@ export default function NetworkLeaderboard({
         rank: d.rank ?? index + 1,
         rankVariant,
         name: isYours ? currentStore?.name || 'Your Store' : `Store #${d.store_id.slice(-4)}`,
+        store_id: d.store_id,
         isYours,
         overall: d.overall ?? 0,
         overallVariant: rankVariant,
@@ -166,6 +168,7 @@ export default function NetworkLeaderboard({
         hospColor,
         checkout: d.checkout ?? 0,
         checkoutColor,
+        time_to_svc: d.time_to_svc ?? 0,
         timeToSvc: d.time_to_svc ?? 0,
         ttsColor,
         movement: movementStr,
@@ -237,7 +240,9 @@ export default function NetworkLeaderboard({
                 <tr
                   key={row.storeId}
                   className={`cursor-pointer transition-colors ${selectedStoreId === row.storeId ? 'bg-surface-alt' : row.isYours ? 'bg-accent-light' : 'hover:bg-surface-alt/50'}`}
-                  onClick={() => onSelectStore?.(row.storeId)}
+                  onClick={() => {
+                    row && setSelectedStoreData?.(row); onSelectStore?.(row.storeId)
+                  }}
                 >
                   <td className="pl-[22px] pr-[18px] py-[13px] border-b border-border align-middle">
                     <div className="flex items-center gap-[10px]">

@@ -7,10 +7,8 @@ import { useUserStore } from '@/store/userStore'
 import { BenchmarkingStoreData, SelectedStoreBenchmarkingData, BenchmarkingAllStoreDataResponse } from '@/types/benchmarking'
 import { fetchBenchmarkAllStoreData } from '@/queries/benchmarking'
 
-import RankHero from '@/components/RankHero/RankHero'
 import NetworkLeaderboard from '@/components/NetworkLeaderboard/NetworkLeaderboard'
 import StoreComparison from '@/components/StoreComparison/StoreComparison'
-import TopStorePractices from '@/components/TopStorePractices/TopStorePractices'
 import RankMovement from '@/components/RankMovement/RankMovement'
 
 import Header from '@/components/shared/Header/Header'
@@ -20,15 +18,16 @@ import BenchmarkingMetricFilter from '@/components/BenchmarkingMetricFilter/Benc
 import CreateStoreBanner from '@/components/shared/CreateStoreBanner/CreateStoreBanner'
 import { downloadCsv } from '@/utils/common'
 
-interface BenchmarkingContentProps {
+interface OwnerDashboardContentProps {
   /** Super Admin mirror only — prefixes the Header subtitle so it's clear this is the read-only mirror, not the real owner page. */
   subtitlePrefix?: string
   initialHasStores?: boolean | null
 }
 
-export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }: BenchmarkingContentProps = {}) {
+export default function OwnerDashboardContent({ subtitlePrefix, initialHasStores }: OwnerDashboardContentProps = {}) {
   const { data: session } = useSession()
   const token = session?.user?.token
+  
   const { currentStore, stores } = useUserStore()
 
   // Determine if any stores exist:
@@ -51,9 +50,6 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null)
   const [period, setPeriod] = useState<string | undefined>(undefined)
 
-  // Picking a different store in the Header dropdown re-targets the benchmarking
-  // detail view (RankHero/StoreComparison/RankMovement) at that store, which
-  // drives fetchAllStoreData below via the selectedStoreId dependency.
   useEffect(() => {
     if (currentStore?._id) setSelectedStoreId(currentStore._id)
   }, [currentStore?._id])
@@ -74,7 +70,7 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
     let cancelled = false
     setLoading(true)
 
-    fetchBenchmarkAllStoreData({token, limit: 5, filter_mode: filterMode})
+    fetchBenchmarkAllStoreData({ token, limit: 10 })
       .then((res) => {
         if (!cancelled) {
           setAllStoreData(res?.data || [])
@@ -82,8 +78,11 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
           setMeta(res?.meta ?? null)
           setLoading(false)
           
-          if ((!selectedStoreId || !selectedStoreData) && res?.data && res.data.length > 0) {
+          if (!selectedStoreId && res?.data && res.data.length > 0) {
             setSelectedStoreId(res.data[0].store_id)
+          }
+
+          if (!selectedStoreData && res?.data && res.data.length > 0) {
             setSelectedStoreData(res.data[0] as any)
           }
         }
@@ -102,10 +101,6 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
     ? `${meta.period.label} · ${meta.scope.store_count} peer stores in network`
     : 'Loading...'
 
-  // No export endpoint exists yet — CSV of the currently loaded Network
-  // Leaderboard rows, reflecting whichever header metric sort (`sortByTab`)
-  // and leaderboard pill (`filterPill`) is active, since those already drive
-  // `allStoreData` via fetchAllStoreData above.
   const handleExportReport = () => {
     const headers = ['Rank', 'Store', 'Overall', 'Hospitality', 'Checkout', 'Time to Svc', 'MoM Change', 'Percentile']
     const rows = allStoreData.map((d) => {
@@ -123,14 +118,14 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
     })
 
     const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-    const filename = `benchmarking-${slug(filterPill)}-${slug(sortByTab)}-${new Date().toISOString().slice(0, 10)}.csv`
+    const filename = `dashboard-${slug(filterPill)}-${slug(sortByTab)}-${new Date().toISOString().slice(0, 10)}.csv`
     downloadCsv(filename, headers, rows)
   }
 
   return (
     <>
       <Header
-        title="Competitor Benchmarking"
+        title="Internal Store Benchmarking"
         subtitle={!hasStores ? (subtitlePrefix ? `${subtitlePrefix} · Owner Tools` : 'Owner Tools') : subtitle}
       />
 
@@ -157,21 +152,17 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
       <div className="grid px-[30px] py-[24px] gap-5">
         {!hasStores ? (
           <div className="flex flex-col gap-6">
-            <CreateStoreBanner featureName="Benchmarking" />
+            <CreateStoreBanner featureName="Dashboard" />
             <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-20 text-center">
               <span className="text-[36px]">🏆</span>
-              <p className="font-semibold text-[14px] text-primary">No benchmarking data available</p>
+              <p className="font-semibold text-[14px] text-primary">No dashboard data available</p>
               <p className="text-[12px] text-gray-800 max-w-md">
-                Create your first store location to start benchmarking your customer service and speed metrics against peer stores.
+                Create your first store location to start viewing your customer service and speed metrics against peer stores.
               </p>
             </div>
           </div>
         ) : (
           <>
-            <RankHero 
-              data={selectedStoreData} 
-              loading={loading} 
-            />
             <NetworkLeaderboard 
               data={allStoreData}
               loading={loading}
@@ -180,7 +171,6 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
               setSelectedStoreData={setSelectedStoreData}
             />
             <StoreComparison selectedStore={selectedStoreData} topPerformerStore={topPerformerStore} loading={loading} />
-            <TopStorePractices selectedStoreId={selectedStoreId} period={period} />
             <RankMovement data={selectedStoreData?.rank_movement_board} loading={loading} />
           </>
         )}
