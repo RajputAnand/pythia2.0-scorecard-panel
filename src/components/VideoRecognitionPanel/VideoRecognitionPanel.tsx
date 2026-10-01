@@ -225,7 +225,7 @@ function MediaLightbox({ state, onClose }: { state: MediaModalState; onClose: ()
                     aria-label={`Go to photo ${i + 1}`}
                     className={`rounded-full shrink-0 transition-all duration-150 cursor-pointer ${
                       i === activeIndex ? 'w-5 h-2 bg-accent' : 'w-2 h-2 bg-border hover:bg-muted'
-                    }`}
+                      }`}
                   />
                 ))}
               </div>
@@ -458,7 +458,7 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
                 onClick={() => setStatusFilter(filter.value)}
                 className={`rounded-full px-[12px] py-[6px] text-[11.5px] font-medium cursor-pointer transition-colors duration-150 ${
                   active ? 'bg-primary text-white' : 'bg-surface-alt text-secondary hover:text-primary'
-                }`}
+                  }`}
               >
                 {filter.label}
               </button>
@@ -505,7 +505,7 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
           <span className="text-[12.5px]">No videos match your filters</span>
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {entries.map((entry) => (
             <VideoRecognitionCard
               key={entry.video_key}
@@ -519,7 +519,7 @@ export default function VideoRecognitionPanel({ initialData, initialStats }: Vid
               type="button"
               onClick={loadMore}
               disabled={isLoadingMore}
-              className="self-center rounded-[8px] border border-border bg-surface px-4 py-2 text-[12.5px] font-semibold text-secondary hover:text-primary hover:bg-surface-alt transition-colors duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-default"
+              className="col-span-full self-center rounded-[8px] border border-border bg-surface px-4 py-2 text-[12.5px] font-semibold text-secondary hover:text-primary hover:bg-surface-alt transition-colors duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-default"
             >
               {isLoadingMore ? 'Loading…' : `Load more (${entries.length} of ${total})`}
             </button>
