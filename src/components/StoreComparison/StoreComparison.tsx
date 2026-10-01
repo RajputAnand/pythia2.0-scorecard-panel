@@ -49,11 +49,12 @@ function MetricRow({ label, shortLabel, yoursScore, yoursColor, gap, gapVariant,
 
 interface StoreComparisonProps {
   previewMode?: boolean
-  data?: SelectedStoreBenchmarkingData | null
+  selectedStore?: SelectedStoreBenchmarkingData | null
+  topPerformerStore?: SelectedStoreBenchmarkingData | null
   loading?: boolean
 }
 
-export default function StoreComparison({ previewMode, data, loading }: StoreComparisonProps = {}) {
+export default function StoreComparison({ previewMode, selectedStore, topPerformerStore, loading }: StoreComparisonProps = {}) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingStoreComparison] ?? true)
   if (!previewMode && !visible) return null
 
@@ -65,7 +66,7 @@ export default function StoreComparison({ previewMode, data, loading }: StoreCom
       if (key === 'checkout') return 79
       if (key === 'time_to_svc') return 82
     }
-    return data?.[key] ?? 0
+    return selectedStore?.[key] ?? 0
   }
 
   const getTheirs = (key: 'overall' | 'hospitality' | 'checkout' | 'time_to_svc') => {
@@ -75,7 +76,7 @@ export default function StoreComparison({ previewMode, data, loading }: StoreCom
       if (key === 'checkout') return 96
       if (key === 'time_to_svc') return 93
     }
-    return data?.top_performer?.[key] ?? 0
+    return topPerformerStore?.[key] ?? 0
   }
 
   const getGap = (key: 'overall' | 'hospitality' | 'checkout' | 'time_to_svc') => {
@@ -85,7 +86,7 @@ export default function StoreComparison({ previewMode, data, loading }: StoreCom
       if (key === 'checkout') return { text: '17 behind', variant: 'behind' as const }
       if (key === 'time_to_svc') return { text: '11 behind', variant: 'behind' as const }
     }
-    const gapVal = data?.gaps?.[key]
+    const gapVal = selectedStore?.gaps?.[key]
     if (gapVal === undefined || gapVal === null) return { text: 'N/A', variant: 'behind' as const }
     return {
       text: `${Math.abs(gapVal)} ${gapVal >= 0 ? 'ahead' : 'behind'}`,
@@ -99,16 +100,16 @@ export default function StoreComparison({ previewMode, data, loading }: StoreCom
       {/* Header row */}
       <div className="flex flex-col px-[22px] py-[18px] gap-1 border-b border-border bg-accent-light">
         <div className="text-[10px] font-semibold uppercase tracking-[.1em] text-accent">Your Store</div>
-        <div className="text-[15px] font-bold">{data?.store_id ? `Store #${data.store_id.slice(-4)}` : (previewMode ? 'Main St. Store' : 'N/A')}</div>
-        <div className="font-mono text-[11.5px] text-gray-800">{data?.rank ? `Rank #${data.rank}` : (previewMode ? 'Rank #3' : 'N/A')}</div>
+        <div className="text-[15px] font-bold">{selectedStore?.store_id ? `Store #${selectedStore.store_id.slice(-4)}` : (previewMode ? 'Main St. Store' : 'N/A')}</div>
+        <div className="font-mono text-[11.5px] text-gray-800">{selectedStore?.rank ? `Rank #${selectedStore.rank}` : (previewMode ? 'Rank #3' : 'N/A')}</div>
       </div>
       <div className="flex items-center justify-center border-b border-border border-l border-r bg-surface-alt">
         <span className="text-[9px] font-semibold text-gray-800 uppercase tracking-[.07em] [writing-mode:vertical-rl] rotate-180">vs.</span>
       </div>
       <div className="flex flex-col px-[22px] py-[18px] gap-1 border-b border-border bg-gold-light">
         <div className="text-[10px] font-semibold uppercase tracking-[.1em] text-gold">Top Performer</div>
-        <div className="text-[15px] font-bold">{data?.top_performer?.store_id ? `Store #${data.top_performer.store_id.slice(-4)}` : (previewMode ? 'Store #14' : 'N/A')}</div>
-        <div className="font-mono text-[11.5px] text-gray-800">{data?.top_performer?.rank ? `Rank #${data.top_performer.rank}` : (previewMode ? 'Rank #1' : 'N/A')}</div>
+        <div className="text-[15px] font-bold">{topPerformerStore?.top_performer?.store_id ? `Store #${topPerformerStore.top_performer.store_id.slice(-4)}` : (previewMode ? 'Store #14' : 'N/A')}</div>
+        <div className="font-mono text-[11.5px] text-gray-800">{topPerformerStore?.top_performer?.rank ? `Rank #${topPerformerStore.top_performer.rank}` : (previewMode ? 'Rank #1' : 'N/A')}</div>
       </div>
 
       {/* Metric rows */}
@@ -136,8 +137,8 @@ export default function StoreComparison({ previewMode, data, loading }: StoreCom
 
       {/* Insight row */}
       <div className="col-span-full px-[22px] py-3 text-[12px] text-secondary leading-[1.5] bg-surface-alt border-t border-border">
-        {data?.gaps?.biggest_gap_metric && data?.gaps?.biggest_gap_value !== null ? (
-          <><strong className="font-semibold text-primary">Biggest gap: {data.gaps.biggest_gap_metric} ({data.gaps.biggest_gap_value}pts).</strong> Focus on improving this area to climb the ranks.</>
+        {selectedStore?.gaps?.biggest_gap_metric && selectedStore?.gaps?.biggest_gap_value !== null ? (
+          <><strong className="font-semibold text-primary">Biggest gap: {selectedStore.gaps.biggest_gap_metric} ({selectedStore.gaps.biggest_gap_value}pts).</strong> Focus on improving this area to climb the ranks.</>
         ) : previewMode ? (
           <><strong className="font-semibold text-primary">Biggest gap: Checkout Speed (17 pts).</strong> Focus on improving this area to climb the ranks.</>
         ) : (
