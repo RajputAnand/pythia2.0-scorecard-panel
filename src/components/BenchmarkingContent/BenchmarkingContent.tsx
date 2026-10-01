@@ -74,7 +74,7 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
     let cancelled = false
     setLoading(true)
 
-    fetchBenchmarkAllStoreData({token, limit: 5, filter_mode: filterMode})
+    fetchBenchmarkAllStoreData({token, limit: 5, filter_mode: filterMode, selectedStoreId})
       .then((res) => {
         if (!cancelled) {
           setAllStoreData(res?.data || [])
