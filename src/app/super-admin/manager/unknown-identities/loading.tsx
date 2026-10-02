@@ -6,7 +6,7 @@ export default function SuperAdminUnknownIdentitiesLoading() {
         <div className="h-5 w-52 rounded bg-border" />
       </div>
 
-      <div className="px-[30px] py-[26px] flex flex-col gap-5 max-w-[560px]">
+      <div className="p-5 flex flex-col gap-5 max-w-[560px]">
         {/* Carousel skeleton */}
         <div className="bg-surface border border-border rounded-[14px] overflow-hidden flex flex-col">
           <div className="flex items-center justify-between px-[22px] py-4 border-b border-border">

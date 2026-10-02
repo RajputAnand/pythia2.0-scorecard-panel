@@ -184,11 +184,11 @@ export default function CustomerSegmentShifts({ previewMode, customerSegmentsDat
           </div>
         ))}
 
-        <div className="mt-[2px] bg-surface-alt rounded-[9px] px-[13px] py-[10px] text-[12px] text-secondary leading-[1.5]">
-          <strong className="font-semibold text-primary">Opportunity:</strong>{' '}
-          {previewMode
-            ? 'Gen Z visits are growing fastest (+24%) but spend the least per visit — a loyalty perk could lift their basket size.'
-            : (customerSegmentsData ? 'Data shows the latest segment trends based on store activity.' : 'Segment growth data is not yet available for this period.')}
+        <div className="mt-[2px] bg-surface-alt rounded-[9px] px-[13px] py-[10px] text-[12px] text-secondary leading-[1.5] flex gap-1">
+          <strong className="font-semibold text-primary">Opportunity:{' '}</strong>{' '}
+          <p className='text-gray-800'>{previewMode
+            ? `Gen Z visits are growing fastest (+24%) but spend the least per visit — a loyalty perk could lift their basket size.`
+            : (customerSegmentsData ? `Data shows the latest segment trends based on store activity.` : `Segment growth data is not yet available for this period.`)}</p>
         </div>
       </div>
     </div>

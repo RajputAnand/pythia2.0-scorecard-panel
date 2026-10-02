@@ -43,7 +43,7 @@ export default async function SuperAdminOwnerEmployeesMirrorPage() {
     <>
       <Header title="Employees (Mirror)" subtitle="Owner View · Manage your team and credentials" />
 
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <EmployeeListPanel initialData={initialData} readOnly={true} />
       </div>
     </>

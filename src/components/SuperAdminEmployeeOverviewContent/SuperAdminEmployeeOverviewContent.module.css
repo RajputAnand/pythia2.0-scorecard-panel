@@ -2,7 +2,7 @@
 
 .container {
   display: grid;
-  padding: 24px 30px;
+  padding: 20px;
   gap: 20px;
 }
 

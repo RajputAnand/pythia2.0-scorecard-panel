@@ -18,7 +18,7 @@ export default function RoiAttributionLoading() {
         <div className="h-8 w-20 rounded bg-border" />
       </div>
 
-      <div className="grid px-[30px] py-[24px] gap-5">
+      <div className="grid p-5 gap-5">
         {/* RoiHero skeleton */}
         <div className="h-40 w-full rounded-xl bg-border" />
 

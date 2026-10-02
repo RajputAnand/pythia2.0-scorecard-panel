@@ -36,7 +36,7 @@ export default async function SuperAdminUnknownIdentitiesPage() {
     <>
       <Header title="Unknown Identity" subtitle="Super Admin · Resolve unmatched in-store detections" />
 
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <UnknownIdentitiesPanel initialData={initialData} />
       </div>
     </>

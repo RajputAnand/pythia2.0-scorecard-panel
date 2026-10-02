@@ -9,12 +9,25 @@ export default function LineChartSvg({
   minorTicks,
   verticalMarker,
   streakBadge,
+  hoverIndex,
+  hoverXPositions,
+  onHoverIndexChange,
+  onHoverPointerChange,
 }: LineChartSvgProps) {
   const svgWidth = Number(viewBox.split(' ')[2])
+  const svgHeight = Number(viewBox.split(' ')[3])
 
   return (
     <div>
-      <svg width="100%" viewBox={viewBox} preserveAspectRatio="none">
+      <svg
+        width="100%"
+        viewBox={viewBox}
+        preserveAspectRatio="none"
+        onMouseLeave={() => {
+          onHoverIndexChange?.(null)
+          onHoverPointerChange?.(null)
+        }}
+      >
         {/* Grid lines */}
         {gridLines.map((gl) => (
           <line key={gl.y} x1="0" y1={gl.y} x2={svgWidth} y2={gl.y} stroke="#F0EDE8" strokeWidth="1" />
@@ -81,6 +94,51 @@ export default function LineChartSvg({
             ))}
           </g>
         ))}
+
+        {hoverIndex != null && hoverXPositions?.[hoverIndex] != null && (
+          <g pointerEvents="none">
+            <line x1={hoverXPositions[hoverIndex]} y1="0" x2={hoverXPositions[hoverIndex]} y2={svgHeight} stroke="#9B9489" strokeWidth="1" strokeDasharray="3,3" />
+            {series.map((s, i) => {
+              const dot = s.dots.reduce<LineChartSvgProps['series'][number]['dots'][number] | undefined>((nearest, current) => {
+                if (!nearest) return current
+                return Math.abs(current.cx - hoverXPositions[hoverIndex]) < Math.abs(nearest.cx - hoverXPositions[hoverIndex]) ? current : nearest
+              }, undefined)
+              return dot && Math.abs(dot.cx - hoverXPositions[hoverIndex]) < 1
+                ? <circle key={i} cx={dot.cx} cy={dot.cy} r={5} fill="white" stroke={s.color} strokeWidth="2" />
+                : null
+            })}
+          </g>
+        )}
+
+        {onHoverIndexChange && series.map((s, seriesIndex) => s.dots.map((dot, index) => (
+          <circle
+            key={`hover-${seriesIndex}-${index}`}
+            cx={dot.cx}
+            cy={dot.cy}
+            r={9}
+            fill="transparent"
+            onMouseEnter={() => {
+              const nearestIndex = hoverXPositions?.reduce((nearest, x, candidateIndex) =>
+                Math.abs(x - dot.cx) < Math.abs(hoverXPositions[nearest] - dot.cx) ? candidateIndex : nearest, 0)
+              onHoverIndexChange(nearestIndex ?? index)
+            }}
+            onMouseMove={(event) => {
+              const bounds = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
+              if (bounds && bounds.width > 0 && bounds.height > 0) {
+                onHoverPointerChange?.({
+                  x: event.clientX - bounds.left,
+                  y: event.clientY - bounds.top,
+                  width: bounds.width,
+                  height: bounds.height,
+                })
+              }
+            }}
+            onMouseLeave={() => {
+              onHoverIndexChange(null)
+              onHoverPointerChange?.(null)
+            }}
+          />
+        )))}
 
         {/* Y-axis labels */}
         {yLabels.map((yl) => (

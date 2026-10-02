@@ -24,7 +24,7 @@ function Chip({ label, value, valueColor }: ChipProps) {
       className="flex flex-col rounded-[9px] border gap-[2px] px-[14px] py-[8px]"
       style={{ background: 'rgba(255,255,255,0.07)', borderColor: 'rgba(255,255,255,0.1)' }}
     >
-      <div className="uppercase tracking-[.09em] text-[9px]" style={{ color: 'white', opacity: 0.6 }}>
+      <div className="uppercase tracking-[.09em] text-[9px]" style={{ color: 'white', opacity: 0.9 }}>
         {label}
       </div>
       <div className="font-mono font-bold text-[16px]" style={{ color: valueColor ?? '#FFFFFF' }}>
@@ -93,11 +93,11 @@ export default function EmployeeSpotlightCard({ topEmployee, view, previewMode, 
           <div className="font-mono font-bold leading-none text-[32px]" style={{ color: '#F5C842' }}>
             {topEmployee.thanked_count}
           </div>
-          <div className="uppercase tracking-[.09em] text-[10px] mt-[4px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <div className="uppercase tracking-[.09em] text-[10px] mt-[4px]" style={{ color: 'white' }}>
             Thank Yous
           </div>
         </div>
-        <div className="font-mono text-[11px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
+        <div className="font-mono text-[11px]" style={{ color: 'white' }}>
           {topEmployee.thanked_rate}% of transactions
         </div>
       </div>

@@ -105,7 +105,7 @@ export default async function RoiAttributionPage(props: {
 
       {hasStores && <TimeControls />}
 
-      <div id="roi-report-content" className="grid px-[30px] py-[24px] gap-5">
+      <div id="roi-report-content" className="grid p-5 gap-5">
         {!hasStores ? (
           <div className="flex flex-col gap-6">
             <CreateStoreBanner featureName="ROI attribution" />

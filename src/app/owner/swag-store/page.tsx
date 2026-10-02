@@ -10,7 +10,7 @@ export default function OwnerSwagStorePage() {
   return (
     <>
       <Header title="Swag Store Management" subtitle="Owner Tools" />
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <OwnerSwagStore />
       </div>
     </>

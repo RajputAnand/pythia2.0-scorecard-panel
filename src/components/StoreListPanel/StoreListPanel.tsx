@@ -530,7 +530,7 @@ export default function StoreListPanel({
   ]
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {/* Top action bar: Tabs + Add Store button */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">

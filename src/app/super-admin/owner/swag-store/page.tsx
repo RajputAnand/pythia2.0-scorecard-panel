@@ -10,7 +10,7 @@ export default function SuperAdminOwnerSwagStoreMirrorPage() {
   return (
     <>
       <Header title="Swag Store Management (Mirror)" subtitle="Owner View" />
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <OwnerSwagStore readOnly={false} />
       </div>
     </>

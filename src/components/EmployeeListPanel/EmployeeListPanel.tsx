@@ -482,7 +482,7 @@ export default function EmployeeListPanel({ initialData, readOnly = false }: Emp
   ]
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {/* Action Bar: View Tabs + Add Employee button */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">

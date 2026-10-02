@@ -4,7 +4,7 @@ export default function OwnerUsersLoading() {
   return (
     <>
       <Header title="Users" subtitle="Team and credentials" />
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <div className="flex flex-col gap-4">
           <div className="h-14 bg-surface border border-border rounded-xl animate-pulse" />
           <div className="h-10 w-64 bg-surface border border-border rounded-lg animate-pulse" />

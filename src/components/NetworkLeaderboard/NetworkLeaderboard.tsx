@@ -236,11 +236,12 @@ export default function NetworkLeaderboard({
             </tr>
           ) : (
             <>
-              {displayRows.map((row) => (
+              {displayRows.map((row, idx) => (
                 <tr
                   key={row.storeId}
-                  className={`cursor-pointer transition-colors ${selectedStoreId === row.storeId ? 'bg-surface-alt' : row.isYours ? 'bg-accent-light' : 'hover:bg-surface-alt/50'}`}
+                  className={`${idx === 0 ? 'cursor-not-allowed': 'cursor-pointer'} transition-colors ${selectedStoreId === row.storeId ? 'bg-surface-alt' : row.isYours ? 'bg-accent-light' : 'hover:bg-surface-alt/50'}`}
                   onClick={() => {
+                    if(idx === 0) return;
                     row && setSelectedStoreData?.(row); onSelectStore?.(row.storeId)
                   }}
                 >

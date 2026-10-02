@@ -1,8 +1,5 @@
 import { unstable_rethrow } from 'next/navigation'
 import { cookies } from 'next/headers'
-import Header from '@/components/shared/Header/Header'
-import CoachingWinStrip from '@/components/CoachingWinStrip/CoachingWinStrip'
-import CoachingTrackerPanel from '@/components/CoachingTrackerPanel/CoachingTrackerPanel'
 import CoachingTrackerContent from '@/components/CoachingTrackerContent/CoachingTrackerContent'
 import { fetchCoachingSummary, fetchCoachingEmployees } from '@/queries/manager-coaching'
 import { fetchStoresForTenant } from '@/queries/stores'

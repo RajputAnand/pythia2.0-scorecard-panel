@@ -9,7 +9,7 @@ export default function KpiVisibilityLoading() {
         </div>
       </div>
 
-      <div className="grid px-[30px] py-[24px] gap-5">
+      <div className="grid p-5 gap-5">
         <div className="h-4 w-64 rounded bg-border" />
 
         <div className="flex gap-2">

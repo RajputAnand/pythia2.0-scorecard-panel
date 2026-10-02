@@ -8,7 +8,7 @@ export default function DeviceHealthLoading() {
         </div>
       </div>
 
-      <div className="grid px-[30px] py-[24px] gap-4">
+      <div className="grid p-5 gap-5">
         {Array.from({ length: 2 }).map((_, i) => (
           <div key={i} className="rounded-[14px] border border-border bg-surface h-[220px]" />
         ))}

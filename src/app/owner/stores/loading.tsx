@@ -4,7 +4,7 @@ export default function OwnerStoresLoading() {
   return (
     <>
       <Header title="Store Management" subtitle="Owner Tools" />
-      <div className="px-[30px] py-[26px] animate-pulse">
+      <div className="p-5 animate-pulse">
         <div className="flex justify-between mb-4">
           <div className="h-9 w-64 bg-border rounded-full" />
           <div className="h-9 w-32 bg-border rounded-lg" />

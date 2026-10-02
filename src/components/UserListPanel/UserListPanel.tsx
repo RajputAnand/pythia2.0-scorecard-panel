@@ -700,7 +700,7 @@ export default function UserListPanel({
   ]
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {/* Top Bar: Filter Chips, Status Views & Add User Button */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-surface border border-border rounded-xl p-3 shadow-xs">
         {/* Swag-Store Style Filter Chips */}

@@ -1,11 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import { renderText } from '@/utils/common'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
 import type { RoiChartData } from '@/types/owner-roi'
+import type { ChartHoverPointer } from '@/types/line-chart'
 import { mapRoiChartData } from '@/utils/roi-chart-mapper'
 import { resolveRoiView } from '@/utils/roi-view'
 
@@ -41,6 +43,8 @@ const PREVIEW_DATA: HospitalityVsDwellData = {
 }
 
 export default function HospitalityVsDwell({ data, previewMode }: { data?: RoiChartData; previewMode?: boolean }) {
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
+  const [hoverPointer, setHoverPointer] = useState<ChartHoverPointer | null>(null)
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.roiHospitalityVsDwell] ?? true)
   const searchParams = useSearchParams()
   const view = resolveRoiView(searchParams.get('view'))
@@ -61,6 +65,14 @@ export default function HospitalityVsDwell({ data, previewMode }: { data?: RoiCh
     '⏱',
     view
   )
+  const hoverXPositions = [20, 135, 250, 345, 440].slice(0, chartData.xLabels.length)
+  const hoveredValues = hoverIndex === null ? [] : chartData.series.flatMap((item, i) => {
+    if (!item.dots.length || hoverXPositions[hoverIndex] === undefined) return []
+    const dotIndex = item.dots.reduce((nearest, dot, index) =>
+      Math.abs(dot.cx - hoverXPositions[hoverIndex]) < Math.abs(item.dots[nearest].cx - hoverXPositions[hoverIndex]) ? index : nearest, 0)
+    if (Math.abs(item.dots[dotIndex].cx - hoverXPositions[hoverIndex]) >= 1) return []
+    return [{ label: chartData.legend[i]?.label ?? '', color: item.color, value: item.labels[dotIndex]?.value ?? '—' }]
+  })
 
   return (
     <div className="bg-surface border border-border rounded-2xl overflow-hidden">
@@ -89,14 +101,40 @@ export default function HospitalityVsDwell({ data, previewMode }: { data?: RoiCh
             </div>
           ))}
         </div>
-        <LineChartSvg
-          viewBox={chartData.viewBox}
-          gridLines={chartData.gridLines}
-          yLabels={chartData.yLabels}
-          series={chartData.series}
-          xLabels={chartData.xLabels}
-          verticalMarker={chartData.verticalMarker}
-        />
+        <div className="relative">
+          {hoverIndex !== null && hoverPointer !== null && (
+            <div
+              className="pointer-events-none absolute z-10 rounded-lg border border-border bg-surface px-3 py-2 shadow-md"
+              style={{
+                left: `${hoverPointer.x}px`,
+                top: `${hoverPointer.y}px`,
+                transform: `translate(${hoverPointer.x / hoverPointer.width > 0.7 ? 'calc(-100% - 12px)' : '12px'}, ${hoverPointer.y / hoverPointer.height > 0.65 ? 'calc(-100% - 12px)' : '12px'})`,
+              }}
+            >
+              <div className="mb-1 text-[10px] font-medium text-secondary">{chartData.xLabels[hoverIndex]?.label}</div>
+              <div className="flex flex-col gap-1 text-[10.5px]">
+                {hoveredValues.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between gap-4">
+                    <span className="flex items-center gap-1.5 text-secondary"><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: item.color }} />{item.label}</span>
+                    <strong className="font-mono text-primary">{item.value}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <LineChartSvg
+            viewBox={chartData.viewBox}
+            gridLines={chartData.gridLines}
+            yLabels={chartData.yLabels}
+            series={chartData.series}
+            xLabels={chartData.xLabels}
+            verticalMarker={chartData.verticalMarker}
+            hoverIndex={hoverIndex}
+            hoverXPositions={hoverXPositions}
+            onHoverIndexChange={setHoverIndex}
+            onHoverPointerChange={setHoverPointer}
+          />
+        </div>
         <div className="flex items-start gap-2 bg-surface-alt rounded-[9px] mt-3 px-[13px] py-[10px]">
           <span className="text-[13px] shrink-0 mt-px">{chartData.insightEmoji}</span>
           <p className="text-secondary text-[12px] leading-[1.5] [&_strong]:font-semibold [&_strong]:text-primary">

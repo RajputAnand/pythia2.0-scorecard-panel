@@ -73,17 +73,21 @@ export default function OwnerDashboardContent({ subtitlePrefix, initialHasStores
     fetchBenchmarkAllStoreData({ token, limit: 5, selectedStoreId })
       .then((res) => {
         if (!cancelled) {
-          setAllStoreData(res?.data || [])
+          const stores = res?.data || []; 
+          setAllStoreData(stores)
           setTopPerformerStore(res?.selected_store ?? null)
           setMeta(res?.meta ?? null)
           setLoading(false)
           
-          if (!selectedStoreId && res?.data && res.data.length > 0) {
-            setSelectedStoreId(res.data[0].store_id)
-          }
+          if (stores.length > 1) {
+            if (!selectedStoreId) {
+              setSelectedStoreId(stores[1].store_id)
+            }
 
-          if (!selectedStoreData && res?.data && res.data.length > 0) {
-            setSelectedStoreData(res.data[0] as any)
+            if (!selectedStoreData) {
+              setSelectedStoreData(stores[1] as any)
+              setTopPerformerStore(stores[0] as any)
+            }
           }
         }
       })
@@ -149,7 +153,7 @@ export default function OwnerDashboardContent({ subtitlePrefix, initialHasStores
         />
       )}
 
-      <div className="grid px-[30px] py-[24px] gap-5">
+      <div className="grid p-5 gap-5">
         {!hasStores ? (
           <div className="flex flex-col gap-6">
             <CreateStoreBanner featureName="Dashboard" />

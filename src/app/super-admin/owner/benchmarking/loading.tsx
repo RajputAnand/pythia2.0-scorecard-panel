@@ -13,7 +13,7 @@ export default function SuperAdminBenchmarkingLoading() {
         </div>
       </div>
 
-      <div className="grid px-[30px] py-[24px] gap-5">
+      <div className="grid p-5 gap-5">
         {/* RankHero skeleton */}
         <div className="h-40 w-full rounded-xl bg-border" />
 

@@ -27,9 +27,9 @@ export default function StaffingIntelligenceLoading() {
         </div>
       </div>
 
-      <div className="px-[30px] py-6 flex flex-col gap-[18px]">
+      <div className="p-5 flex flex-col gap-5">
         {/* StaffingInsightStrip skeleton — 4 cards */}
-        <div className="grid grid-cols-4 gap-[14px]">
+        <div className="grid grid-cols-4 gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="bg-surface border border-border rounded-[13px] px-[18px] py-4 flex flex-col gap-2">
               <div className="flex items-center justify-between">
@@ -71,7 +71,7 @@ export default function StaffingIntelligenceLoading() {
         </div>
 
         {/* StaffingRecommendations + StaffingTeamScores skeleton */}
-        <div className="grid grid-cols-[1fr_300px] gap-[18px]">
+        <div className="grid grid-cols-[1fr_300px] gap-5">
           <div className="h-64 rounded-[14px] bg-border" />
           <div className="h-64 rounded-[14px] bg-border" />
         </div>

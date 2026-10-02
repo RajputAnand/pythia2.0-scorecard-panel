@@ -10,7 +10,7 @@ export default function SuperAdminManagerSwagStorePage() {
   return (
     <>
       <Header title="Swag Store Management (Mirror)" subtitle="Manager View" />
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <OwnerSwagStore actorTitle="Store Manager" />
       </div>
     </>

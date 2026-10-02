@@ -113,7 +113,7 @@ export default function CoachingWinStrip({ summary, previewMode, highlightId, is
   if (cards.length === 0) return null
 
   return (
-    <div className="grid gap-[14px]" style={{ gridTemplateColumns: `repeat(${cards.length}, 1fr)` }}>
+    <div className="grid gap-5" style={{ gridTemplateColumns: `repeat(${cards.length}, 1fr)` }}>
       {cards.map((card) => {
         const dimmed = highlightId != null && card.id !== highlightId
         return (

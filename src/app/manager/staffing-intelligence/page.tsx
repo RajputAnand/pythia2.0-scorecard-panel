@@ -99,7 +99,7 @@ export default async function StaffingIntelligencePage() {
       <Header title="Staffing Intelligence" subtitle="Manager Tools · AI-powered scheduling and recommendations" />
       <StaffingToolbar />
 
-      <div className="px-[30px] py-6 flex flex-col gap-[18px]">
+      <div className="p-5 flex flex-col gap-5">
         <StaffingInsightStrip data={insights} />
         <StaffingPageContent
           storeId={storeId}

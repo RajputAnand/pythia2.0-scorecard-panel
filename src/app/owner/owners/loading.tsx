@@ -6,7 +6,7 @@ export default function OwnersLoading() {
         <div className="h-5 w-40 rounded bg-border" />
       </div>
 
-      <div className="px-[30px] py-[26px] flex flex-col gap-4">
+      <div className="p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div className="h-9 w-48 rounded-lg bg-border" />
           <div className="h-9 w-36 rounded-lg bg-border" />

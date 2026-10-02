@@ -82,7 +82,7 @@ export default async function OwnerUsersPage({ searchParams }: PageProps) {
       <Header title="Users" subtitle="Team and credentials" />
       <OwnerOnboardingBanner user={user} />
 
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <UserListPanel
           initialRoleFilter={initialRoleFilter}
           initialEmployees={initialEmployees}

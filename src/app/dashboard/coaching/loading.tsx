@@ -13,7 +13,7 @@ export default function CoachingLoading() {
         </div>
       </div>
 
-      <div className="grid px-[30px] py-[24px] gap-5">
+      <div className="grid p-5 gap-5">
         {/* CoachingMoments skeleton */}
         <div className="h-64 w-full rounded-xl bg-border" />
       </div>

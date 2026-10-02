@@ -68,6 +68,13 @@ export interface ChartStreakBadge {
   text: string
 }
 
+export interface ChartHoverPointer {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export interface LineChartSvgProps {
   viewBox: string
   gridLines: ChartGridLine[]
@@ -77,4 +84,8 @@ export interface LineChartSvgProps {
   minorTicks?: ChartMinorTick[]
   verticalMarker?: ChartVerticalMarker
   streakBadge?: ChartStreakBadge
+  hoverIndex?: number | null
+  hoverXPositions?: number[]
+  onHoverIndexChange?: (index: number | null) => void
+  onHoverPointerChange?: (position: ChartHoverPointer | null) => void
 }
