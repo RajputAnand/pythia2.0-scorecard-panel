@@ -6,7 +6,7 @@ export default function VideoIdentitiesLoading() {
         <div className="h-5 w-52 rounded bg-border" />
       </div>
 
-      <div className="px-[30px] py-[20px] flex flex-col gap-5">
+      <div className="p-5 flex flex-col gap-5">
         {/* Stat strip skeleton */}
         <div className="grid grid-cols-4 gap-5">
           {Array.from({ length: 4 }).map((_, i) => (

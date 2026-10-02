@@ -92,21 +92,6 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
               setTopPerformerStore(stores[0] as any)
             }
           }
-          
-
-          // if ((!selectedStoreId || !selectedStoreData) && res?.data && res.data.length > 0) {
-          //   setSelectedStoreId(res.data?.[1]?.store_id)
-          //   setTopPerformerStore(res.data?.[0] as any)
-          // }
-
-          //  if (!selectedStoreId && res?.data && res.data.length > 0) {
-          //   setSelectedStoreId(res.data?.[1]?.store_id)
-          // }
-
-          // if (!selectedStoreData && res?.data && res.data.length > 0) {
-          //   setSelectedStoreData((res.data?.[1] || []) as any)
-          //   setTopPerformerStore(res.data?.[0] as any)
-          // }
         }
       })
       .catch((err) => {
