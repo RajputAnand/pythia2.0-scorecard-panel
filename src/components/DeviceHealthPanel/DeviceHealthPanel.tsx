@@ -186,7 +186,7 @@ export default function DeviceHealthPanel() {
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-5">
       <div className="flex items-center justify-between text-[12px] text-gray-800">
         <div>
           {currentStore ? (

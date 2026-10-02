@@ -32,7 +32,7 @@ export default async function CoachingPage() {
         <button className={headerStyles.btnGhost}>View Last Week</button>
       </Header>
 
-      <div className="grid px-[30px] py-[24px] gap-5">
+      <div className="grid p-5 gap-5">
           <CoachingMoments items={coachingMoments} generationInProgress={coachingGenerationInProgress} />
       </div>
     </>

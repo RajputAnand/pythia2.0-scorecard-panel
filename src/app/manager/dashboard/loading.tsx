@@ -6,7 +6,7 @@ export default function ManagerDashboardLoading() {
         <div className="h-5 w-44 rounded bg-border" />
       </div>
 
-      <div className="px-[30px] py-[26px] flex flex-col gap-5">
+      <div className="p-5 flex flex-col gap-5">
         {/* UnknownIdentitiesAlertCard skeleton */}
         <div className="bg-surface border border-border rounded-[13px] px-5 py-4 flex items-center gap-3">
           <div className="w-9 h-9 rounded-[9px] bg-border shrink-0" />

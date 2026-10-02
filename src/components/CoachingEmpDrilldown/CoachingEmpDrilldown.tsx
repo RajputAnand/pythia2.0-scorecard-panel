@@ -199,7 +199,7 @@ export default function CoachingEmpDrilldown({ employee, detail }: Props) {
                         )}
                       </div>
                       {issue.coach_quote && (
-                        <div className="text-[11.5px] text-secondary mt-0.5 italic">{issue.coach_quote}</div>
+                        <div className="text-[11.5px] text-black mt-0.5 italic">{issue.coach_quote}</div>
                       )}
                     </td>
                     <td className="px-3 py-[13px] text-[12.5px] border-b border-border align-middle">
@@ -220,7 +220,7 @@ export default function CoachingEmpDrilldown({ employee, detail }: Props) {
                       )}
                     </td>
                     <td className="px-3 py-[13px] text-[12.5px] border-b border-border align-middle">
-                      <div className="font-mono text-[12px] text-secondary">
+                      <div className="font-mono text-[12px] text-gray-800">
                         {issue.weeks_tracked !== null ? `${issue.weeks_tracked.toFixed(1)} wks` : '—'}
                       </div>
                     </td>

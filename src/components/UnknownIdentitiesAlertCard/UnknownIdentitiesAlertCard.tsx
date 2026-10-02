@@ -39,11 +39,11 @@ export default function UnknownIdentitiesAlertCard({ count, previewMode }: Props
       <div className="w-9 h-9 rounded-[9px] bg-surface flex items-center justify-center text-[16px] shrink-0">
         🕵️
       </div>
-      <div className="text-[12.5px] text-secondary flex-1">
+      <div className="text-[12.5px] text-secondary flex-1 flex gap-1">
         <strong className="font-semibold text-danger">
           {count} unassigned {count === 1 ? 'capture' : 'captures'}
         </strong>{' '}
-        waiting on identification — their transactions aren&apos;t counted toward any employee&apos;s numbers yet.
+        <p className='text-gray-800'>waiting on identification — their transactions aren&apos;t counted toward any employee&apos;s numbers yet.</p>
       </div>
       <span className="text-[11.5px] font-semibold text-danger shrink-0">Resolve →</span>
     </Link>

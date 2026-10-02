@@ -36,7 +36,7 @@ export default async function VideoIdentitiesPage() {
     <>
       <Header title="Video Identities" subtitle="Facial recognition pipeline review" />
 
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <VideoRecognitionPanel initialData={initialData} initialStats={initialStats} />
       </div>
     </>

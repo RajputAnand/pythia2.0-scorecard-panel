@@ -10,7 +10,7 @@ export default function SuperAdminManagerOrdersMirrorPage() {
   return (
     <>
       <Header title="Order Management (Mirror)" subtitle="Manager View" />
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <ManagerOrdersPanel readOnly={false} />
       </div>
     </>

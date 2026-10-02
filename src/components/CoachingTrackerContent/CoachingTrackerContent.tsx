@@ -134,7 +134,7 @@ export default function CoachingTrackerContent({
         </div>
       </Header>
 
-      <div className="px-[30px] py-[26px] flex flex-col gap-5">
+      <div className="p-5 flex flex-col gap-5">
         {coachingError && (
           <div className="bg-danger-light border border-[#EAB8B3] rounded-[11px] px-4 py-3 flex items-center justify-between gap-[10px]">
             <div className="flex items-center gap-2 text-[12.5px] text-danger leading-[1.5]">

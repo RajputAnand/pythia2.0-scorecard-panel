@@ -40,7 +40,7 @@ export default async function SuperAdminOwnerManagersMirrorPage() {
     <>
       <Header title="Managers (Mirror)" subtitle="Owner View" />
 
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <ManagerListPanel initialData={initialData} initialStores={initialStores} />
         <ManagerListPanel initialData={initialData} initialStores={initialStores} tenantId={selectedTenantId || undefined} />
       </div>

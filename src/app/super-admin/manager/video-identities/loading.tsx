@@ -6,9 +6,9 @@ export default function VideoIdentitiesLoading() {
         <div className="h-5 w-52 rounded bg-border" />
       </div>
 
-      <div className="px-[30px] py-[26px] flex flex-col gap-5">
+      <div className="px-[30px] py-[20px] flex flex-col gap-5">
         {/* Stat strip skeleton */}
-        <div className="grid grid-cols-4 gap-[14px]">
+        <div className="grid grid-cols-4 gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="bg-surface border border-border rounded-[13px] px-5 py-[18px] flex flex-col gap-[10px]">
               <div className="h-3 w-24 rounded bg-border" />

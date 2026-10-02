@@ -87,7 +87,8 @@ export default function StoreComparison({ previewMode, selectedStore, topPerform
       if (key === 'time_to_svc') return { text: '11 behind', variant: 'behind' as const }
     }
     const gapVal = selectedStore?.gaps?.[key]
-    if (gapVal === undefined || gapVal === null) return { text: 'N/A', variant: 'behind' as const }
+    // TODO: add Gaps value here
+    if (gapVal === undefined || gapVal === null) return { text: '', variant: 'behind' as const }
     return {
       text: `${Math.abs(gapVal)} ${gapVal >= 0 ? 'ahead' : 'behind'}`,
       variant: (gapVal >= 0 ? 'ahead' : 'behind') as 'ahead' | 'behind'
@@ -108,8 +109,8 @@ export default function StoreComparison({ previewMode, selectedStore, topPerform
       </div>
       <div className="flex flex-col px-[22px] py-[18px] gap-1 border-b border-border bg-gold-light">
         <div className="text-[10px] font-semibold uppercase tracking-[.1em] text-gold">Top Performer</div>
-        <div className="text-[15px] font-bold">{topPerformerStore?.top_performer?.store_id ? `Store #${topPerformerStore.top_performer.store_id.slice(-4)}` : (previewMode ? 'Store #14' : 'N/A')}</div>
-        <div className="font-mono text-[11.5px] text-gray-800">{topPerformerStore?.top_performer?.rank ? `Rank #${topPerformerStore.top_performer.rank}` : (previewMode ? 'Rank #1' : 'N/A')}</div>
+        <div className="text-[15px] font-bold">{topPerformerStore?.store_id ? `Store #${topPerformerStore?.store_id.slice(-4)}` : (previewMode ? 'Store #14' : 'N/A')}</div>
+        <div className="font-mono text-[11.5px] text-gray-800">{topPerformerStore?.rank ? `Rank #${topPerformerStore?.rank}` : (previewMode ? 'Rank #1' : 'N/A')}</div>
       </div>
 
       {/* Metric rows */}
@@ -136,7 +137,8 @@ export default function StoreComparison({ previewMode, selectedStore, topPerform
       />
 
       {/* Insight row */}
-      <div className="col-span-full px-[22px] py-3 text-[12px] text-secondary leading-[1.5] bg-surface-alt border-t border-border">
+      {/* TODO: add proper condition to hide & show below data */}
+      {/* <div className="col-span-full px-[22px] py-3 text-[12px] text-secondary leading-[1.5] bg-surface-alt border-t border-border">
         {selectedStore?.gaps?.biggest_gap_metric && selectedStore?.gaps?.biggest_gap_value !== null ? (
           <><strong className="font-semibold text-primary">Biggest gap: {selectedStore.gaps.biggest_gap_metric} ({selectedStore.gaps.biggest_gap_value}pts).</strong> Focus on improving this area to climb the ranks.</>
         ) : previewMode ? (
@@ -144,7 +146,7 @@ export default function StoreComparison({ previewMode, selectedStore, topPerform
         ) : (
           <><strong className="font-semibold text-primary">Biggest gap: N/A.</strong> Comparison data is not yet available for this period.</>
         )}
-      </div>
+      </div> */}
 
     </div>
   )

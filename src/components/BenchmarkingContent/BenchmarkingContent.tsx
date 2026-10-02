@@ -77,15 +77,36 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
     fetchBenchmarkAllStoreData({token, limit: 5, filter_mode: filterMode, selectedStoreId})
       .then((res) => {
         if (!cancelled) {
-          setAllStoreData(res?.data || [])
-          setTopPerformerStore(res?.selected_store ?? null)
+          const stores = res?.data || [];
+          setAllStoreData(stores)
           setMeta(res?.meta ?? null)
           setLoading(false)
-          
-          if ((!selectedStoreId || !selectedStoreData) && res?.data && res.data.length > 0) {
-            setSelectedStoreId(res.data[0].store_id)
-            setSelectedStoreData(res.data[0] as any)
+
+          if (stores.length > 1) {
+            if (!selectedStoreId) {
+              setSelectedStoreId(stores[1].store_id)
+            }
+
+            if (!selectedStoreData) {
+              setSelectedStoreData(stores[1] as any)
+              setTopPerformerStore(stores[0] as any)
+            }
           }
+          
+
+          // if ((!selectedStoreId || !selectedStoreData) && res?.data && res.data.length > 0) {
+          //   setSelectedStoreId(res.data?.[1]?.store_id)
+          //   setTopPerformerStore(res.data?.[0] as any)
+          // }
+
+          //  if (!selectedStoreId && res?.data && res.data.length > 0) {
+          //   setSelectedStoreId(res.data?.[1]?.store_id)
+          // }
+
+          // if (!selectedStoreData && res?.data && res.data.length > 0) {
+          //   setSelectedStoreData((res.data?.[1] || []) as any)
+          //   setTopPerformerStore(res.data?.[0] as any)
+          // }
         }
       })
       .catch((err) => {
@@ -154,7 +175,7 @@ export default function BenchmarkingContent({ subtitlePrefix, initialHasStores }
         />
       )}
 
-      <div className="grid px-[30px] py-[24px] gap-5">
+      <div className="grid p-5 gap-5">
         {!hasStores ? (
           <div className="flex flex-col gap-6">
             <CreateStoreBanner featureName="Benchmarking" />

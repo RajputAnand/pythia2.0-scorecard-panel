@@ -4,7 +4,7 @@ export default function SuperAdminManagerSwagStoreLoading() {
   return (
     <>
       <Header title="Swag Store Management (Mirror)" subtitle="Manager View" />
-      <div className="px-[30px] py-[26px] animate-pulse">
+      <div className="p-5 animate-pulse">
         {/* Metric strip skeleton */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {Array.from({ length: 4 }).map((_, i) => (

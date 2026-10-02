@@ -11,7 +11,7 @@ export default function SuperAdminEmployeeSwagPage() {
     <>
       <Header title="Swag Store" subtitle="Super Admin · Employee View Mirror" />
 
-      <div className="grid px-[30px] py-[24px] gap-5">
+      <div className="grid p-5 gap-5">
         <SwagStore />
       </div>
     </>

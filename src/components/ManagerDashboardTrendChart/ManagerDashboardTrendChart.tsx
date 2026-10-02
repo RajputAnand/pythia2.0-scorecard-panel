@@ -1,9 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import Panel from '@/components/shared/Panel/Panel'
 import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
 import type { ManagerDashboardTrendWeek } from '@/types/manager-dashboard'
-import type { ChartDot, ChartLabel, ChartXLabel, ChartYLabel, LineChartSeries } from '@/types/line-chart'
+import type { ChartDot, ChartHoverPointer, ChartLabel, ChartXLabel, ChartYLabel, LineChartSeries } from '@/types/line-chart'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
 
@@ -46,12 +47,19 @@ function buildSeries(weeks: ManagerDashboardTrendWeek[], key: RateKey, color: st
   return { path, color, strokeWidth: 2.25, dots, labels }
 }
 
-function LegendDot({ color, label }: { color: string; label: string }) {
+function LegendDot({ color, label, active, onClick }: { color: string; label: string; active: boolean; onClick: () => void }) {
   return (
-    <span className="flex items-center gap-[5px] text-gray-800">
-      <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: color }} />
-      {label}
-    </span>
+    <div className='flex'>
+      <button
+        type="button"
+        aria-pressed={active}
+        onClick={onClick}
+        className={`flex items-center gap-[5px] rounded-sm text-gray-800 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${active ? '' : 'opacity-40'} cursor-pointer`}
+      >
+        <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: color }} />
+        {label}
+      </button>
+    </div>
   )
 }
 
@@ -68,6 +76,13 @@ function Skeleton() {
 }
 
 export default function ManagerDashboardTrendChart({ weeks, previewMode }: Props) {
+  const [visibleSeries, setVisibleSeries] = useState<Record<RateKey, boolean>>({
+    thanked_rate: true,
+    value_prop_rate: true,
+    greeted_rate: true,
+  })
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
+  const [hoverPointer, setHoverPointer] = useState<ChartHoverPointer | null>(null)
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.managerTrendChart] ?? true)
   if (!previewMode && !visible) return null
   if (!weeks || weeks.length === 0) return <Skeleton />
@@ -80,25 +95,63 @@ export default function ManagerDashboardTrendChart({ weeks, previewMode }: Props
     highlight: i === weeks.length - 1,
   }))
 
-  const series = [
-    buildSeries(weeks, 'thanked_rate', 'var(--color-accent)'),
-    buildSeries(weeks, 'value_prop_rate', 'var(--color-cobalt)'),
-    buildSeries(weeks, 'greeted_rate', 'var(--color-amber)'),
-  ]
+  const series = ([
+    ['thanked_rate', 'var(--color-accent)'],
+    ['value_prop_rate', 'var(--color-cobalt)'],
+    ['greeted_rate', 'var(--color-amber)'],
+  ] as const)
+    .filter(([key]) => visibleSeries[key])
+    .map(([key, color]) => buildSeries(weeks, key, color))
+  const hoverXPositions = weeks.map((_, i) => xScale(i, weeks.length))
+
+  function toggleSeries(key: RateKey) {
+    setVisibleSeries((current) => ({ ...current, [key]: !current[key] }))
+  }
 
   return (
     <Panel
       title="Recognition Trend"
       subtitle={`Weekly rates over the last ${weeks.length} weeks`}
       badge={
-        <div className="flex items-center gap-3 text-[10.5px] shrink-0">
-          <LegendDot color="var(--color-accent)" label="Thank You" />
-          <LegendDot color="var(--color-cobalt)" label="Value Prop." />
-          <LegendDot color="var(--color-amber)" label="Greeted" />
+        <div className="flex items-center gap-3 text-[13px] shrink-0">
+          <LegendDot color="var(--color-accent)" label="Thank You" active={visibleSeries.thanked_rate} onClick={() => toggleSeries('thanked_rate')} />
+          <LegendDot color="var(--color-cobalt)" label="Value Prop." active={visibleSeries.value_prop_rate} onClick={() => toggleSeries('value_prop_rate')} />
+          <LegendDot color="var(--color-amber)" label="Greeted" active={visibleSeries.greeted_rate} onClick={() => toggleSeries('greeted_rate')} />
         </div>
       }
     >
-      <LineChartSvg viewBox="0 0 500 160" gridLines={gridLines} yLabels={yLabels} series={series} xLabels={xLabels} />
+      <div className="relative">
+        {hoverIndex !== null && hoverPointer !== null && (
+          <div
+            className="pointer-events-none absolute z-10 rounded-lg border border-border bg-surface px-3 py-2 shadow-md"
+            style={{
+              left: `${hoverPointer.x}px`,
+              top: `${hoverPointer.y}px`,
+              transform: `translate(${hoverPointer.x / hoverPointer.width > 0.7 ? 'calc(-100% - 12px)' : '12px'}, ${hoverPointer.y / hoverPointer.height > 0.65 ? 'calc(-100% - 12px)' : '12px'})`,
+            }}
+          >
+            <div className="mb-1 text-[10px] font-medium text-secondary">
+              {new Date(weeks[hoverIndex].week_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </div>
+            <div className="flex flex-col gap-1 text-[10.5px]">
+              {visibleSeries.thanked_rate && <div className="flex items-center justify-between gap-4"><span className="flex items-center gap-1.5 text-secondary"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Thank You</span><strong className="font-mono text-primary">{weeks[hoverIndex].thanked_rate}%</strong></div>}
+              {visibleSeries.value_prop_rate && <div className="flex items-center justify-between gap-4"><span className="flex items-center gap-1.5 text-secondary"><span className="h-1.5 w-1.5 rounded-full bg-cobalt" />Value Prop.</span><strong className="font-mono text-primary">{weeks[hoverIndex].value_prop_rate}%</strong></div>}
+              {visibleSeries.greeted_rate && <div className="flex items-center justify-between gap-4"><span className="flex items-center gap-1.5 text-secondary"><span className="h-1.5 w-1.5 rounded-full bg-amber" />Greeted</span><strong className="font-mono text-primary">{weeks[hoverIndex].greeted_rate}%</strong></div>}
+            </div>
+          </div>
+        )}
+        <LineChartSvg
+          viewBox="0 0 500 160"
+          gridLines={gridLines}
+          yLabels={yLabels}
+          series={series}
+          xLabels={xLabels}
+          hoverIndex={hoverIndex}
+          hoverXPositions={hoverXPositions}
+          onHoverIndexChange={setHoverIndex}
+          onHoverPointerChange={setHoverPointer}
+        />
+      </div>
     </Panel>
   )
 }

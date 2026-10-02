@@ -42,7 +42,7 @@ export default async function ManagerEmployeesPage() {
     <>
       <Header title="Employees" subtitle="Manage your team and credentials" />
 
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <EmployeeListPanel initialData={initialData} />
       </div>
     </>

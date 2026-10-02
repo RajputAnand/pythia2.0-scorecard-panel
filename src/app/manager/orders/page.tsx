@@ -10,7 +10,7 @@ export default function ManagerOrdersPage() {
   return (
     <>
       <Header title="Order Management" subtitle="Manager Tools" />
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <ManagerOrdersPanel />
       </div>
     </>

@@ -74,7 +74,7 @@ export default async function SuperAdminOwnerUsersMirrorPage({ searchParams }: P
     <>
       <Header title="Users (Mirror)" subtitle="Owner View" />
 
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <UserListPanel
           initialRoleFilter={initialRoleFilter}
           initialEmployees={initialEmployees}

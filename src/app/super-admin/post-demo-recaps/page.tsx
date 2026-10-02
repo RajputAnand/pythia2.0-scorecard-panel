@@ -11,7 +11,7 @@ export default function PostDemoRecapsPage() {
   return (
     <>
       <Header title="Post-Demo Recaps" subtitle="Super Admin" />
-      <div className="grid px-[30px] py-[24px] gap-5">
+      <div className="grid p-5 gap-5">
         <PostDemoRecaps />
       </div>
     </>

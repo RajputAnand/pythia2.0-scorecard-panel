@@ -6,7 +6,7 @@ export default function DeviceHealthPage() {
     <>
       <Header title="Device Health" subtitle="Super Admin" />
 
-      <div className="grid px-[30px] py-[24px] gap-5">
+      <div className="grid p-5 gap-5">
         <DeviceHealthPanel />
       </div>
     </>

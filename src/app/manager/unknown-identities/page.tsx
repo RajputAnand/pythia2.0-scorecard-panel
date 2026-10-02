@@ -42,7 +42,7 @@ export default async function UnknownIdentitiesPage() {
     <>
       <Header title="Unknown Identity" subtitle="Resolve unmatched in-store detections" />
 
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <UnknownIdentitiesPanel initialData={initialData} />
       </div>
     </>

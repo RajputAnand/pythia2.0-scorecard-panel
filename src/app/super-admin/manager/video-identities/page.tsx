@@ -39,7 +39,7 @@ export default async function SuperAdminVideoIdentitiesPage() {
     <>
       <Header title="Video Identities" subtitle="Super Admin · Facial recognition pipeline review" />
 
-      <div className="px-[30px] py-[26px]">
+      <div className="p-5">
         <VideoRecognitionPanel initialData={initialData} initialStats={initialStats} />
       </div>
     </>

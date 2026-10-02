@@ -10,9 +10,9 @@ export default function CoachingTrackerLoading() {
         </div>
       </div>
 
-      <div className="px-[30px] py-[26px] flex flex-col gap-5">
+      <div className="p-5 flex flex-col gap-5">
         {/* CoachingWinStrip skeleton — 4 cards */}
-        <div className="grid grid-cols-4 gap-[14px]">
+        <div className="grid grid-cols-4 gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="bg-surface border border-border rounded-[13px] px-5 py-[18px] flex flex-col gap-[10px]">
               <div className="flex items-center justify-between">
