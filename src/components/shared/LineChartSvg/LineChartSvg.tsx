@@ -141,6 +141,13 @@ export default function LineChartSvg({
   const svgHeight = Number(viewBox.split(' ')[3])
   const staggeredLabels = getStaggeredLabels(series, svgHeight)
 
+  const xPositions =
+    hoverXPositions && hoverXPositions.length === xLabels.length
+      ? hoverXPositions
+      : series[0]?.dots && series[0].dots.length === xLabels.length
+        ? series[0].dots.map((d) => d.cx)
+        : null
+
   return (
     <div>
       <svg
@@ -300,19 +307,69 @@ export default function LineChartSvg({
       </svg>
 
       {/* X-axis labels */}
-      <div className="flex justify-between mt-[5px]">
-        {xLabels.map(({ label, highlight, color, opacity }, index) => (
-          <span
-            key={`${label}-${index}`}
-            className={`font-mono text-center text-[9.5px] ${
-              highlight ? 'text-accent font-semibold' : color ? '' : 'text-gray-800'
-            }`}
-            style={color !== undefined || opacity !== undefined ? { color, opacity } : undefined}
-          >
-            {label}
-          </span>
-        ))}
-      </div>
+      {xPositions ? (
+        <div
+          className="relative mt-[5px] h-[18px] w-full select-none"
+          onMouseLeave={() => onHoverIndexChange?.(null)}
+        >
+          {xLabels.map(({ label, highlight, color, opacity }, index) => {
+            const pct = (xPositions[index] / svgWidth) * 100
+            const isHovered = hoverIndex === index
+            const isHighlighted = hoverIndex != null ? isHovered : highlight
+
+            let transform = 'translateX(-50%)'
+            if (index === 0 && pct < 4) {
+              transform = 'none'
+            } else if (index === xLabels.length - 1 && pct > 96) {
+              transform = 'translateX(-100%)'
+            }
+
+            return (
+              <span
+                key={`${label}-${index}`}
+                className={`absolute top-0 font-mono text-[9.5px] transition-colors whitespace-nowrap ${
+                  onHoverIndexChange ? 'cursor-pointer' : ''
+                } ${
+                  isHighlighted ? 'text-accent font-semibold' : color ? '' : 'text-gray-800'
+                }`}
+                style={{
+                  left: `${pct}%`,
+                  transform,
+                  ...(color !== undefined || opacity !== undefined ? { color, opacity } : {}),
+                }}
+                onMouseEnter={() => onHoverIndexChange?.(index)}
+              >
+                {label}
+              </span>
+            )
+          })}
+        </div>
+      ) : (
+        <div
+          className="flex justify-between mt-[5px]"
+          onMouseLeave={() => onHoverIndexChange?.(null)}
+        >
+          {xLabels.map(({ label, highlight, color, opacity }, index) => {
+            const isHovered = hoverIndex === index
+            const isHighlighted = hoverIndex != null ? isHovered : highlight
+
+            return (
+              <span
+                key={`${label}-${index}`}
+                className={`font-mono text-center text-[9.5px] transition-colors ${
+                  onHoverIndexChange ? 'cursor-pointer' : ''
+                } ${
+                  isHighlighted ? 'text-accent font-semibold' : color ? '' : 'text-gray-800'
+                }`}
+                style={color !== undefined || opacity !== undefined ? { color, opacity } : undefined}
+                onMouseEnter={() => onHoverIndexChange?.(index)}
+              >
+                {label}
+              </span>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
