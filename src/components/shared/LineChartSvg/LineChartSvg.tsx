@@ -1,5 +1,128 @@
 import type { LineChartSvgProps } from '@/types/line-chart'
 
+interface PositionedLabel {
+  key: string
+  x: number
+  y: number
+  color: string
+  value: string
+  opacity?: number
+}
+
+function getStaggeredLabels(series: LineChartSvgProps['series'], svgHeight: number): PositionedLabel[] {
+  const allLabels: {
+    key: string
+    x: number
+    y: number
+    color: string
+    value: string
+    opacity?: number
+  }[] = []
+
+  series.forEach((s, sIdx) => {
+    s.labels.forEach((lbl, lIdx) => {
+      allLabels.push({
+        key: `${sIdx}-${lIdx}-${lbl.value}`,
+        x: lbl.x,
+        y: lbl.y,
+        color: s.color,
+        value: lbl.value,
+        opacity: lbl.opacity,
+      })
+    })
+  })
+
+  if (allLabels.length <= 1) {
+    return allLabels
+  }
+
+  const X_TOLERANCE = 30
+  const MIN_Y_GAP = 12
+  const minY = 10
+  const maxY = svgHeight - 6
+
+  // Group labels that are close horizontally (belonging to same time point / tick)
+  const groups: (typeof allLabels)[] = []
+  const remaining = [...allLabels]
+
+  while (remaining.length > 0) {
+    const current = remaining.shift()!
+    const group = [current]
+    let i = 0
+    while (i < remaining.length) {
+      if (Math.abs(remaining[i].x - current.x) <= X_TOLERANCE) {
+        group.push(remaining.splice(i, 1)[0])
+      } else {
+        i++
+      }
+    }
+    groups.push(group)
+  }
+
+  const result: PositionedLabel[] = []
+
+  for (const group of groups) {
+    if (group.length <= 1) {
+      result.push(group[0])
+      continue
+    }
+
+    // Sort by y position ascending (top to bottom)
+    group.sort((a, b) => a.y - b.y)
+
+    // Iterative relaxation to resolve vertical overlaps
+    for (let pass = 0; pass < 6; pass++) {
+      for (let i = 0; i < group.length - 1; i++) {
+        const gap = group[i + 1].y - group[i].y
+        if (gap < MIN_Y_GAP) {
+          const overlap = MIN_Y_GAP - gap
+          group[i].y -= overlap / 2
+          group[i + 1].y += overlap / 2
+        }
+      }
+      for (let i = group.length - 1; i > 0; i--) {
+        const gap = group[i].y - group[i - 1].y
+        if (gap < MIN_Y_GAP) {
+          const overlap = MIN_Y_GAP - gap
+          group[i - 1].y -= overlap / 2
+          group[i].y += overlap / 2
+        }
+      }
+    }
+
+    // Bounds clamping
+    if (group[0].y < minY) {
+      const shift = minY - group[0].y
+      for (const item of group) {
+        item.y += shift
+      }
+    }
+    const lastItem = group[group.length - 1]
+    if (lastItem.y > maxY) {
+      const shift = lastItem.y - maxY
+      for (const item of group) {
+        item.y = Math.max(minY, item.y - shift)
+      }
+    }
+
+    // Enforce strictly monotonic gap
+    for (let i = 0; i < group.length - 1; i++) {
+      if (group[i + 1].y < group[i].y + MIN_Y_GAP) {
+        group[i + 1].y = group[i].y + MIN_Y_GAP
+      }
+    }
+
+    group.forEach((item) => {
+      result.push({
+        ...item,
+        y: Math.round(item.y * 10) / 10,
+      })
+    })
+  }
+
+  return result
+}
+
 export default function LineChartSvg({
   viewBox,
   gridLines,
@@ -16,6 +139,7 @@ export default function LineChartSvg({
 }: LineChartSvgProps) {
   const svgWidth = Number(viewBox.split(' ')[2])
   const svgHeight = Number(viewBox.split(' ')[3])
+  const staggeredLabels = getStaggeredLabels(series, svgHeight)
 
   return (
     <div>
@@ -82,17 +206,23 @@ export default function LineChartSvg({
                 strokeWidth={dot.strokeWidth}
               />
             ))}
-            {s.labels.map((lbl, k) => (
-              <text
-                key={k}
-                x={lbl.x} y={lbl.y}
-                fontSize="9" fill={s.color} fontFamily="DM Mono" fontWeight="500"
-                opacity={lbl.opacity}
-              >
-                {lbl.value}
-              </text>
-            ))}
           </g>
+        ))}
+
+        {/* De-overlapped / staggered series labels */}
+        {staggeredLabels.map((lbl) => (
+          <text
+            key={lbl.key}
+            x={lbl.x}
+            y={lbl.y}
+            fontSize="9"
+            fill={lbl.color}
+            fontFamily="DM Mono"
+            fontWeight="500"
+            opacity={lbl.opacity}
+          >
+            {lbl.value}
+          </text>
         ))}
 
         {hoverIndex != null && hoverXPositions?.[hoverIndex] != null && (
