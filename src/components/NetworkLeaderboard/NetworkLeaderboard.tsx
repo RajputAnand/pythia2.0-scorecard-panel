@@ -102,10 +102,11 @@ interface NetworkLeaderboardProps {
   selectedStoreId?: string | null
   onSelectStore?: (storeId: string) => void
   setSelectedStoreData?: any
+  visibilityId?: string
 }
 
 export default function NetworkLeaderboard({ 
-  previewMode, data, loading, selectedStoreId, onSelectStore, setSelectedStoreData
+  previewMode, data, loading, selectedStoreId, onSelectStore, setSelectedStoreData, visibilityId = KPI_IDS.benchmarkingNetworkLeaderboard
 }: NetworkLeaderboardProps = {}) {
   const router = useRouter()
   const pathname = usePathname()
@@ -113,7 +114,7 @@ export default function NetworkLeaderboard({
   
   const activeFilter = searchParams.get('filter') || 'All Stores'
   
-  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingNetworkLeaderboard] ?? true)
+  const visible = useAdminConfigStore((s) => s.visibility[visibilityId] ?? true)
   const currentStore = useUserStore((s) => s.currentStore)
 
   const handleFilterSelect = (f: string) => {

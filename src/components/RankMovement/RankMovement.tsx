@@ -101,10 +101,11 @@ interface RankMovementProps {
   previewMode?: boolean
   data?: SelectedStoreBenchmarkingData['rank_movement_board']
   loading?: boolean
+  visibilityId?: string
 }
 
-export default function RankMovement({ previewMode, data, loading }: RankMovementProps = {}) {
-  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingRankMovement] ?? true)
+export default function RankMovement({ previewMode, data, loading, visibilityId = KPI_IDS.benchmarkingRankMovement }: RankMovementProps = {}) {
+  const visible = useAdminConfigStore((s) => s.visibility[visibilityId] ?? true)
   if (!previewMode && !visible) return null
 
   let shownTracks = previewMode ? previewTracks.filter((t) => t.isYours || t.label === '#1') : tracks

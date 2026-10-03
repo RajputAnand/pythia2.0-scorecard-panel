@@ -52,10 +52,11 @@ interface StoreComparisonProps {
   selectedStore?: SelectedStoreBenchmarkingData | null
   topPerformerStore?: SelectedStoreBenchmarkingData | null
   loading?: boolean
+  visibilityId?: string
 }
 
-export default function StoreComparison({ previewMode, selectedStore, topPerformerStore, loading }: StoreComparisonProps = {}) {
-  const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.benchmarkingStoreComparison] ?? true)
+export default function StoreComparison({ previewMode, selectedStore, topPerformerStore, loading, visibilityId = KPI_IDS.benchmarkingStoreComparison }: StoreComparisonProps = {}) {
+  const visible = useAdminConfigStore((s) => s.visibility[visibilityId] ?? true)
   if (!previewMode && !visible) return null
 
   // Helpers to get metric values

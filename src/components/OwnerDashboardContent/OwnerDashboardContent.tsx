@@ -17,6 +17,7 @@ import Toolbar from '@/components/shared/Toolbar/Toolbar'
 import BenchmarkingMetricFilter from '@/components/BenchmarkingMetricFilter/BenchmarkingMetricFilter'
 import CreateStoreBanner from '@/components/shared/CreateStoreBanner/CreateStoreBanner'
 import { downloadCsv } from '@/utils/common'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 interface OwnerDashboardContentProps {
   /** Super Admin mirror only — prefixes the Header subtitle so it's clear this is the read-only mirror, not the real owner page. */
@@ -173,9 +174,19 @@ export default function OwnerDashboardContent({ subtitlePrefix, initialHasStores
               selectedStoreId={selectedStoreId}
               onSelectStore={(id) => setSelectedStoreId(id)}
               setSelectedStoreData={setSelectedStoreData}
+              visibilityId={KPI_IDS.ownerDashboardNetworkLeaderboard}
             />
-            <StoreComparison selectedStore={selectedStoreData} topPerformerStore={topPerformerStore} loading={loading} />
-            <RankMovement data={selectedStoreData?.rank_movement_board} loading={loading} />
+            <StoreComparison
+              selectedStore={selectedStoreData}
+              topPerformerStore={topPerformerStore}
+              loading={loading}
+              visibilityId={KPI_IDS.ownerDashboardStoreComparison}
+            />
+            <RankMovement
+              data={selectedStoreData?.rank_movement_board}
+              loading={loading}
+              visibilityId={KPI_IDS.ownerDashboardRankMovement}
+            />
           </>
         )}
       </div>
