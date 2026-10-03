@@ -65,6 +65,7 @@ export default async function RoiAttributionPage(props: {
         fetchRoiAttribution({
           token,
           store_id: selectedStoreId,
+          tenant_id: tenantId,
           period_type: periodKey,
           custom_start: typeof searchParams.custom_start === 'string' ? searchParams.custom_start : undefined,
           custom_end: typeof searchParams.custom_end === 'string' ? searchParams.custom_end : undefined,

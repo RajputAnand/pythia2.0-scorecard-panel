@@ -122,7 +122,14 @@ export default function CostPerCoaching({
 
   return (
     <Panel title="Cost Per Coaching Moment vs. Performance Gain" subtitle="How efficiently is each coaching dollar converting to performance gain?" badge={badge}>
-      <div className="grid gap-[10px]" style={{ gridTemplateColumns: `repeat(${Math.max(1, items.length)}, 1fr)` }}>
+      <div 
+        className="grid gap-[10px]" 
+        style={{ 
+          gridTemplateColumns: items.length <= 5 
+            ? `repeat(${Math.max(1, items.length)}, 1fr)` 
+            : 'repeat(auto-fit, minmax(180px, 1fr))' 
+        }}
+      >
         {items.map((item, index) => (
           <div key={index} className="bg-surface-alt rounded-[10px] flex flex-col gap-[5px] px-[14px] py-[12px]">
             <div className="font-semibold text-secondary text-[11px] truncate">{item.name}</div>

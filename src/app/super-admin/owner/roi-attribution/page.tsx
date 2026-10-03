@@ -32,13 +32,14 @@ export default async function SuperAdminRoiAttributionPage(props: {
   const searchParams = await props.searchParams
   const cookieStore = await cookies()
   const selectedStoreId = cookieStore.get('pythia_selected_store_id')?.value
+  const selectedTenantId = cookieStore.get('pythia_selected_tenant_id')?.value
   const session = await auth()
   const token = session?.user?.pythia2Token
 
   let hasStores = true
   if (token) {
     try {
-      const storesRes = await fetchStoresForTenant({ token, limit: 1 })
+      const storesRes = await fetchStoresForTenant({ token, tenantId: selectedTenantId, limit: 1 })
       hasStores = (storesRes.data?.length ?? 0) > 0
     } catch {
       hasStores = true
@@ -65,6 +66,7 @@ export default async function SuperAdminRoiAttributionPage(props: {
       fetchRoiAttribution({
         token,
         store_id: selectedStoreId,
+        tenant_id: selectedTenantId,
         period_type: periodKey,
         custom_start: typeof searchParams.custom_start === 'string' ? searchParams.custom_start : undefined,
         custom_end: typeof searchParams.custom_end === 'string' ? searchParams.custom_end : undefined,
