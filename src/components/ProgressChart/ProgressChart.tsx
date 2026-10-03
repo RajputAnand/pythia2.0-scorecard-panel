@@ -1,15 +1,24 @@
 'use client'
 
+import { useState } from 'react'
 import Panel from '@/components/shared/Panel/Panel'
 import LineChartSvg from '@/components/shared/LineChartSvg/LineChartSvg'
-import type { ChartDot, ChartLabel, ChartMinorTick, ChartXLabel, ChartYLabel, LineChartSeries } from '@/types/line-chart'
+import type {
+  ChartDot,
+  ChartHoverPointer,
+  ChartLabel,
+  ChartMinorTick,
+  ChartXLabel,
+  ChartYLabel,
+  LineChartSeries,
+} from '@/types/line-chart'
 import type { ProgressOverTimeChartData, ProgressOverTimeData } from '@/types/overview'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
 
-const PLOT_LEFT = 28
-const PLOT_RIGHT = 450
-const PLOT_TOP = 20
+const PLOT_LEFT = 30
+const PLOT_RIGHT = 455
+const PLOT_TOP = 16
 const PLOT_BOTTOM = 130
 
 function formatShortDate(dateStr: string): string {
@@ -20,27 +29,11 @@ function xScale(i: number, n: number): number {
   return n <= 1 ? PLOT_LEFT : PLOT_LEFT + (i / (n - 1)) * (PLOT_RIGHT - PLOT_LEFT)
 }
 
-function monthLabels(weeks: ProgressOverTimeChartData[]): ChartXLabel[] {
-  const months: string[] = []
-  weeks.forEach((w) => {
-    const month = new Date(w.week_start).toLocaleDateString('en-US', { month: 'short' })
-    if (months[months.length - 1] !== month) months.push(month)
-  })
-
-  // The last week can straddle a month boundary (e.g. week_start in June, week_end in July) —
-  // surface that trailing month too instead of only ever labeling by week_start.
-  const lastWeek = weeks[weeks.length - 1]
-  if (lastWeek) {
-    const endMonth = new Date(lastWeek.week_end).toLocaleDateString('en-US', { month: 'short' })
-    if (months[months.length - 1] !== endMonth) months.push(endMonth)
-  }
-
-  return months.map((label, i) => ({ label, highlight: i === months.length - 1 }))
-}
+type SeriesKey = 'overall' | 'hospitality' | 'checkout_speed'
 
 function buildSeries(
   weeks: ProgressOverTimeChartData[],
-  key: 'overall' | 'hospitality' | 'checkout_speed',
+  key: SeriesKey,
   color: string,
   strokeWidth: number,
   yScale: (value: number) => number,
@@ -48,32 +41,78 @@ function buildSeries(
   const points = weeks.map((w, i) => ({ x: xScale(i, weeks.length), y: yScale(w[key]) }))
   const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
 
-  const dots: ChartDot[] = []
-  const labels: ChartLabel[] = []
-  const first = points[0]
-  const last = points[points.length - 1]
+  const dots: ChartDot[] = points.map((p, i) =>
+    i === points.length - 1
+      ? { cx: p.x, cy: p.y, r: 4.5, fill: 'white', stroke: color, strokeWidth: 2 }
+      : { cx: p.x, cy: p.y, r: 3 },
+  )
 
-  if (first) {
-    dots.push({ cx: first.x, cy: first.y, r: 3.5 })
-    labels.push({ x: first.x - 6, y: first.y - 8, value: weeks[0][key].toFixed(1) })
-  }
-  if (last && points.length > 1) {
-    dots.push({ cx: last.x, cy: last.y, r: 4.5, fill: 'white', stroke: color, strokeWidth: 2 })
-    labels.push({ x: last.x - 6, y: last.y - 8, value: weeks[weeks.length - 1][key].toFixed(1) })
-  }
+  // Trailing label to the right of the most recent point per series.
+  // Placing it to the right of the dot with halo ensures the trend lines never cross through numbers.
+  // Omitting the first point's label eliminates the heavy text collision on the left.
+  const last = points[points.length - 1]
+  const labels: ChartLabel[] = last
+    ? [{ x: last.x + 8, y: last.y + 3, value: weeks[weeks.length - 1][key].toFixed(1) }]
+    : []
 
   return { path, color, strokeWidth, dots, labels }
 }
 
+function LegendToggle({
+  color,
+  label,
+  active,
+  onClick,
+}: {
+  color: string
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`flex items-center gap-[6px] text-secondary text-[11px] transition-opacity cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+        active ? 'opacity-100 font-medium' : 'opacity-40'
+      }`}
+    >
+      <span className="rounded-[1px] w-[16px] h-[3px] shrink-0" style={{ background: color }} />
+      {label}
+    </button>
+  )
+}
+
 export default function ProgressChart({ data, previewMode }: { data: ProgressOverTimeData; previewMode?: boolean }) {
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.employeeProgressChart] ?? true)
+  const [visibleSeries, setVisibleSeries] = useState<Record<SeriesKey, boolean>>({
+    overall: true,
+    hospitality: true,
+    checkout_speed: true,
+  })
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
+  const [hoverPointer, setHoverPointer] = useState<ChartHoverPointer | null>(null)
+
   const { weeks, points_change_total } = data
   if ((!previewMode && !visible) || weeks.length === 0) return null
 
-  const allValues = weeks.flatMap((w) => [w.overall, w.hospitality, w.checkout_speed])
+  function toggleSeries(key: SeriesKey) {
+    setVisibleSeries((current) => {
+      const next = { ...current, [key]: !current[key] }
+      if (!next.overall && !next.hospitality && !next.checkout_speed) {
+        return current
+      }
+      return next
+    })
+  }
+
+  const activeKeys = (['overall', 'hospitality', 'checkout_speed'] as const).filter((k) => visibleSeries[k])
+  const keysForDomain = activeKeys.length > 0 ? activeKeys : (['overall', 'hospitality', 'checkout_speed'] as const)
+  const allValues = weeks.flatMap((w) => keysForDomain.map((k) => w[k]))
   const rawMin = Math.min(...allValues)
   const rawMax = Math.max(...allValues)
-  const domainMin = Math.floor(rawMin - 2)
+  const domainMin = Math.max(0, Math.floor(rawMin - 2))
   const domainMax = Math.ceil(rawMax + 2) === domainMin ? domainMin + 1 : Math.ceil(rawMax + 2)
 
   const yScale = (value: number) =>
@@ -86,18 +125,27 @@ export default function ProgressChart({ data, previewMode }: { data: ProgressOve
     value: Math.round(domainMax - ((gl.y - PLOT_TOP) / (PLOT_BOTTOM - PLOT_TOP)) * (domainMax - domainMin)).toString(),
   }))
 
-  const xLabels: ChartXLabel[] = monthLabels(weeks)
+  const xLabels: ChartXLabel[] = weeks.map((w, i) => ({
+    label: formatShortDate(w.week_start),
+    highlight: i === weeks.length - 1,
+  }))
+  const hoverXPositions = weeks.map((_, i) => xScale(i, weeks.length))
+
   const minorTicks: ChartMinorTick[] = weeks.map((_, i) => ({
     x: xScale(i, weeks.length),
     y1: PLOT_BOTTOM,
     y2: PLOT_BOTTOM + 5,
   }))
 
-  const series = [
-    buildSeries(weeks, 'overall', 'var(--color-accent)', 2.5, yScale),
-    buildSeries(weeks, 'hospitality', 'var(--color-cobalt)', 2, yScale),
-    buildSeries(weeks, 'checkout_speed', 'var(--color-amber)', 2, yScale),
+  const seriesDefinitions: [SeriesKey, string, number][] = [
+    ['overall', 'var(--color-accent)', 2.5],
+    ['hospitality', 'var(--color-cobalt)', 2],
+    ['checkout_speed', 'var(--color-amber)', 2],
   ]
+
+  const series = seriesDefinitions
+    .filter(([key]) => visibleSeries[key])
+    .map(([key, color, strokeWidth]) => buildSeries(weeks, key, color, strokeWidth, yScale))
 
   const sign = points_change_total > 0 ? '↑ +' : points_change_total < 0 ? '↓ ' : '→ '
   const badgeText = `${sign}${points_change_total} pts total`
@@ -114,30 +162,87 @@ export default function ProgressChart({ data, previewMode }: { data: ProgressOve
 
   return (
     <Panel title="My Progress Over Time" subtitle={subtitle} badge={badge}>
-      {/* Legend */}
-      <div className="flex gap-[14px] mb-3">
-        <span className="flex items-center gap-[5px] text-secondary text-[11px]">
-          <span className="rounded-[1px] w-[18px] h-[2px]" style={{ background: 'var(--color-accent)' }} />
-          Overall
-        </span>
-        <span className="flex items-center gap-[5px] text-secondary text-[11px]">
-          <span className="rounded-[1px] w-[18px] h-[2px]" style={{ background: 'var(--color-cobalt)' }} />
-          Hospitality
-        </span>
-        <span className="flex items-center gap-[5px] text-secondary text-[11px]">
-          <span className="rounded-[1px] w-[18px] h-[2px]" style={{ background: 'var(--color-amber)' }} />
-          Checkout
-        </span>
+      {/* Legend with interactive toggles */}
+      <div className="flex gap-[16px] mb-3 select-none">
+        <LegendToggle
+          color="var(--color-accent)"
+          label="Overall"
+          active={visibleSeries.overall}
+          onClick={() => toggleSeries('overall')}
+        />
+        <LegendToggle
+          color="var(--color-cobalt)"
+          label="Hospitality"
+          active={visibleSeries.hospitality}
+          onClick={() => toggleSeries('hospitality')}
+        />
+        <LegendToggle
+          color="var(--color-amber)"
+          label="Checkout"
+          active={visibleSeries.checkout_speed}
+          onClick={() => toggleSeries('checkout_speed')}
+        />
       </div>
 
-      <LineChartSvg
-        viewBox="0 0 500 160"
-        gridLines={gridLines}
-        yLabels={yLabels}
-        series={series}
-        xLabels={xLabels}
-        minorTicks={minorTicks}
-      />
+      <div className="relative">
+        {hoverIndex !== null && hoverPointer !== null && weeks[hoverIndex] && (
+          <div
+            className="pointer-events-none absolute z-10 rounded-lg border border-border bg-surface px-3 py-2 shadow-md"
+            style={{
+              left: `${hoverPointer.x}px`,
+              top: `${hoverPointer.y}px`,
+              transform: `translate(${hoverPointer.x / hoverPointer.width > 0.7 ? 'calc(-100% - 12px)' : '12px'}, ${hoverPointer.y / hoverPointer.height > 0.65 ? 'calc(-100% - 12px)' : '12px'})`,
+            }}
+          >
+            <div className="mb-1 text-[10px] font-medium text-secondary">
+              {formatShortDate(weeks[hoverIndex].week_start)} – {formatShortDate(weeks[hoverIndex].week_end)}
+            </div>
+            <div className="flex flex-col gap-1 text-[10.5px]">
+              {visibleSeries.overall && (
+                <div className="flex items-center justify-between gap-4">
+                  <span className="flex items-center gap-1.5 text-secondary">
+                    <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                    Overall
+                  </span>
+                  <strong className="font-mono text-primary">{weeks[hoverIndex].overall.toFixed(1)}</strong>
+                </div>
+              )}
+              {visibleSeries.hospitality && (
+                <div className="flex items-center justify-between gap-4">
+                  <span className="flex items-center gap-1.5 text-secondary">
+                    <span className="h-1.5 w-1.5 rounded-full bg-cobalt" />
+                    Hospitality
+                  </span>
+                  <strong className="font-mono text-primary">{weeks[hoverIndex].hospitality.toFixed(1)}</strong>
+                </div>
+              )}
+              {visibleSeries.checkout_speed && (
+                <div className="flex items-center justify-between gap-4">
+                  <span className="flex items-center gap-1.5 text-secondary">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber" />
+                    Checkout
+                  </span>
+                  <strong className="font-mono text-primary">{weeks[hoverIndex].checkout_speed.toFixed(1)}</strong>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <LineChartSvg
+          viewBox="0 0 500 160"
+          gridLines={gridLines}
+          yLabels={yLabels}
+          series={series}
+          xLabels={xLabels}
+          minorTicks={minorTicks}
+          hoverIndex={hoverIndex}
+          hoverXPositions={hoverXPositions}
+          verticalLines="highlighted"
+          onHoverIndexChange={setHoverIndex}
+          onHoverPointerChange={setHoverPointer}
+        />
+      </div>
     </Panel>
   )
 }
