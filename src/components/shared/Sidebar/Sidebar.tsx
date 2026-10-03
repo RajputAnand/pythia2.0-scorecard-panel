@@ -997,46 +997,59 @@ export default function Sidebar({ user }: { user: User }) {
       {(user.role === "employee" ||
         (user.role === "superadmin" && superAdminView === "employee" && selectedEmployee)) && (
         <div
-          className="flex items-center gap-[10px] mx-3 mb-4 rounded-[10px] border px-[14px] py-[12px]"
+          className="flex flex-col gap-2.5 mx-3 mb-4 rounded-[10px] border px-3 py-2.5"
           style={{
             background:
               "linear-gradient(135deg, var(--color-accent-light), #D0EAD8)",
             borderColor: "#B8D9C6",
           }}
         >
-          <div className="flex items-center justify-center shrink-0 rounded-full bg-accent text-white font-bold w-9 h-9 text-[12px]">
-            {user.role === "superadmin" && selectedEmployee
-              ? getEmployeeInitials(selectedEmployee)
-              : user.initials}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-[12.5px] font-semibold text-accent truncate">
+          {/* Top Row: Avatar + Employee Name + Role/Store */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex items-center justify-center shrink-0 rounded-full bg-accent text-white font-bold w-8 h-8 text-[11.5px]">
               {user.role === "superadmin" && selectedEmployee
-                ? getEmployeeName(selectedEmployee)
-                : user.name}
+                ? getEmployeeInitials(selectedEmployee)
+                : user.initials}
             </div>
-            <div className="text-accent-mid text-[10.5px] truncate">
-              {user.role === "superadmin" && selectedEmployee
-                ? (selectedEmployee.role_name || "Employee")
-                : (user.jobTitle || "Employee")}
-              {currentStore && ` · ${currentStore.name}`}
+            <div className="min-w-0 flex-1">
+              <div
+                className="text-[12.5px] font-semibold text-accent truncate"
+                title={
+                  user.role === "superadmin" && selectedEmployee
+                    ? getEmployeeName(selectedEmployee)
+                    : user.name
+                }
+              >
+                {user.role === "superadmin" && selectedEmployee
+                  ? getEmployeeName(selectedEmployee)
+                  : user.name}
+              </div>
+              <div className="text-accent-mid text-[10.5px] truncate">
+                {user.role === "superadmin" && selectedEmployee
+                  ? (selectedEmployee.role_name || "Employee")
+                  : (user.jobTitle || "Employee")}
+                {currentStore && ` · ${currentStore.name}`}
+              </div>
             </div>
-          </div>
-          <div className="ml-auto text-right shrink-0">
             {!(user.role === "superadmin" && selectedEmployee) && (currentScore ?? user.score) != null && (
-              <div className="font-mono font-bold text-accent text-[18px]">
+              <div className="font-mono font-bold text-accent text-[16px] shrink-0 ml-1">
                 {currentScore ?? user.score}
               </div>
             )}
-            <div
-              className="font-mono font-bold text-[11px]"
-              style={{ color: "#F5C842" }}
+          </div>
+
+          {/* Bottom Row: Dedicated Points Balance Bar */}
+          <div className="flex items-center justify-between pt-2 border-t border-[#B8D9C6]/70">
+            <span className="text-accent-mid font-medium text-[10.5px]">Points Balance</span>
+            <span
+              className="font-mono font-bold text-[11.5px]"
+              style={{ color: "#B8860B" }}
             >
               {(user.role === "superadmin" && selectedEmployee
                 ? (selectedEmployee.points ?? 0)
                 : points
               ).toLocaleString("en-US")} pts
-            </div>
+            </span>
           </div>
         </div>
       )}
