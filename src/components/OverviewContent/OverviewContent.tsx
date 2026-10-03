@@ -142,7 +142,6 @@ export default function OverviewContent({
             </div>
 
             <div className="grid grid-cols-2 items-start gap-[18px]">
-              <Leaderboard data={summary.leaderboard.data} />
               {summary.progress.weeks.length > 0 ? (
                 <ProgressChart data={summary.progress} />
               ) : (
@@ -151,6 +150,7 @@ export default function OverviewContent({
                   <p className="text-[12.5px] font-semibold">No progress data yet</p>
                 </div>
               )}
+              <Leaderboard data={summary.leaderboard.data} />
             </div>
             
             <SwagStore />

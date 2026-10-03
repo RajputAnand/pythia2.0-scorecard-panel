@@ -425,7 +425,6 @@ export default function SuperAdminEmployeeOverviewContent({
             </div>
 
             <div className="grid grid-cols-2 items-start gap-[18px]">
-              {leaderboardData && <Leaderboard data={leaderboardData} />}
               {summary.progress.weeks.length > 0 ? (
                 <ProgressChart data={summary.progress} />
               ) : (
@@ -434,6 +433,7 @@ export default function SuperAdminEmployeeOverviewContent({
                   <p className="text-[12.5px] font-semibold">No progress data yet</p>
                 </div>
               )}
+              {leaderboardData && <Leaderboard data={leaderboardData} />}
             </div>
 
             <KpiVisibilityGate id={KPI_IDS.employeeSwagStore}>
