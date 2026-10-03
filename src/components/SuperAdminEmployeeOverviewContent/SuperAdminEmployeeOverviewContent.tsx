@@ -103,10 +103,34 @@ export default function SuperAdminEmployeeOverviewContent({
   const activeToken = token || session?.user?.pythia2Token || ''
   const currentStore = useUserStore((s) => s.currentStore)
   const currentStoreId = currentStore?.storeNo || currentStore?._id
+  const globalSelectedEmployee = useUserStore((s) => s.selectedEmployee)
+  const setGlobalSelectedEmployee = useUserStore((s) => s.setSelectedEmployee)
 
   const [employees, setEmployees] = useState<ApiEmployee[]>(initialEmployees)
   const [employeesLoading, setEmployeesLoading] = useState(false)
-  const [selectedEmployee, setSelectedEmployee] = useState<ApiEmployee | null>(initialSelectedEmployee)
+  const [selectedEmployee, setSelectedEmployeeState] = useState<ApiEmployee | null>(() => {
+    if (
+      globalSelectedEmployee &&
+      initialEmployees.some(
+        (e) => (e.user_id || e._id) === (globalSelectedEmployee.user_id || globalSelectedEmployee._id)
+      )
+    ) {
+      return globalSelectedEmployee
+    }
+    return initialSelectedEmployee
+  })
+
+  const setSelectedEmployee = (emp: ApiEmployee | null) => {
+    setSelectedEmployeeState(emp)
+    setGlobalSelectedEmployee(emp)
+  }
+
+  // Ensure global store has initial employee if not already set
+  useEffect(() => {
+    if (selectedEmployee && !globalSelectedEmployee) {
+      setGlobalSelectedEmployee(selectedEmployee)
+    }
+  }, [selectedEmployee, globalSelectedEmployee, setGlobalSelectedEmployee])
 
   const [weekOffset, setWeekOffset] = useState(0)
   const [summary, setSummary] = useState<DashboardSummaryResponse | null>(initialSummary)
@@ -131,10 +155,13 @@ export default function SuperAdminEmployeeOverviewContent({
   useEffect(() => {
     setEmployees(initialEmployees)
     if (initialEmployees.length > 0) {
-      const stillPresent = initialEmployees.some(
-        (e) => (e.user_id || e._id) === (selectedEmployee?.user_id || selectedEmployee?._id)
+      const active = globalSelectedEmployee || selectedEmployee
+      const matched = initialEmployees.find(
+        (e) => (e.user_id || e._id) === (active?.user_id || active?._id)
       )
-      if (!stillPresent) {
+      if (matched) {
+        setSelectedEmployee(matched)
+      } else {
         setSelectedEmployee(initialSelectedEmployee || initialEmployees[0])
       }
     } else {
@@ -155,10 +182,12 @@ export default function SuperAdminEmployeeOverviewContent({
           if (cancelled) return
           const list = res.data ?? []
           setEmployees(list)
-          const stillPresent = list.some(
+          const stillPresent = list.find(
             (e) => (e.user_id || e._id) === (selectedEmployee?.user_id || selectedEmployee?._id)
           )
-          if (!stillPresent) {
+          if (stillPresent) {
+            setSelectedEmployee(stillPresent)
+          } else {
             setSelectedEmployee(list[0] ?? null)
           }
         })
@@ -185,7 +214,10 @@ export default function SuperAdminEmployeeOverviewContent({
           const list = res.data ?? []
           setEmployees(list)
           if (!selectedEmployee && list.length > 0) {
-            setSelectedEmployee(list[0])
+            const matched = globalSelectedEmployee
+              ? list.find((e) => (e.user_id || e._id) === (globalSelectedEmployee.user_id || globalSelectedEmployee._id))
+              : null
+            setSelectedEmployee(matched || list[0])
           }
         })
         .catch(() => {})
@@ -196,7 +228,7 @@ export default function SuperAdminEmployeeOverviewContent({
         cancelled = true
       }
     }
-  }, [activeToken, employees.length, selectedEmployee, currentStoreId])
+  }, [activeToken, employees.length, selectedEmployee, currentStoreId, globalSelectedEmployee])
 
   // Fetch live scorecard data when selectedEmployee, weekOffset, or activeToken changes
   useEffect(() => {

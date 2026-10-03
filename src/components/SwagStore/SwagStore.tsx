@@ -11,6 +11,7 @@ import { useSwagStore } from '@/store/swagStore'
 import { useUserStore } from '@/store/userStore'
 import { useAdminConfigStore } from '@/store/adminConfigStore'
 import { KPI_IDS } from '@/lib/admin-config-data'
+import { getEmployeeName } from '@/utils/common'
 import ConfirmCancelOrderModal from './ConfirmCancelOrderModal'
 
 const PREVIEW_POINTS = 1450
@@ -59,20 +60,30 @@ export default function SwagStore({
 
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.employeeSwagStore] ?? true)
 
-  const [localPoints, setLocalPoints] = useState<number | null>(null)
-
-  useEffect(() => {
-    if (employeePoints !== undefined) {
-      setLocalPoints(employeePoints)
-    }
-  }, [employeePoints])
-
+  const globalSelectedEmployee = useUserStore((s) => s.selectedEmployee)
   const storePoints = useUserStore((s) => s.points) ?? 0
   const currentStore = useUserStore((s) => s.currentStore)
   const { data: session } = useSession()
+
+  const effectiveEmployeePoints =
+    employeePoints !== undefined
+      ? employeePoints
+      : globalSelectedEmployee?.points !== undefined
+        ? globalSelectedEmployee.points
+        : undefined
+
+  const [localPoints, setLocalPoints] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (effectiveEmployeePoints !== undefined) {
+      setLocalPoints(effectiveEmployeePoints)
+    }
+  }, [effectiveEmployeePoints])
+
   const token = session?.user?.pythia2Token || session?.user?.token
   const storeId =
     propStoreId ||
+    globalSelectedEmployee?.store_ids?.[0] ||
     currentStore?.storeNo ||
     currentStore?._id ||
     session?.user?.store_ids?.[0] ||
@@ -82,8 +93,8 @@ export default function SwagStore({
     ? PREVIEW_POINTS
     : localPoints !== null
       ? localPoints
-      : employeePoints !== undefined
-        ? employeePoints
+      : effectiveEmployeePoints !== undefined
+        ? effectiveEmployeePoints
         : storePoints
 
   const {
@@ -106,9 +117,22 @@ export default function SwagStore({
     }
   }, [fetchCatalog, fetchMyOrders, previewMode, token, storeId])
 
-  const currentEmployeeName = propEmployeeName || session?.user?.name || 'Marcus Reynolds'
-  const currentEmployeeEmail = propEmployeeEmail || session?.user?.email || 'emp_marcus'
-  const currentEmployeeId = propEmployeeId || session?.user?.id || ((session?.user as Record<string, unknown> | undefined)?.user_id as string | undefined)
+  const currentEmployeeName =
+    propEmployeeName ||
+    (globalSelectedEmployee ? getEmployeeName(globalSelectedEmployee) : undefined) ||
+    session?.user?.name ||
+    'Marcus Reynolds'
+  const currentEmployeeEmail =
+    propEmployeeEmail ||
+    globalSelectedEmployee?.email ||
+    session?.user?.email ||
+    'emp_marcus'
+  const currentEmployeeId =
+    propEmployeeId ||
+    globalSelectedEmployee?.user_id ||
+    globalSelectedEmployee?._id ||
+    session?.user?.id ||
+    ((session?.user as Record<string, unknown> | undefined)?.user_id as string | undefined)
 
   // Sub-navigation tabs: Browse catalog vs My Orders
   const [activeViewTab, setActiveViewTab] = useState<'browse' | 'orders'>('browse')
@@ -224,6 +248,13 @@ export default function SwagStore({
       if (localPoints !== null) {
         setLocalPoints(remaining)
       }
+      const selEmp = useUserStore.getState().selectedEmployee
+      if (selEmp) {
+        useUserStore.getState().setSelectedEmployee({
+          ...selEmp,
+          points: remaining,
+        })
+      }
       showToast(
         `${item.emoji} "${item.name}" claimed! ${remaining.toLocaleString(
           'en-US'
@@ -238,8 +269,16 @@ export default function SwagStore({
     if (!cancellingOrder) return
     const res = await cancelOrder(cancellingOrder.id, currentEmployeeName, { token, storeId })
     if (res.success) {
+      const refunded = (localPoints ?? points) + cancellingOrder.pointsCost
       if (localPoints !== null) {
-        setLocalPoints((prev) => (prev ?? points) + cancellingOrder.pointsCost)
+        setLocalPoints(refunded)
+      }
+      const selEmp = useUserStore.getState().selectedEmployee
+      if (selEmp) {
+        useUserStore.getState().setSelectedEmployee({
+          ...selEmp,
+          points: refunded,
+        })
       }
       showToast(
         `Order #${cancellingOrder.id} cancelled. ${cancellingOrder.pointsCost.toLocaleString('en-US')} pts refunded to your balance!`

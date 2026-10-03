@@ -10,6 +10,7 @@ import { useUserStore } from "@/store/userStore";
 import { useSwagStore } from "@/store/swagStore";
 import { useAdminConfigStore } from "@/store/adminConfigStore";
 import { PAGE_ID_BY_HREF } from "@/lib/admin-config-data";
+import { getEmployeeName, getEmployeeInitials } from "@/utils/common";
 
 type NavItem = {
   label: string;
@@ -757,6 +758,7 @@ export default function Sidebar({ user }: { user: User }) {
   const setPoints = useUserStore((s) => s.setPoints);
   const currentStore = useUserStore((s) => s.currentStore);
   const currentOrganization = useUserStore((s) => s.currentOrganization);
+  const selectedEmployee = useUserStore((s) => s.selectedEmployee);
   const points = storePoints ?? user.points ?? 0;
 
   const swagOrders = useSwagStore((s) => s.orders);
@@ -992,7 +994,8 @@ export default function Sidebar({ user }: { user: User }) {
       )}
 
       {/* Bottom widget — employee scorecard pill */}
-      {user.role === "employee" && (
+      {(user.role === "employee" ||
+        (user.role === "superadmin" && superAdminView === "employee" && selectedEmployee)) && (
         <div
           className="flex items-center gap-[10px] mx-3 mb-4 rounded-[10px] border px-[14px] py-[12px]"
           style={{
@@ -1002,30 +1005,39 @@ export default function Sidebar({ user }: { user: User }) {
           }}
         >
           <div className="flex items-center justify-center shrink-0 rounded-full bg-accent text-white font-bold w-9 h-9 text-[12px]">
-            {user.initials}
+            {user.role === "superadmin" && selectedEmployee
+              ? getEmployeeInitials(selectedEmployee)
+              : user.initials}
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-[12.5px] font-semibold text-accent truncate">
-              {user.name}
+              {user.role === "superadmin" && selectedEmployee
+                ? getEmployeeName(selectedEmployee)
+                : user.name}
             </div>
             <div className="text-accent-mid text-[10.5px] truncate">
-              {user.jobTitle || "Employee"}
+              {user.role === "superadmin" && selectedEmployee
+                ? (selectedEmployee.role_name || "Employee")
+                : (user.jobTitle || "Employee")}
               {currentStore && ` · ${currentStore.name}`}
             </div>
           </div>
-          {(currentScore ?? user.score) != null && (
-            <div className="ml-auto text-right shrink-0">
+          <div className="ml-auto text-right shrink-0">
+            {!(user.role === "superadmin" && selectedEmployee) && (currentScore ?? user.score) != null && (
               <div className="font-mono font-bold text-accent text-[18px]">
                 {currentScore ?? user.score}
               </div>
-              <div
-                className="font-mono font-bold text-[11px]"
-                style={{ color: "#F5C842" }}
-              >
-                {points.toLocaleString("en-US")} pts
-              </div>
+            )}
+            <div
+              className="font-mono font-bold text-[11px]"
+              style={{ color: "#F5C842" }}
+            >
+              {(user.role === "superadmin" && selectedEmployee
+                ? (selectedEmployee.points ?? 0)
+                : points
+              ).toLocaleString("en-US")} pts
             </div>
-          )}
+          </div>
         </div>
       )}
     </aside>
