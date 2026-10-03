@@ -250,22 +250,43 @@ export default function CoachingEmpDrilldown({ employee, detail }: Props) {
             {categories.length === 0 ? (
               <div className="text-[11.5px] text-gray-800">No categories tracked yet.</div>
             ) : (
-              categories.map((cat) => (
-                <div key={cat.category} className="flex flex-col gap-1">
-                  <div className="flex items-center justify-between text-[11.5px]">
-                    <span className="font-medium text-secondary">{titleCase(cat.category)} coaching</span>
-                    <span className="font-mono text-[11px] text-gray-800">
-                      {cat.total === 0 ? 'No data' : `${cat.resolved_pct}% resolved`}
-                    </span>
+              categories.map((cat) => {
+                let statusText = `${cat.resolved_pct}% resolved`
+                let barWidth = `${cat.resolved_pct}%`
+                let barColor = effectivenessFillColor(cat.resolved_pct)
+
+                if (cat.total === 0) {
+                  statusText = 'No data'
+                  barWidth = '0%'
+                } else if (cat.resolved_pct === 0) {
+                  if (cat.stalled > 0) {
+                    statusText = 'Stalled'
+                    barWidth = '20%'
+                    barColor = 'var(--color-danger)'
+                  } else if (cat.in_progress > 0) {
+                    statusText = 'In progress'
+                    barWidth = '25%'
+                    barColor = 'var(--color-amber)'
+                  }
+                }
+
+                return (
+                  <div key={cat.category} className="flex flex-col gap-1">
+                    <div className="flex items-center justify-between text-[11.5px]">
+                      <span className="font-medium text-secondary">{titleCase(cat.category)} coaching</span>
+                      <span className="font-mono text-[11px] text-gray-800">
+                        {statusText}
+                      </span>
+                    </div>
+                    <div className="h-[7px] bg-surface-alt rounded overflow-hidden">
+                      <div
+                        className="h-full rounded transition-all duration-300"
+                        style={{ width: barWidth, background: barColor }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-[7px] bg-surface-alt rounded overflow-hidden">
-                    <div
-                      className="h-full rounded"
-                      style={{ width: `${cat.resolved_pct}%`, background: effectivenessFillColor(cat.resolved_pct) }}
-                    />
-                  </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         </div>
