@@ -132,16 +132,18 @@ export default function OverviewContent({
           <div className="grid gap-5">
             <HeroBanner data={overview.heroBanner} weeklyStats={summary.weekly.data} isCustomRange={hasActiveDateFilter} />
 
-            <ShiftSummary
-              shiftSummary={summary.today.data}
-              highlights={shiftHighlights}
-              highlightsGenerating={shiftHighlightsGenerating}
-            />
             <div className="grid grid-cols-2 items-start gap-[18px]">
-              <CoachingMoments items={coachingMoments} generationInProgress={coachingGenerationInProgress} />  
-              <Leaderboard data={summary.leaderboard.data} />
+              <ShiftSummary
+                shiftSummary={summary.today.data}
+                highlights={shiftHighlights}
+                highlightsGenerating={shiftHighlightsGenerating}
+              />
+              <CoachingMoments items={coachingMoments} generationInProgress={coachingGenerationInProgress} />
             </div>
-            {summary.progress.weeks.length > 0 ? (
+
+            <div className="grid grid-cols-2 items-start gap-[18px]">
+              <Leaderboard data={summary.leaderboard.data} />
+              {summary.progress.weeks.length > 0 ? (
                 <ProgressChart data={summary.progress} />
               ) : (
                 <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-10">
@@ -149,6 +151,7 @@ export default function OverviewContent({
                   <p className="text-[12.5px] font-semibold">No progress data yet</p>
                 </div>
               )}
+            </div>
             
             <SwagStore />
           </div>

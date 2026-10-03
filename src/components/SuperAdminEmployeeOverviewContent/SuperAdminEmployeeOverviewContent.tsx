@@ -412,28 +412,29 @@ export default function SuperAdminEmployeeOverviewContent({
               isCustomRange={hasActiveDateFilter}
             />
 
-            <ShiftSummary
-              shiftSummary={summary.today.data}
-              highlights={shiftHighlights}
-              highlightsGenerating={shiftHighlightsGenerating}
-            />
-
             <div className="grid grid-cols-2 items-start gap-[18px]">
+              <ShiftSummary
+                shiftSummary={summary.today.data}
+                highlights={shiftHighlights}
+                highlightsGenerating={shiftHighlightsGenerating}
+              />
               <CoachingMoments
                 items={coachingMoments}
                 generationInProgress={coachingGenerationInProgress}
               />
-              {leaderboardData && <Leaderboard data={leaderboardData} />}
             </div>
 
-            {summary.progress.weeks.length > 0 ? (
-              <ProgressChart data={summary.progress} />
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-10">
-                <span className="text-[28px]">📈</span>
-                <p className="text-[12.5px] font-semibold">No progress data yet</p>
-              </div>
-            )}
+            <div className="grid grid-cols-2 items-start gap-[18px]">
+              {leaderboardData && <Leaderboard data={leaderboardData} />}
+              {summary.progress.weeks.length > 0 ? (
+                <ProgressChart data={summary.progress} />
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-surface py-10">
+                  <span className="text-[28px]">📈</span>
+                  <p className="text-[12.5px] font-semibold">No progress data yet</p>
+                </div>
+              )}
+            </div>
 
             <KpiVisibilityGate id={KPI_IDS.employeeSwagStore}>
               <SwagStore previewMode />
