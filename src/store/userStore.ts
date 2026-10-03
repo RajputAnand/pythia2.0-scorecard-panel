@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { Store } from '@/types/store'
 import type { Organization } from '@/types/organization'
+import type { ApiEmployee } from '@/types/employee'
 
 function syncStoreCookie(storeId: string | null | undefined) {
   if (typeof document !== 'undefined') {
@@ -36,6 +37,8 @@ interface UserStoreState {
   currentScore: number | null
   /** Employee's available swag points — seeded from session, updated on redemption */
   points: number | null
+  /** Currently selected employee (for Super Admin / Manager employee view mirror) */
+  selectedEmployee: ApiEmployee | null
 
   /** Called when the stores query resolves — fully replaces the stores list */
   setStores: (stores: Store[]) => void
@@ -49,6 +52,8 @@ interface UserStoreState {
   setCurrentScore: (score: number) => void
   /** Seed from session on Sidebar mount; decremented by swag redemptions */
   setPoints: (points: number) => void
+  /** Superadmin / Manager picks an employee from the dropdown */
+  setSelectedEmployee: (employee: ApiEmployee | null) => void
 }
 
 export const useUserStore = create<UserStoreState>()(
@@ -60,6 +65,7 @@ export const useUserStore = create<UserStoreState>()(
       currentOrganization: null,
       currentScore: null,
       points: null,
+      selectedEmployee: null,
 
       setStores(stores) {
         set((state) => {
@@ -100,12 +106,17 @@ export const useUserStore = create<UserStoreState>()(
       setPoints(points) {
         set({ points })
       },
+
+      setSelectedEmployee(employee) {
+        set({ selectedEmployee: employee })
+      },
     })),
     {
       name: 'pythia_user_store',
       partialize: (state) => ({
         currentStore: state.currentStore,
         currentOrganization: state.currentOrganization,
+        selectedEmployee: state.selectedEmployee,
       }),
     }
   )

@@ -103,10 +103,34 @@ export default function SuperAdminEmployeeOverviewContent({
   const activeToken = token || session?.user?.pythia2Token || ''
   const currentStore = useUserStore((s) => s.currentStore)
   const currentStoreId = currentStore?.storeNo || currentStore?._id
+  const globalSelectedEmployee = useUserStore((s) => s.selectedEmployee)
+  const setGlobalSelectedEmployee = useUserStore((s) => s.setSelectedEmployee)
 
   const [employees, setEmployees] = useState<ApiEmployee[]>(initialEmployees)
   const [employeesLoading, setEmployeesLoading] = useState(false)
-  const [selectedEmployee, setSelectedEmployee] = useState<ApiEmployee | null>(initialSelectedEmployee)
+  const [selectedEmployee, setSelectedEmployeeState] = useState<ApiEmployee | null>(() => {
+    if (
+      globalSelectedEmployee &&
+      initialEmployees.some(
+        (e) => (e.user_id || e._id) === (globalSelectedEmployee.user_id || globalSelectedEmployee._id)
+      )
+    ) {
+      return globalSelectedEmployee
+    }
+    return initialSelectedEmployee
+  })
+
+  const setSelectedEmployee = (emp: ApiEmployee | null) => {
+    setSelectedEmployeeState(emp)
+    setGlobalSelectedEmployee(emp)
+  }
+
+  // Ensure global store has initial employee if not already set
+  useEffect(() => {
+    if (selectedEmployee && !globalSelectedEmployee) {
+      setGlobalSelectedEmployee(selectedEmployee)
+    }
+  }, [selectedEmployee, globalSelectedEmployee, setGlobalSelectedEmployee])
 
   const [weekOffset, setWeekOffset] = useState(0)
   const [summary, setSummary] = useState<DashboardSummaryResponse | null>(initialSummary)
@@ -131,16 +155,22 @@ export default function SuperAdminEmployeeOverviewContent({
   useEffect(() => {
     setEmployees(initialEmployees)
     if (initialEmployees.length > 0) {
-      const stillPresent = initialEmployees.some(
-        (e) => (e.user_id || e._id) === (selectedEmployee?.user_id || selectedEmployee?._id)
+      const active = globalSelectedEmployee || selectedEmployee
+      const matched = initialEmployees.find(
+        (e) => (e.user_id || e._id) === (active?.user_id || active?._id)
       )
-      if (!stillPresent) {
+      if (matched) {
+        setSelectedEmployee(matched)
+      } else {
         setSelectedEmployee(initialSelectedEmployee || initialEmployees[0])
       }
     } else {
       setSelectedEmployee(null)
     }
   }, [initialEmployees, initialSelectedEmployee])
+
+  const selectedEmployeeRef = useRef(selectedEmployee)
+  selectedEmployeeRef.current = selectedEmployee
 
   // Re-fetch employees when current store changes
   const lastStoreId = useRef(currentStoreId)
@@ -155,48 +185,53 @@ export default function SuperAdminEmployeeOverviewContent({
           if (cancelled) return
           const list = res.data ?? []
           setEmployees(list)
-          const stillPresent = list.some(
-            (e) => (e.user_id || e._id) === (selectedEmployee?.user_id || selectedEmployee?._id)
+          const currentEmp = selectedEmployeeRef.current
+          const stillPresent = list.find(
+            (e) => (e.user_id || e._id) === (currentEmp?.user_id || currentEmp?._id)
           )
-          if (!stillPresent) {
+          if (stillPresent) {
+            setSelectedEmployee(stillPresent)
+          } else {
             setSelectedEmployee(list[0] ?? null)
           }
         })
         .catch(() => {})
         .finally(() => {
-          if (!cancelled) setEmployeesLoading(false)
+          setEmployeesLoading(false)
         })
       return () => {
         cancelled = true
       }
     }
-  }, [currentStoreId, activeToken, selectedEmployee])
+  }, [currentStoreId, activeToken])
 
   // Fetch employees client-side if initial list was empty
   useEffect(() => {
     if (employees.length === 0 && activeToken) {
       let cancelled = false
-      queueMicrotask(() => {
-        if (!cancelled) setEmployeesLoading(true)
-      })
+      setEmployeesLoading(true)
       fetchEmployees({ token: activeToken, skip: 0, limit: 100, storeId: currentStoreId })
         .then((res) => {
           if (cancelled) return
           const list = res.data ?? []
           setEmployees(list)
-          if (!selectedEmployee && list.length > 0) {
-            setSelectedEmployee(list[0])
+          const currentEmp = selectedEmployeeRef.current
+          if (!currentEmp && list.length > 0) {
+            const matched = globalSelectedEmployee
+              ? list.find((e) => (e.user_id || e._id) === (globalSelectedEmployee.user_id || globalSelectedEmployee._id))
+              : null
+            setSelectedEmployee(matched || list[0])
           }
         })
         .catch(() => {})
         .finally(() => {
-          if (!cancelled) setEmployeesLoading(false)
+          setEmployeesLoading(false)
         })
       return () => {
         cancelled = true
       }
     }
-  }, [activeToken, employees.length, selectedEmployee, currentStoreId])
+  }, [activeToken, employees.length, currentStoreId, globalSelectedEmployee])
 
   // Fetch live scorecard data when selectedEmployee, weekOffset, or activeToken changes
   useEffect(() => {
@@ -437,7 +472,13 @@ export default function SuperAdminEmployeeOverviewContent({
             </div>
 
             <KpiVisibilityGate id={KPI_IDS.employeeSwagStore}>
-              <SwagStore previewMode />
+              <SwagStore
+                employeePoints={selectedEmployee?.points ?? 0}
+                employeeId={selectedEmployee?.user_id || selectedEmployee?._id}
+                employeeName={getEmployeeName(selectedEmployee)}
+                employeeEmail={selectedEmployee?.email}
+                storeId={selectedEmployee?.store_ids?.[0] || currentStoreId}
+              />
             </KpiVisibilityGate>
           </div>
         )}

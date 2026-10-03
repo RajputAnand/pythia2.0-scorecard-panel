@@ -1,5 +1,6 @@
 export interface RoiAttributionParams {
   store_id?: string
+  tenant_id?: string
   period_type?: 'week' | 'month' | 'quarter' | 'custom'
   custom_start?: string
   custom_end?: string

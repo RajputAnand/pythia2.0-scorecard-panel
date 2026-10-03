@@ -15,6 +15,7 @@ export interface FetchRoiAttributionParams extends RoiAttributionParams {
 export async function fetchRoiAttribution({
   token,
   store_id,
+  tenant_id,
   period_type = 'month',
   custom_start,
   custom_end,
@@ -23,6 +24,7 @@ export async function fetchRoiAttribution({
   if (token.includes('mock')) {
     return fakeGetRoiAttribution({
       store_id,
+      tenant_id,
       period_type,
       custom_start,
       custom_end,
@@ -34,6 +36,7 @@ export async function fetchRoiAttribution({
     headers: { Authorization: `Bearer ${token}` },
     params: {
       store_id: store_id || undefined,
+      tenant_id: tenant_id || undefined,
       period_type,
       custom_start: custom_start || undefined,
       custom_end: custom_end || undefined,
