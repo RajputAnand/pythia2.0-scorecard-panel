@@ -134,6 +134,7 @@ export default function LineChartSvg({
   streakBadge,
   hoverIndex,
   hoverXPositions,
+  verticalLines = 'highlighted',
   onHoverIndexChange,
   onHoverPointerChange,
 }: LineChartSvgProps) {
@@ -163,6 +164,26 @@ export default function LineChartSvg({
         {gridLines.map((gl) => (
           <line key={gl.y} x1="0" y1={gl.y} x2={svgWidth} y2={gl.y} stroke="#F0EDE8" strokeWidth="1" />
         ))}
+
+        {/* Vertical guide lines crossing from important / highlighted X-axis points */}
+        {verticalLines !== 'none' && xPositions && xLabels.map(({ highlight }, index) => {
+          const shouldShow = verticalLines === 'all' || (verticalLines === 'highlighted' && highlight)
+          if (!shouldShow || hoverIndex === index) return null
+          const xPos = xPositions[index]
+          return (
+            <line
+              key={`v-line-${index}`}
+              x1={xPos}
+              y1={gridLines[0]?.y ?? 0}
+              x2={xPos}
+              y2={svgHeight}
+              stroke="#E4DFD8"
+              strokeWidth="1"
+              strokeDasharray="3,3"
+              pointerEvents="none"
+            />
+          )
+        })}
 
         {/* Minor ticks — finer-grained markers along the x-axis (e.g. one per week under monthly labels) */}
         {minorTicks?.map((tick, i) => (
