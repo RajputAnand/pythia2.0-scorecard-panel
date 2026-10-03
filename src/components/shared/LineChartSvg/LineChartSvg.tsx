@@ -37,7 +37,7 @@ function getStaggeredLabels(series: LineChartSvgProps['series'], svgHeight: numb
   }
 
   const X_TOLERANCE = 30
-  const MIN_Y_GAP = 12
+  const MIN_Y_GAP = 14
   const minY = 10
   const maxY = svgHeight - 6
 
@@ -71,7 +71,7 @@ function getStaggeredLabels(series: LineChartSvgProps['series'], svgHeight: numb
     group.sort((a, b) => a.y - b.y)
 
     // Iterative relaxation to resolve vertical overlaps
-    for (let pass = 0; pass < 6; pass++) {
+    for (let pass = 0; pass < 8; pass++) {
       for (let i = 0; i < group.length - 1; i++) {
         const gap = group[i + 1].y - group[i].y
         if (gap < MIN_Y_GAP) {
@@ -209,7 +209,7 @@ export default function LineChartSvg({
           </g>
         ))}
 
-        {/* De-overlapped / staggered series labels */}
+        {/* De-overlapped / staggered series labels with crisp halo */}
         {staggeredLabels.map((lbl) => (
           <text
             key={lbl.key}
@@ -218,8 +218,12 @@ export default function LineChartSvg({
             fontSize="9"
             fill={lbl.color}
             fontFamily="DM Mono"
-            fontWeight="500"
+            fontWeight="600"
             opacity={lbl.opacity}
+            paintOrder="stroke fill"
+            stroke="var(--color-surface, #ffffff)"
+            strokeWidth="2.5"
+            strokeLinejoin="round"
           >
             {lbl.value}
           </text>

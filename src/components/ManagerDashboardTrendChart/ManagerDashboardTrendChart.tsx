@@ -14,7 +14,7 @@ interface Props {
 }
 
 const PLOT_LEFT = 30
-const PLOT_RIGHT = 470
+const PLOT_RIGHT = 455
 const PLOT_TOP = 16
 const PLOT_BOTTOM = 130
 
@@ -37,11 +37,11 @@ function buildSeries(weeks: ManagerDashboardTrendWeek[], key: RateKey, color: st
 
   const dots: ChartDot[] = points.map((p) => ({ cx: p.x, cy: p.y, r: 3 }))
 
-  // Direct label only on the most recent point per series — one number per
-  // line, not one per point, to keep 3 overlapping series readable.
+  // Trailing label to the right of the most recent point per series.
+  // Placing it to the right of the dot ensures the trend lines never cross through the numbers.
   const last = points[points.length - 1]
   const labels: ChartLabel[] = last
-    ? [{ x: last.x - 10, y: last.y - 8, value: `${weeks[weeks.length - 1][key]}%` }]
+    ? [{ x: last.x + 8, y: last.y + 3, value: `${weeks[weeks.length - 1][key]}%` }]
     : []
 
   return { path, color, strokeWidth: 2.25, dots, labels }
