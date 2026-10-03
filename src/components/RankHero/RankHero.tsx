@@ -57,10 +57,10 @@ export default function RankHero({ previewMode, data, loading }: RankHeroProps =
   const baseMetrics = previewMode ? previewMetrics : metrics
   const shownMetrics = baseMetrics.map(m => {
     if (data && !loading) {
-      if (m.label === 'Hospitality') return { ...m, val: data.hospitality ?? 0, rank: data.hospitality_rank ? `#${data.hospitality_rank} of ${data.hospitality_cohort_size}` : 'N/A' }
-      if (m.label === 'Checkout Spd') return { ...m, val: data.checkout ?? 0, rank: data.checkout_rank ? `#${data.checkout_rank} of ${data.checkout_cohort_size}` : 'N/A' }
-      if (m.label === 'Time to Svc') return { ...m, val: data.time_to_svc ?? 0, rank: data.time_to_svc_rank ? `#${data.time_to_svc_rank} of ${data.time_to_svc_cohort_size}` : 'N/A' }
-      if (m.label === 'Overall Score') return { ...m, val: data.overall ?? 0, rank: data.rank ? `#${data.rank} of ${data.cohort_size}` : 'N/A' }
+      if (m.label === 'Hospitality') return { ...m, val: data.hospitality ?? 0, rank: data.hospitality_rank && data.hospitality_cohort_size ? `#${data.hospitality_rank} of ${data.hospitality_cohort_size}` : (data.hospitality_rank ? `#${data.hospitality_rank}` : 'N/A') }
+      if (m.label === 'Checkout Spd') return { ...m, val: data.checkout ?? 0, rank: data.checkout_rank && data.checkout_cohort_size ? `#${data.checkout_rank} of ${data.checkout_cohort_size}` : (data.checkout_rank ? `#${data.checkout_rank}` : 'N/A') }
+      if (m.label === 'Time to Svc') return { ...m, val: data.time_to_svc ?? 0, rank: data.time_to_svc_rank && data.time_to_svc_cohort_size ? `#${data.time_to_svc_rank} of ${data.time_to_svc_cohort_size}` : (data.time_to_svc_rank ? `#${data.time_to_svc_rank}` : 'N/A') }
+      if (m.label === 'Overall Score') return { ...m, val: data.overall ?? 0, rank: data.rank && data.cohort_size ? `#${data.rank} of ${data.cohort_size}` : (data.rank ? `#${data.rank}` : 'N/A') }
     }
     return m
   })

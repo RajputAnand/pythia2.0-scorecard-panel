@@ -55,6 +55,11 @@ export const KPI_IDS = {
   benchmarkingStoreComparison: 'benchmarking.storeComparison',
   benchmarkingTopPractices: 'benchmarking.topPractices',
 
+  // Owner · Dashboard
+  ownerDashboardNetworkLeaderboard: 'ownerDashboard.networkLeaderboard',
+  ownerDashboardStoreComparison: 'ownerDashboard.storeComparison',
+  ownerDashboardRankMovement: 'ownerDashboard.rankMovement',
+
   // Owner · Marketing Loop
   marketingFootTraffic: 'marketing.insight.footTraffic',
   marketingBestChannel: 'marketing.insight.bestChannel',
@@ -75,6 +80,7 @@ export const PAGE_IDS = {
   managerStaffing: 'page.managerStaffing',
   ownerRoi: 'page.ownerRoi',
   ownerBenchmarking: 'page.ownerBenchmarking',
+  ownerDashboard: 'page.ownerDashboard',
   ownerMarketing: 'page.ownerMarketing',
 } as const
 
@@ -84,6 +90,7 @@ const MANAGER_COACHING_TRACKER = { role: 'manager' as const, page: 'Coaching Tra
 const MANAGER_STAFFING = { role: 'manager' as const, page: 'Staffing Intelligence', pageHref: '/manager/staffing-intelligence' }
 const OWNER_ROI = { role: 'owner' as const, page: 'ROI Attribution', pageHref: '/owner/roi-attribution' }
 const OWNER_BENCHMARKING = { role: 'owner' as const, page: 'Benchmarking', pageHref: '/owner/benchmarking' }
+const OWNER_DASHBOARD = { role: 'owner' as const, page: 'Dashboard', pageHref: '/owner/dashboard' }
 const OWNER_MARKETING = { role: 'owner' as const, page: 'Marketing Loop', pageHref: '/owner/marketing-loop' }
 
 export const KPI_REGISTRY: KpiRegistryEntry[] = [
@@ -136,6 +143,11 @@ export const KPI_REGISTRY: KpiRegistryEntry[] = [
   { id: KPI_IDS.benchmarkingStoreComparison, label: 'Store Comparison', description: 'Metric-by-metric comparison against other stores.', type: 'panel', ...OWNER_BENCHMARKING },
   { id: KPI_IDS.benchmarkingTopPractices, label: 'Top Store Practices', description: 'Cards highlighting practices from top-performing stores.', type: 'panel', ...OWNER_BENCHMARKING },
 
+  // Owner · Dashboard
+  { id: KPI_IDS.ownerDashboardNetworkLeaderboard, label: 'Network Leaderboard', description: 'Multi-column ranking table across the store network.', type: 'panel', ...OWNER_DASHBOARD },
+  { id: KPI_IDS.ownerDashboardStoreComparison, label: 'Store Comparison', description: 'Metric-by-metric comparison against other stores.', type: 'panel', ...OWNER_DASHBOARD },
+  { id: KPI_IDS.ownerDashboardRankMovement, label: 'Rank Movement', description: "Store's rank movement over recent periods.", type: 'panel', ...OWNER_DASHBOARD },
+
   // Owner · Marketing Loop
   { id: KPI_IDS.marketingFootTraffic, label: 'Total Foot Traffic', description: 'Total foot traffic vs. the prior period.', type: 'card', ...OWNER_MARKETING },
   { id: KPI_IDS.marketingBestChannel, label: 'Best Channel', description: 'Highest traffic-per-dollar marketing channel.', type: 'card', ...OWNER_MARKETING },
@@ -156,6 +168,7 @@ export const PAGE_REGISTRY: PageRegistryEntry[] = [
   { id: PAGE_IDS.managerStaffing, ...MANAGER_STAFFING },
   { id: PAGE_IDS.ownerRoi, ...OWNER_ROI },
   { id: PAGE_IDS.ownerBenchmarking, ...OWNER_BENCHMARKING },
+  { id: PAGE_IDS.ownerDashboard, ...OWNER_DASHBOARD },
   { id: PAGE_IDS.ownerMarketing, ...OWNER_MARKETING },
 ]
 

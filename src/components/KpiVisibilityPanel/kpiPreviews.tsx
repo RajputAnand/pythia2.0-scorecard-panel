@@ -140,6 +140,10 @@ const KPI_PREVIEW_RENDERERS: Record<string, (id: string) => ReactNode> = {
   [KPI_IDS.benchmarkingStoreComparison]: () => <StoreComparison previewMode />,
   [KPI_IDS.benchmarkingTopPractices]: () => <TopStorePractices previewMode />,
 
+  [KPI_IDS.ownerDashboardNetworkLeaderboard]: () => <NetworkLeaderboard previewMode />,
+  [KPI_IDS.ownerDashboardStoreComparison]: () => <StoreComparison previewMode />,
+  [KPI_IDS.ownerDashboardRankMovement]: () => <RankMovement previewMode />,
+
   [KPI_IDS.marketingFootTraffic]: marketingInsightStripPreview,
   [KPI_IDS.marketingBestChannel]: marketingInsightStripPreview,
   [KPI_IDS.marketingFastestGrowingSegment]: marketingInsightStripPreview,

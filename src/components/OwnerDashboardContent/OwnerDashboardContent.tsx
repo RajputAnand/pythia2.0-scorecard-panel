@@ -17,6 +17,7 @@ import Toolbar from '@/components/shared/Toolbar/Toolbar'
 import BenchmarkingMetricFilter from '@/components/BenchmarkingMetricFilter/BenchmarkingMetricFilter'
 import CreateStoreBanner from '@/components/shared/CreateStoreBanner/CreateStoreBanner'
 import { downloadCsv } from '@/utils/common'
+import { KPI_IDS } from '@/lib/admin-config-data'
 
 interface OwnerDashboardContentProps {
   /** Super Admin mirror only — prefixes the Header subtitle so it's clear this is the read-only mirror, not the real owner page. */
@@ -70,16 +71,24 @@ export default function OwnerDashboardContent({ subtitlePrefix, initialHasStores
     let cancelled = false
     setLoading(true)
 
-    fetchBenchmarkAllStoreData({ token, limit: 5, selectedStoreId })
+    const storeToQuery = selectedStoreId || currentStore?._id || null
+
+    fetchBenchmarkAllStoreData({ token, limit: 5, selectedStoreId: storeToQuery })
       .then((res) => {
         if (!cancelled) {
           const stores = res?.data || []; 
           setAllStoreData(stores)
-          setTopPerformerStore(res?.selected_store ?? null)
           setMeta(res?.meta ?? null)
           setLoading(false)
           
-          if (stores.length > 1) {
+          if (res?.selected_store) {
+            setSelectedStoreData(res.selected_store as any)
+            if (res.selected_store.top_performer) {
+              setTopPerformerStore(res.selected_store.top_performer as any)
+            } else if (stores.length > 0) {
+              setTopPerformerStore(stores[0] as any)
+            }
+          } else if (stores.length > 1) {
             if (!selectedStoreId) {
               setSelectedStoreId(stores[1].store_id)
             }
@@ -99,7 +108,7 @@ export default function OwnerDashboardContent({ subtitlePrefix, initialHasStores
     return () => {
       cancelled = true
     }
-  }, [token, period, sortBy, filterMode, currentStore?._id])
+  }, [token, period, sortBy, filterMode, currentStore?._id, selectedStoreId])
 
   const subtitle = meta
     ? `${meta.period.label} · ${meta.scope.store_count} peer stores in network`
@@ -173,9 +182,19 @@ export default function OwnerDashboardContent({ subtitlePrefix, initialHasStores
               selectedStoreId={selectedStoreId}
               onSelectStore={(id) => setSelectedStoreId(id)}
               setSelectedStoreData={setSelectedStoreData}
+              visibilityId={KPI_IDS.ownerDashboardNetworkLeaderboard}
             />
-            <StoreComparison selectedStore={selectedStoreData} topPerformerStore={topPerformerStore} loading={loading} />
-            <RankMovement data={selectedStoreData?.rank_movement_board} loading={loading} />
+            <StoreComparison
+              selectedStore={selectedStoreData}
+              topPerformerStore={topPerformerStore}
+              loading={loading}
+              visibilityId={KPI_IDS.ownerDashboardStoreComparison}
+            />
+            <RankMovement
+              data={selectedStoreData?.rank_movement_board}
+              loading={loading}
+              visibilityId={KPI_IDS.ownerDashboardRankMovement}
+            />
           </>
         )}
       </div>

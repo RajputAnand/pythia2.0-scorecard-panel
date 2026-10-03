@@ -24,7 +24,7 @@ const segments: Segment[] = [
     variant: 'stable',
     name: 'Young Professionals (25–34)',
     detail: 'Weekday lunch + after-work peaks',
-    visitGrowth: 'N/A',
+    visitGrowth: '0',
     visitColor: 'text-secondary',
     avgBasket: '$0',
     basketColor: 'text-secondary',
@@ -34,7 +34,7 @@ const segments: Segment[] = [
     variant: 'stable',
     name: 'Gen Z (18–24)',
     detail: 'Evening visits',
-    visitGrowth: 'N/A',
+    visitGrowth: '0',
     visitColor: 'text-secondary',
     avgBasket: '$0',
     basketColor: 'text-secondary',
@@ -44,7 +44,7 @@ const segments: Segment[] = [
     variant: 'stable',
     name: 'Families (35–44)',
     detail: 'Weekend morning peaks',
-    visitGrowth: 'N/A',
+    visitGrowth: '0',
     visitColor: 'text-secondary',
     avgBasket: '$0',
     basketColor: 'text-secondary',
@@ -54,7 +54,7 @@ const segments: Segment[] = [
     variant: 'stable',
     name: 'Older Adults (45+)',
     detail: 'Morning visits',
-    visitGrowth: 'N/A',
+    visitGrowth: '0',
     visitColor: 'text-secondary',
     avgBasket: '$0',
     basketColor: 'text-secondary',
@@ -85,7 +85,7 @@ function mapSegmentData(data?: CustomerSegmentsResponse | null): Segment[] {
 
   return data.segments.map(item => {
     let variant: SegmentVariant = 'stable'
-    let visitGrowth = 'N/A'
+    let visitGrowth = '0'
     let visitColor = 'text-secondary'
     
     if (item.visit_growth_percentage !== null && item.visit_growth_percentage !== undefined) {
@@ -99,6 +99,21 @@ function mapSegmentData(data?: CustomerSegmentsResponse | null): Segment[] {
         visitColor = 'text-danger'
       } else {
         visitGrowth = '0%'
+      }
+    } else {
+      const diff = (item.current_count ?? 0) - (item.baseline_count ?? 0)
+      if (diff > 0) {
+        variant = 'growing'
+        visitGrowth = `+${diff}`
+        visitColor = 'text-accent'
+      } else if (diff < 0) {
+        variant = 'shrinking'
+        visitGrowth = `${diff}`
+        visitColor = 'text-danger'
+      } else {
+        variant = 'stable'
+        visitGrowth = '0'
+        visitColor = 'text-secondary'
       }
     }
     
