@@ -83,7 +83,7 @@ export async function fetchBenchmarkAllStoreData({
         skip,
         limit,
         filter_mode,
-        ...(filter_mode === "near_you" && {selected_store_id: selectedStoreId})
+        selected_store_id: selectedStoreId || undefined,
       },
       signal,
     },
