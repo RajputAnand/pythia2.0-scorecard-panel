@@ -437,7 +437,13 @@ export default function SuperAdminEmployeeOverviewContent({
             </div>
 
             <KpiVisibilityGate id={KPI_IDS.employeeSwagStore}>
-              <SwagStore />
+              <SwagStore
+                employeePoints={selectedEmployee?.points ?? 0}
+                employeeId={selectedEmployee?.user_id || selectedEmployee?._id}
+                employeeName={getEmployeeName(selectedEmployee)}
+                employeeEmail={selectedEmployee?.email}
+                storeId={selectedEmployee?.store_ids?.[0] || currentStoreId}
+              />
             </KpiVisibilityGate>
           </div>
         )}

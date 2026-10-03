@@ -31,9 +31,21 @@ const CATEGORY_TABS = [
 
 interface SwagStoreProps {
   previewMode?: boolean
+  employeePoints?: number
+  employeeId?: string
+  employeeName?: string
+  employeeEmail?: string
+  storeId?: string
 }
 
-export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
+export default function SwagStore({
+  previewMode,
+  employeePoints,
+  employeeId: propEmployeeId,
+  employeeName: propEmployeeName,
+  employeeEmail: propEmployeeEmail,
+  storeId: propStoreId,
+}: SwagStoreProps = {}) {
   const config = SWAG_STORE
   const pathname = usePathname()
   const isDedicatedPage = pathname?.includes('/swag')
@@ -47,17 +59,32 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
 
   const visible = useAdminConfigStore((s) => s.visibility[KPI_IDS.employeeSwagStore] ?? true)
 
+  const [localPoints, setLocalPoints] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (employeePoints !== undefined) {
+      setLocalPoints(employeePoints)
+    }
+  }, [employeePoints])
+
   const storePoints = useUserStore((s) => s.points) ?? 0
   const currentStore = useUserStore((s) => s.currentStore)
   const { data: session } = useSession()
   const token = session?.user?.pythia2Token || session?.user?.token
   const storeId =
+    propStoreId ||
     currentStore?.storeNo ||
     currentStore?._id ||
     session?.user?.store_ids?.[0] ||
     ((session?.user as Record<string, unknown> | undefined)?.storeIds as string[] | undefined)?.[0] ||
     '69c19e66a27efce5858b6487'
-  const points = previewMode ? PREVIEW_POINTS : storePoints
+  const points = previewMode
+    ? PREVIEW_POINTS
+    : localPoints !== null
+      ? localPoints
+      : employeePoints !== undefined
+        ? employeePoints
+        : storePoints
 
   const {
     catalog: storeItems,
@@ -79,8 +106,9 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
     }
   }, [fetchCatalog, fetchMyOrders, previewMode, token, storeId])
 
-  const currentEmployeeName = session?.user?.name || 'Marcus Reynolds'
-  const currentEmployeeEmail = session?.user?.email || 'emp_marcus'
+  const currentEmployeeName = propEmployeeName || session?.user?.name || 'Marcus Reynolds'
+  const currentEmployeeEmail = propEmployeeEmail || session?.user?.email || 'emp_marcus'
+  const currentEmployeeId = propEmployeeId || session?.user?.id || ((session?.user as Record<string, unknown> | undefined)?.user_id as string | undefined)
 
   // Sub-navigation tabs: Browse catalog vs My Orders
   const [activeViewTab, setActiveViewTab] = useState<'browse' | 'orders'>('browse')
@@ -110,6 +138,7 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
       if (!order) return false
       return (
         order.employeeId === currentEmployeeEmail ||
+        (currentEmployeeId && order.employeeId === currentEmployeeId) ||
         order.employeeName === currentEmployeeName ||
         order.employeeName === 'Marcus Reynolds' ||
         order.employeeName === 'Marcus R.' ||
@@ -189,7 +218,12 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
     const res = await redeemItem(item, currentEmployeeName, currentEmployeeEmail, { token, storeId })
 
     if (res.success) {
-      const remaining = useUserStore.getState().points ?? 0
+      const remaining = localPoints !== null
+        ? Math.max(0, localPoints - item.cost)
+        : useUserStore.getState().points ?? 0
+      if (localPoints !== null) {
+        setLocalPoints(remaining)
+      }
       showToast(
         `${item.emoji} "${item.name}" claimed! ${remaining.toLocaleString(
           'en-US'
@@ -204,6 +238,9 @@ export default function SwagStore({ previewMode }: SwagStoreProps = {}) {
     if (!cancellingOrder) return
     const res = await cancelOrder(cancellingOrder.id, currentEmployeeName, { token, storeId })
     if (res.success) {
+      if (localPoints !== null) {
+        setLocalPoints((prev) => (prev ?? points) + cancellingOrder.pointsCost)
+      }
       showToast(
         `Order #${cancellingOrder.id} cancelled. ${cancellingOrder.pointsCost.toLocaleString('en-US')} pts refunded to your balance!`
       )
