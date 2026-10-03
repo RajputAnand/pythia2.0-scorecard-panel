@@ -86,6 +86,7 @@ export interface LineChartSvgProps {
   streakBadge?: ChartStreakBadge
   hoverIndex?: number | null
   hoverXPositions?: number[]
+  verticalLines?: 'highlighted' | 'all' | 'none'
   onHoverIndexChange?: (index: number | null) => void
   onHoverPointerChange?: (position: ChartHoverPointer | null) => void
 }
