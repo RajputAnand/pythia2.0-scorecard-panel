@@ -110,9 +110,22 @@ export default function SuperAdminEmployeeSwagContent({
     }
   }, [initialEmployees, initialSelectedEmployee])
 
-  // Re-fetch employees when current store changes
+  const selectedEmployeeRef = useRef(selectedEmployee)
+  selectedEmployeeRef.current = selectedEmployee
+
+  const isFirstMount = useRef(true)
   const lastStoreId = useRef(currentStoreId)
+
+  // Re-fetch employees when current store changes
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+      lastStoreId.current = currentStoreId
+      if (initialEmployees.length > 0) {
+        return
+      }
+    }
+
     if (lastStoreId.current !== currentStoreId) {
       lastStoreId.current = currentStoreId
       if (!activeToken) return
@@ -123,8 +136,9 @@ export default function SuperAdminEmployeeSwagContent({
           if (cancelled) return
           const list = res.data ?? []
           setEmployees(list)
+          const currentEmp = selectedEmployeeRef.current
           const stillPresent = list.find(
-            (e) => (e.user_id || e._id) === (selectedEmployee?.user_id || selectedEmployee?._id)
+            (e) => (e.user_id || e._id) === (currentEmp?.user_id || currentEmp?._id)
           )
           if (stillPresent) {
             setSelectedEmployee(stillPresent)
@@ -134,27 +148,26 @@ export default function SuperAdminEmployeeSwagContent({
         })
         .catch(() => {})
         .finally(() => {
-          if (!cancelled) setEmployeesLoading(false)
+          setEmployeesLoading(false)
         })
       return () => {
         cancelled = true
       }
     }
-  }, [currentStoreId, activeToken, selectedEmployee])
+  }, [currentStoreId, activeToken, initialEmployees.length])
 
   // Fetch employees client-side if initial list was empty
   useEffect(() => {
-    if (employees.length === 0 && activeToken) {
+    if (employees.length === 0 && activeToken && !isFirstMount.current) {
       let cancelled = false
-      queueMicrotask(() => {
-        if (!cancelled) setEmployeesLoading(true)
-      })
+      setEmployeesLoading(true)
       fetchEmployees({ token: activeToken, skip: 0, limit: 100, storeId: currentStoreId })
         .then((res) => {
           if (cancelled) return
           const list = res.data ?? []
           setEmployees(list)
-          if (!selectedEmployee && list.length > 0) {
+          const currentEmp = selectedEmployeeRef.current
+          if (!currentEmp && list.length > 0) {
             const matched = globalSelectedEmployee
               ? list.find((e) => (e.user_id || e._id) === (globalSelectedEmployee.user_id || globalSelectedEmployee._id))
               : null
@@ -163,13 +176,13 @@ export default function SuperAdminEmployeeSwagContent({
         })
         .catch(() => {})
         .finally(() => {
-          if (!cancelled) setEmployeesLoading(false)
+          setEmployeesLoading(false)
         })
       return () => {
         cancelled = true
       }
     }
-  }, [activeToken, employees.length, selectedEmployee, currentStoreId, globalSelectedEmployee])
+  }, [activeToken, employees.length, currentStoreId, globalSelectedEmployee])
 
   // Always reflect changes to globalSelectedEmployee (e.g. if updated after redemptions)
   useEffect(() => {

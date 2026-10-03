@@ -75,13 +75,13 @@ export default function EmployeeSelector({
         type="button"
         id="employee-selector-trigger"
         onClick={() => !disabled && setOpen((prev) => !prev)}
-        disabled={disabled || loading}
+        disabled={disabled || (loading && !selectedEmployee)}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label="Select employee"
         className="cursor-pointer flex items-center gap-[7px] font-sans font-medium text-secondary bg-surface-alt border border-border rounded-lg transition-all duration-150 hover:bg-border hover:text-primary text-[12.5px] px-[12px] py-[6px] whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
       >
-        {loading ? (
+        {loading && !selectedEmployee ? (
           <svg className="w-[14px] h-[14px] shrink-0 text-accent animate-spin" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -102,7 +102,7 @@ export default function EmployeeSelector({
         )}
 
         <span className="max-w-[130px] xl:max-w-[160px] overflow-hidden text-ellipsis">
-          {loading ? 'Loading…' : displayName}
+          {loading && !selectedEmployee ? 'Loading…' : displayName}
         </span>
 
         <svg
