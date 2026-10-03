@@ -437,7 +437,7 @@ export default function SuperAdminEmployeeOverviewContent({
             </div>
 
             <KpiVisibilityGate id={KPI_IDS.employeeSwagStore}>
-              <SwagStore previewMode />
+              <SwagStore />
             </KpiVisibilityGate>
           </div>
         )}
