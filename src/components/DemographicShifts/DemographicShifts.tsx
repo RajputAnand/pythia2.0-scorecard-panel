@@ -85,11 +85,44 @@ function DemoBarRows({ rows, insight, baselineLabel, currentLabel }: { rows: Dem
           </div>
         ))}
       </div>
-      <div className="mt-[14px] bg-surface-alt rounded-[9px] px-[13px] py-[11px] text-[12px] text-secondary leading-[1.55]">
-        {insight}
-      </div>
+      {insight ? (
+        <div className="mt-[14px] bg-surface-alt rounded-[9px] px-[13px] py-[11px] text-[12px] text-secondary leading-[1.55]">
+          {insight}
+        </div>
+      ) : null}
     </div>
   )
+}
+
+function computeAgeInsight(data: AgeDistributionResponse | null | undefined, baselineLabel: string): React.ReactNode {
+  if (!data?.age_ranges || data.age_ranges.length === 0) return AGE_INSIGHT
+  const valid = data.age_ranges.filter(r => typeof r.change === 'number')
+  if (valid.length === 0) return AGE_INSIGHT
+  const top = [...valid].sort((a, b) => (b.change ?? 0) - (a.change ?? 0))[0]
+  if (top && (top.change ?? 0) > 0) {
+    return (
+      <>
+        <strong className="font-semibold text-primary">{top.age_range}</strong> is your fastest-growing segment — up {top.change} points since {baselineLabel}.
+      </>
+    )
+  }
+  return <><strong className="font-semibold text-primary">Age distribution</strong> has remained relatively stable since {baselineLabel}.</>
+}
+
+function computeGenderInsight(data: GenderDistributionResponse | null | undefined, baselineLabel: string): React.ReactNode {
+  if (!data?.genders || data.genders.length === 0) return GENDER_INSIGHT
+  const valid = data.genders.filter(g => typeof g.change === 'number')
+  if (valid.length === 0) return GENDER_INSIGHT
+  const top = [...valid].sort((a, b) => (b.change ?? 0) - (a.change ?? 0))[0]
+  if (top && (top.change ?? 0) > 0) {
+    const curPct = top.current.percentage !== null && top.current.percentage !== undefined ? ` (now ${Math.round(top.current.percentage)}% of visits)` : ''
+    return (
+      <>
+        <strong className="font-semibold text-primary">{top.gender} customers</strong> saw the highest shift — up {top.change} points since {baselineLabel}{curPct}.
+      </>
+    )
+  }
+  return <><strong className="font-semibold text-primary">Gender split</strong> has remained steady since {baselineLabel}.</>
 }
 
 function mapAgeData(data?: AgeDistributionResponse | null): DemoRow[] {
@@ -191,13 +224,13 @@ export default function DemographicShifts({ previewMode, ageData, genderData }: 
       {tab === 'age'
         ? <DemoBarRows 
             rows={previewMode ? PREVIEW_AGE_ROWS.slice(0, 2) : (ageData ? mapAgeData(ageData) : AGE_ROWS)} 
-            insight={previewMode ? PREVIEW_AGE_INSIGHT : (ageData ? '' : AGE_INSIGHT)} 
+            insight={previewMode ? PREVIEW_AGE_INSIGHT : computeAgeInsight(ageData, baselineLabel)} 
             baselineLabel={baselineLabel}
             currentLabel={currentLabel}
           />
         : <DemoBarRows 
             rows={previewMode ? PREVIEW_GENDER_ROWS.slice(0, 2) : (genderData ? mapGenderData(genderData) : GENDER_ROWS)} 
-            insight={previewMode ? PREVIEW_GENDER_INSIGHT : (genderData ? '' : GENDER_INSIGHT)} 
+            insight={previewMode ? PREVIEW_GENDER_INSIGHT : computeGenderInsight(genderData, baselineLabel)} 
             baselineLabel={baselineLabel}
             currentLabel={currentLabel}
           />
